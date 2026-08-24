@@ -6,6 +6,9 @@ import { validateShippingAddress } from "@/lib/orders";
 
 type CartItem = {
   productId: string;
+  slug: string;
+  nameEn: string;
+  nameZh: string;
   name: string;
   price: number;
   quantity: number;
@@ -77,6 +80,17 @@ export async function POST(req: NextRequest) {
       line_items: lineItems,
       metadata: {
         shipping: JSON.stringify(address),
+        items: JSON.stringify(
+          items.map((item) => ({
+            productId: item.productId,
+            slug: item.slug,
+            nameEn: item.nameEn,
+            nameZh: item.nameZh,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+        ),
       },
       success_url: `${appUrl}/${locale}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${locale}/cart`,

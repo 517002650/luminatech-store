@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getStripe } from "@/lib/stripe";
 import { getCurrentUser } from "@/lib/user-auth";
-import { sendOrderConfirmationEmail } from "@/lib/email";
 import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
+import { fulfillStripeCheckoutSession } from "@/lib/stripe-order";
 
 type CartItem = {
   productId: string;
@@ -20,7 +19,7 @@ type CompleteOrderBody = {
   provider: "stripe" | "paypal";
   sessionId?: string;
   paypalOrderId?: string;
-  items: CartItem[];
+  items?: CartItem[];
   shippingAddress?: ShippingAddress;
 };
 
@@ -28,28 +27,10 @@ function calcTotal(items: CartItem[]) {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-function parseMetadataShipping(raw: string | null | undefined): ShippingAddress | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as ShippingAddress;
-  } catch {
-    return null;
-  }
-}
-
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CompleteOrderBody;
     const { provider, sessionId, paypalOrderId, items, shippingAddress } = body;
-
-    if (!items?.length) {
-      return NextResponse.json({ error: "订单商品为空" }, { status: 400 });
-    }
-
-    let email = "";
-    let paymentId = "";
-    let total = calcTotal(items);
-    let resolvedShipping = shippingAddress ?? null;
 
     if (provider === "stripe") {
       if (!sessionId) {
@@ -59,82 +40,73 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Stripe 未配置" }, { status: 500 });
       }
 
-      const stripe = getStripe();
-      const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-      if (session.payment_status !== "paid") {
-        return NextResponse.json({ error: "支付未完成" }, { status: 400 });
-      }
-
-      email = session.customer_details?.email ?? session.customer_email ?? "";
-      paymentId = session.id;
-      total = (session.amount_total ?? 0) / 100;
-
-      if (!resolvedShipping) {
-        resolvedShipping = parseMetadataShipping(session.metadata?.shipping);
-      }
-    } else if (provider === "paypal") {
-      if (!paypalOrderId) {
-        return NextResponse.json({ error: "缺少 PayPal 订单号" }, { status: 400 });
-      }
-      paymentId = paypalOrderId;
-    } else {
-      return NextResponse.json({ error: "未知支付方式" }, { status: 400 });
-    }
-
-    const existing = paymentId
-      ? await prisma.order.findUnique({ where: { paymentId } })
-      : null;
-
-    if (existing) {
-      return NextResponse.json({ orderId: existing.id, duplicate: true });
-    }
-
-    const user = await getCurrentUser();
-
-    if (!resolvedShipping) {
-      return NextResponse.json({ error: "缺少收货地址" }, { status: 400 });
-    }
-
-    const validationError = validateShippingAddress(resolvedShipping);
-    if (validationError) {
-      return NextResponse.json({ error: "收货地址不完整" }, { status: 400 });
-    }
-
-    if (!email) {
-      email = resolvedShipping.email;
-    }
-    if (user && !email) {
-      email = user.email;
-    }
-
-    const order = await prisma.order.create({
-      data: {
+      const user = await getCurrentUser();
+      const result = await fulfillStripeCheckoutSession(sessionId, {
         userId: user?.id,
-        email,
-        total,
-        status: "paid",
-        paymentMethod: provider,
-        paymentId,
-        items: JSON.stringify(items),
-        shippingAddress: JSON.stringify(resolvedShipping),
-      },
-    });
+        clientItems: items?.length ? items : undefined,
+      });
 
-    for (const item of items) {
-      await prisma.product.updateMany({
-        where: { id: item.productId, stock: { gt: 0 } },
-        data: { stock: { decrement: item.quantity } },
+      return NextResponse.json({
+        orderId: result.orderId,
+        duplicate: result.duplicate,
       });
     }
 
-    try {
-      await sendOrderConfirmationEmail(order);
-    } catch (err) {
-      console.error("Order confirmation email failed:", err);
+    if (provider === "paypal") {
+      if (!items?.length) {
+        return NextResponse.json({ error: "订单商品为空" }, { status: 400 });
+      }
+      if (!paypalOrderId) {
+        return NextResponse.json({ error: "缺少 PayPal 订单号" }, { status: 400 });
+      }
+
+      const paymentId = paypalOrderId;
+      const existing = await prisma.order.findUnique({ where: { paymentId } });
+      if (existing) {
+        return NextResponse.json({ orderId: existing.id, duplicate: true });
+      }
+
+      const resolvedShipping = shippingAddress ?? null;
+      if (!resolvedShipping) {
+        return NextResponse.json({ error: "缺少收货地址" }, { status: 400 });
+      }
+
+      const validationError = validateShippingAddress(resolvedShipping);
+      if (validationError) {
+        return NextResponse.json({ error: "收货地址不完整" }, { status: 400 });
+      }
+
+      const user = await getCurrentUser();
+      let email = resolvedShipping.email;
+      if (user && !email) {
+        email = user.email;
+      }
+
+      const total = calcTotal(items);
+      const order = await prisma.order.create({
+        data: {
+          userId: user?.id,
+          email,
+          total,
+          status: "paid",
+          paymentMethod: "paypal",
+          paymentId,
+          items: JSON.stringify(items),
+          shippingAddress: JSON.stringify(resolvedShipping),
+        },
+      });
+
+      for (const item of items) {
+        await prisma.product.updateMany({
+          where: { id: item.productId, stock: { gt: 0 } },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+
+      return NextResponse.json({ orderId: order.id });
     }
 
-    return NextResponse.json({ orderId: order.id });
+    return NextResponse.json({ error: "未知支付方式" }, { status: 400 });
   } catch (err) {
     console.error("Order complete error:", err);
     return NextResponse.json(

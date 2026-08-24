@@ -321,10 +321,23 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 | 后台登录后报错 | 同上 | 同上；修复后应看到商品列表 |
 | 上传图片失败 | Cloudinary 未配或配错 | 检查三个 `CLOUDINARY_*`，Redeploy |
 | 改了环境变量不生效 | 未重新部署 | Vercel → Deployments → Redeploy |
-| 支付按钮无效 | 未配 Stripe/PayPal | 填测试密钥后 Redeploy |
+| 支付提示 `Stripe is not configured` | 未配置 `STRIPE_SECRET_KEY` | 见下方「配置 Stripe 密钥」 |
+| 支付按钮无效 | 未配 Stripe/PayPal | 同上 |
 | 收不到邮件 | 未配 SMTP 或邮箱拦截 | 检查 SMTP 变量；看垃圾箱 |
 | 推送 Git 失败 | Token 无效/无 repo 权限 | 新建 Classic Token，勾选 `repo`，用完删除 |
 | 本地与线上数据不一致 | 本地/线上是不同数据库 | 正常现象；线上数据只在 Neon |
+
+### 配置 Stripe 密钥（解决 `Stripe is not configured`）
+
+1. 打开 https://dashboard.stripe.com/test/apikeys （确认是 **Test mode**）
+2. 复制 **Secret key**（`sk_test_...`）和 **Publishable key**（`pk_test_...`）
+3. Vercel → `luminatech-store2` → **Settings** → **Environment Variables**，新增：
+   - `STRIPE_SECRET_KEY` = `sk_test_...`
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_test_...`
+4. **Deployments** → **Redeploy**
+5. 再用测试卡 `4242 4242 4242 4242` 试一次
+
+密钥不要发到聊天、不要提交 GitHub。
 
 ### 查看日志
 

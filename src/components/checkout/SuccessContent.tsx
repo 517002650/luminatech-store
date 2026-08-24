@@ -29,25 +29,33 @@ export function SuccessContent({ isLoggedIn }: Props) {
     if (completedRef.current) return;
 
     async function completeOrder() {
-      if (items.length === 0) {
-        setProcessing(false);
-        return;
-      }
-
       const shippingAddress = loadShippingFromSession();
 
       try {
-        await fetch("/api/orders/complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider,
-            sessionId: sessionId ?? undefined,
-            paypalOrderId: paypalOrderId ?? undefined,
-            items,
-            shippingAddress: shippingAddress ?? undefined,
-          }),
-        });
+        if (provider === "stripe" && sessionId) {
+          // Stripe: order data lives on the server (session metadata + webhook).
+          await fetch("/api/orders/complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider,
+              sessionId,
+              items: items.length > 0 ? items : undefined,
+            }),
+          });
+        } else if (provider === "paypal") {
+          if (items.length === 0) return;
+          await fetch("/api/orders/complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider,
+              paypalOrderId: paypalOrderId ?? undefined,
+              items,
+              shippingAddress: shippingAddress ?? undefined,
+            }),
+          });
+        }
       } catch {
         // Payment succeeded; order recording failure shouldn't block the user.
       } finally {
