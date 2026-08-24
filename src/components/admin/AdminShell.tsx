@@ -15,7 +15,7 @@ export function AdminShell({
     <div className="min-h-screen bg-stone-100">
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6">
         <aside className="hidden w-56 shrink-0 lg:block">
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+          <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
             <p className="text-lg font-bold text-stone-900">
               Lumina<span className="text-amber-600">Tech</span>
             </p>
