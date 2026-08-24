@@ -15,12 +15,21 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("home");
 
-  const products = await prisma.product.findMany({
-    where: { featured: true },
-    take: 3,
-  });
-  const featured = products.map((p) => localizeProduct(p, locale));
-  const ratingMap = await getProductRatingMap(products.map((p) => p.id));
+  let featured: ReturnType<typeof localizeProduct>[] = [];
+  let ratingMap = new Map<string, { avg: number; count: number }>();
+  let dbError = "";
+
+  try {
+    const products = await prisma.product.findMany({
+      where: { featured: true },
+      take: 3,
+    });
+    featured = products.map((p) => localizeProduct(p, locale));
+    ratingMap = await getProductRatingMap(products.map((p) => p.id));
+  } catch (err) {
+    console.error("Home page DB error:", err);
+    dbError = err instanceof Error ? err.message : "Database error";
+  }
 
   const features = ["shipping", "payment", "warranty"] as const;
 
@@ -61,23 +70,30 @@ export default async function HomePage({ params }: Props) {
             {t("viewAll")} →
           </Link>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {featured.map((product) => {
-            const rating = ratingMap.get(product.id);
-            return (
-              <ProductCard
-                key={product.id}
-                slug={product.slug}
-                name={product.name}
-                price={product.price}
-                image={product.image}
-                category={product.category}
-                avgRating={rating?.avg}
-                reviewCount={rating?.count}
-              />
-            );
-          })}
-        </div>
+        {dbError ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+            商品数据暂时无法加载。请确认已配置 PostgreSQL（DATABASE_URL）并重新部署。
+            <pre className="mt-2 overflow-auto text-xs text-amber-700">{dbError}</pre>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.map((product) => {
+              const rating = ratingMap.get(product.id);
+              return (
+                <ProductCard
+                  key={product.id}
+                  slug={product.slug}
+                  name={product.name}
+                  price={product.price}
+                  image={product.image}
+                  category={product.category}
+                  avgRating={rating?.avg}
+                  reviewCount={rating?.count}
+                />
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <section id="about" className="border-t border-stone-200 bg-stone-50">

@@ -82,114 +82,104 @@ const products = [
     warranty: "1 year",
   },
   {
-    slug: "mechanical-keyboard-rgb",
+    slug: "mechanical-keyboard-75",
     sku: "LT-KB-002",
     brand: "LuminaTech",
-    nameEn: "Mechanical Keyboard RGB",
-    nameZh: "机械键盘 RGB",
-    shortDescEn: "Hot-swappable switches with per-key RGB and aluminum frame.",
-    shortDescZh: "热插拔轴体，逐键 RGB，铝合金机身。",
-    descriptionEn: `A compact 75% layout mechanical keyboard built for productivity and gaming.
+    nameEn: "Mechanical Keyboard 75%",
+    nameZh: "75% 机械键盘",
+    shortDescEn: "Hot-swap RGB keyboard with gasket mount and wireless mode.",
+    shortDescZh: "热插拔 RGB，垫片结构，支持无线连接。",
+    descriptionEn: `Compact 75% layout without sacrificing arrow keys.
 
-![Keyboard angle](${photo("keyboard-detail-en", 900, 500)})
+![Keyboard](${photo("keyboard-detail-en", 900, 500)})
 
-Pre-lubed stabilizers deliver a smooth typing feel. Supports VIA configurator for full key remapping.`,
-    descriptionZh: `75% 紧凑配列，兼顾办公与游戏，预润卫星轴敲击顺滑。
+Gasket-mounted for a soft typing feel. Hot-swap sockets support 3-pin and 5-pin switches.`,
+    descriptionZh: `紧凑 75% 配列，保留方向键与功能区。
 
-![键盘细节](${photo("keyboard-detail-zh", 900, 500)})
+![键盘](${photo("keyboard-detail-zh", 900, 500)})
 
-支持 VIA 全键改键，附 USB-C 可拆线及 USB-A 转接头。`,
+垫片结构打字更柔和。热插拔座支持 3 脚 / 5 脚轴体。`,
     categoryEn: "Peripherals",
     categoryZh: "外设",
-    price: 129.0,
+    price: 129.99,
     image: photo("keyboard-main"),
-    images: JSON.stringify([
-      photo("keyboard-1"),
-      photo("keyboard-2"),
-      photo("keyboard-3"),
-    ]),
+    images: JSON.stringify([photo("keyboard-1"), photo("keyboard-2")]),
     specsEn: JSON.stringify([
-      { label: "Layout", value: "75% (84 keys)" },
-      { label: "Switch", value: "Hot-swap Gateron compatible" },
-      { label: "Polling rate", value: "1000Hz" },
-      { label: "Material", value: "CNC aluminum case" },
-      { label: "Backlight", value: "South-facing RGB" },
-      { label: "Connection", value: "Wired USB-C" },
+      { label: "Layout", value: "75% / 84 keys" },
+      { label: "Switch", value: "Hot-swap (pre-lubed)" },
+      { label: "Connection", value: "2.4G / Bluetooth / USB-C" },
+      { label: "Battery", value: "4000mAh" },
+      { label: "Lighting", value: "Per-key RGB" },
     ]),
     specsZh: JSON.stringify([
-      { label: "配列", value: "75%（84 键）" },
-      { label: "轴体", value: "热插拔，兼容 Gateron" },
-      { label: "回报率", value: "1000Hz" },
-      { label: "材质", value: "CNC 铝合金外壳" },
-      { label: "背光", value: "下灯位 RGB" },
-      { label: "连接", value: "有线 USB-C" },
+      { label: "配列", value: "75% / 84 键" },
+      { label: "轴体", value: "热插拔（预润）" },
+      { label: "连接", value: "2.4G / 蓝牙 / USB-C" },
+      { label: "电池", value: "4000mAh" },
+      { label: "灯效", value: "单键 RGB" },
     ]),
     highlightsEn: JSON.stringify([
-      "Gasket-mount structure for softer feel",
-      "Foam-filled for reduced ping",
-      "Mac & Windows dual-system keys",
+      "Gasket mount soft typing feel",
+      "Tri-mode wireless connectivity",
+      "Mac / Windows key remapping",
     ]),
     highlightsZh: JSON.stringify([
-      "Gasket 结构，手感更软弹",
-      "多层消音填充，减少空腔音",
-      "Mac / Windows 双系统键帽",
+      "垫片结构，打字更软",
+      "三模无线连接",
+      "Mac / Windows 键位切换",
     ]),
-    stock: 85,
+    stock: 80,
     featured: true,
-    warranty: "2 years",
+    warranty: "1 year",
   },
   {
-    slug: "usb-c-hub-7in1",
+    slug: "usb-c-hub-8in1",
     sku: "LT-HB-003",
     brand: "LuminaTech",
-    nameEn: "USB-C Hub 7-in-1",
-    nameZh: "USB-C 扩展坞 7合1",
-    shortDescEn: "4K HDMI, 100W PD, SD card reader in one compact hub.",
-    shortDescZh: "4K HDMI、100W 快充、读卡器，一坞搞定。",
-    descriptionEn: `Expand a single USB-C port into 7 essential interfaces.
+    nameEn: "USB-C Hub 8-in-1",
+    nameZh: "USB-C 扩展坞 8合1",
+    shortDescEn: "HDMI 4K, Ethernet, SD/TF, and 100W PD pass-through.",
+    shortDescZh: "HDMI 4K、千兆网口、SD/TF、100W PD 供电。",
+    descriptionEn: `One cable for your entire desk setup.
 
-![USB-C Hub](${photo("hub-detail-en", 900, 500)})
+![Hub](${photo("hub-detail-en", 900, 500)})
 
-Power Delivery passthrough charges your laptop while peripherals stay connected.`,
-    descriptionZh: `一个 USB-C 扩展为 7 个常用接口，PD 透传可同时充电。
+Supports 4K@60Hz HDMI and 100W Power Delivery charging.`,
+    descriptionZh: `一根线搞定桌面扩展。
 
 ![扩展坞](${photo("hub-detail-zh", 900, 500)})
 
-铝合金外壳散热更好，即插即用免驱动。`,
+支持 HDMI 4K@60Hz 与 100W PD 充电。`,
     categoryEn: "Accessories",
     categoryZh: "配件",
     price: 49.99,
     image: photo("hub-main"),
     images: JSON.stringify([photo("hub-1"), photo("hub-2")]),
     specsEn: JSON.stringify([
-      { label: "Ports", value: "HDMI 4K@60Hz, 2×USB-A 3.0, USB-C, SD/TF, PD 100W" },
-      { label: "Data speed", value: "5Gbps" },
-      { label: "PD input", value: "Up to 100W" },
-      { label: "Material", value: "Aluminum alloy" },
-      { label: "Cable", value: "15cm braided USB-C" },
-      { label: "Compatibility", value: "Thunderbolt 3/4, USB-C" },
+      { label: "Ports", value: "HDMI, RJ45, USB-A x2, USB-C, SD, TF, PD" },
+      { label: "HDMI", value: "4K@60Hz" },
+      { label: "PD", value: "100W pass-through" },
+      { label: "Ethernet", value: "1Gbps" },
     ]),
     specsZh: JSON.stringify([
-      { label: "接口", value: "HDMI 4K@60Hz、2×USB-A 3.0、USB-C、SD/TF、PD 100W" },
-      { label: "传输速率", value: "5Gbps" },
-      { label: "PD 输入", value: "最高 100W" },
-      { label: "材质", value: "铝合金" },
-      { label: "线缆", value: "15cm 编织 USB-C" },
-      { label: "兼容", value: "Thunderbolt 3/4、USB-C" },
+      { label: "接口", value: "HDMI、网口、USB-A×2、USB-C、SD、TF、PD" },
+      { label: "HDMI", value: "4K@60Hz" },
+      { label: "PD", value: "100W 供电直通" },
+      { label: "网口", value: "1Gbps" },
     ]),
     highlightsEn: JSON.stringify([
-      "Simultaneous 4K display + charging",
-      "Individual port surge protection",
-      "Compact travel-friendly design",
+      "Aluminum body, compact travel size",
+      "Compatible with MacBook, iPad, Windows laptops",
+      "Plug and play",
     ]),
     highlightsZh: JSON.stringify([
-      "4K 投屏与充电同时进行",
-      "各接口独立防浪涌保护",
-      "紧凑设计，差旅便携",
+      "铝合金机身，便携出差",
+      "兼容 MacBook、iPad、Windows 笔记本",
+      "即插即用",
     ]),
     stock: 200,
     featured: true,
-    warranty: "18 months",
+    warranty: "1 year",
   },
   {
     slug: "portable-ssd-1tb",
@@ -197,18 +187,18 @@ Power Delivery passthrough charges your laptop while peripherals stay connected.
     brand: "LuminaTech",
     nameEn: "Portable SSD 1TB",
     nameZh: "移动固态硬盘 1TB",
-    shortDescEn: "1050MB/s read speed in a pocket-size NVMe enclosure.",
-    shortDescZh: "口袋大小 NVMe 移动硬盘，读速 1050MB/s。",
-    descriptionEn: `Transfer a 4K movie in seconds with USB 3.2 Gen2 speeds.
+    shortDescEn: "1050MB/s read speeds with USB-C and rugged enclosure.",
+    shortDescZh: "读取最高 1050MB/s，USB-C，三防外壳。",
+    descriptionEn: `Fast external storage for creators on the go.
 
-![Portable SSD](${photo("ssd-detail-en", 900, 500)})
+![SSD](${photo("ssd-detail-en", 900, 500)})
 
-Hardware encryption keeps your files safe. Shock-resistant metal body.`,
-    descriptionZh: `USB 3.2 Gen2 高速传输，4K 电影秒传，硬件加密保护数据。
+IP65 dust and water resistance with shock-absorbing silicone bumper.`,
+    descriptionZh: `创作者随身高速存储。
 
-![移动固态硬盘](${photo("ssd-detail-zh", 900, 500)})
+![固态硬盘](${photo("ssd-detail-zh", 900, 500)})
 
-金属机身抗摔，兼容 PC、Mac、PlayStation 及 Android OTG。`,
+IP65 防尘防水，硅胶减震套保护。`,
     categoryEn: "Storage",
     categoryZh: "存储",
     price: 99.99,
@@ -216,29 +206,25 @@ Hardware encryption keeps your files safe. Shock-resistant metal body.`,
     images: JSON.stringify([photo("ssd-1"), photo("ssd-2")]),
     specsEn: JSON.stringify([
       { label: "Capacity", value: "1TB" },
-      { label: "Read / Write", value: "1050 / 1000 MB/s" },
-      { label: "Interface", value: "USB 3.2 Gen2 (10Gbps)" },
-      { label: "Encryption", value: "AES 256-bit hardware" },
-      { label: "Dimensions", value: "85 × 54 × 10 mm" },
-      { label: "Weight", value: "45g" },
+      { label: "Read", value: "Up to 1050MB/s" },
+      { label: "Write", value: "Up to 1000MB/s" },
+      { label: "Interface", value: "USB 3.2 Gen2 Type-C" },
     ]),
     specsZh: JSON.stringify([
       { label: "容量", value: "1TB" },
-      { label: "读 / 写", value: "1050 / 1000 MB/s" },
-      { label: "接口", value: "USB 3.2 Gen2（10Gbps）" },
-      { label: "加密", value: "AES 256 硬件加密" },
-      { label: "尺寸", value: "85 × 54 × 10 mm" },
-      { label: "重量", value: "45g" },
+      { label: "读取", value: "最高 1050MB/s" },
+      { label: "写入", value: "最高 1000MB/s" },
+      { label: "接口", value: "USB 3.2 Gen2 Type-C" },
     ]),
     highlightsEn: JSON.stringify([
-      "Real-world 10Gbps performance",
-      "Password-protected encryption",
-      "Includes USB-C to C and C to A cables",
+      "Works with Windows, macOS, Android",
+      "Hardware encryption supported",
+      "Compact pocket size",
     ]),
     highlightsZh: JSON.stringify([
-      "真实 10Gbps 级传输体验",
-      "支持密码加密",
-      "附 USB-C 双头及 C 转 A 线",
+      "兼容 Windows、macOS、Android",
+      "支持硬件加密",
+      "口袋便携尺寸",
     ]),
     stock: 150,
     featured: false,
@@ -250,52 +236,44 @@ Hardware encryption keeps your files safe. Shock-resistant metal body.`,
     brand: "LuminaTech",
     nameEn: "Smart Watch Ultra",
     nameZh: "智能手表 Ultra",
-    shortDescEn: "AMOLED display, GPS, and 14-day battery in a rugged design.",
-    shortDescZh: "AMOLED 大屏，GPS 定位，14 天续航，坚固设计。",
-    descriptionEn: `Track 120+ sport modes with dual-band GPS for accurate outdoor routes.
+    shortDescEn: "AMOLED display, GPS, SpO2, and 14-day battery life.",
+    shortDescZh: "AMOLED 屏，GPS，血氧，续航约 14 天。",
+    descriptionEn: `Track workouts and health with a bright AMOLED watch.
 
-![Smart Watch](${photo("watch-detail-en", 900, 500)})
+![Watch](${photo("watch-detail-en", 900, 500)})
 
-1.43" AMOLED screen stays readable in direct sunlight. 5ATM water resistance.`,
-    descriptionZh: `支持 120+ 运动模式，双频 GPS 精准记录户外轨迹。
+Built-in GPS, heart rate, SpO2, and sleep monitoring.`,
+    descriptionZh: `高亮 AMOLED 屏幕，运动与健康一站追踪。
 
-![智能手表](${photo("watch-detail-zh", 900, 500)})
+![手表](${photo("watch-detail-zh", 900, 500)})
 
-1.43 英寸 AMOLED 屏，5ATM 防水，可游泳佩戴。`,
+内置 GPS、心率、血氧与睡眠监测。`,
     categoryEn: "Wearables",
     categoryZh: "穿戴",
-    price: 199.0,
+    price: 159.99,
     image: photo("watch-main"),
-    images: JSON.stringify([
-      photo("watch-1"),
-      photo("watch-2"),
-      photo("watch-3"),
-    ]),
+    images: JSON.stringify([photo("watch-1"), photo("watch-2")]),
     specsEn: JSON.stringify([
-      { label: "Display", value: '1.43" AMOLED, 466×466' },
-      { label: "Battery", value: "Up to 14 days (typical use)" },
-      { label: "GPS", value: "Dual-band L1 + L5" },
-      { label: "Water resistance", value: "5ATM / IP68" },
-      { label: "Sensors", value: "HR, SpO2, accelerometer, gyro" },
-      { label: "Compatibility", value: "iOS 13+ / Android 8+" },
+      { label: "Display", value: "1.43\" AMOLED" },
+      { label: "Battery", value: "Up to 14 days" },
+      { label: "Water", value: "5ATM" },
+      { label: "Sensors", value: "HR, SpO2, GPS, accelerometer" },
     ]),
     specsZh: JSON.stringify([
-      { label: "屏幕", value: "1.43 英寸 AMOLED，466×466" },
-      { label: "续航", value: "典型使用最长 14 天" },
-      { label: "GPS", value: "双频 L1 + L5" },
-      { label: "防水", value: "5ATM / IP68" },
-      { label: "传感器", value: "心率、血氧、加速度、陀螺仪" },
-      { label: "兼容", value: "iOS 13+ / Android 8+" },
+      { label: "屏幕", value: "1.43 英寸 AMOLED" },
+      { label: "续航", value: "最长约 14 天" },
+      { label: "防水", value: "5ATM" },
+      { label: "传感器", value: "心率、血氧、GPS、加速度计" },
     ]),
     highlightsEn: JSON.stringify([
-      "Always-on display option",
-      "Offline map support for hiking",
-      "100+ customizable watch faces",
+      "100+ sports modes",
+      "Bluetooth calling",
+      "Smart notifications",
     ]),
     highlightsZh: JSON.stringify([
-      "支持常亮显示",
-      "离线地图，徒步更安心",
-      "100+ 表盘随心换",
+      "100+ 运动模式",
+      "蓝牙通话",
+      "智能消息提醒",
     ]),
     stock: 60,
     featured: false,
@@ -357,8 +335,11 @@ HDR 平衡逆光，双降噪麦克风，附隐私挡板。`,
 ];
 
 async function main() {
-  await prisma.product.deleteMany();
-  await prisma.order.deleteMany();
+  const existing = await prisma.product.count();
+  if (existing > 0) {
+    console.log(`Skip seed: ${existing} products already exist`);
+    return;
+  }
 
   for (const product of products) {
     await prisma.product.create({ data: product });
@@ -368,5 +349,8 @@ async function main() {
 }
 
 main()
-  .catch(console.error)
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());
