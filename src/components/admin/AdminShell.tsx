@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, LogOut, Package, Plus, ShoppingCart, Store, Ticket } from "lucide-react";
+import { LayoutDashboard, LogOut, Package, Plus, ShoppingCart, Store, Ticket, Truck } from "lucide-react";
 import { logoutAction } from "@/app/admin/actions";
 
 export function AdminShell({
@@ -48,6 +48,13 @@ export function AdminShell({
               >
                 <Ticket className="h-4 w-4" />
                 优惠码
+              </Link>
+              <Link
+                href="/admin/shipping"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                <Truck className="h-4 w-4" />
+                运费设置
               </Link>
               <Link
                 href="/en"

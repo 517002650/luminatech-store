@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "优惠码无效" }, { status: 400 });
       }
 
-      const quote = buildOrderQuote(
+      const quote = await buildOrderQuote(
         items,
         resolvedShipping,
         couponResult.discountAmount,

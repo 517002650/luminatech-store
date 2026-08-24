@@ -124,7 +124,7 @@ export function ShippingAddressForm({ value, onChange, errors }: Props) {
           >
             <option value="">{t("countryPlaceholder")}</option>
             {COUNTRY_OPTIONS.map((c) => (
-              <option key={c.code} value={locale === "zh" ? c.zh : c.en}>
+              <option key={c.code} value={c.code}>
                 {locale === "zh" ? c.zh : c.en}
               </option>
             ))}

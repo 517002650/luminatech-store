@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { DEFAULT_SHIPPING_SETTINGS } from "../src/lib/shipping-settings";
 
 const prisma = new PrismaClient();
 
@@ -368,6 +369,22 @@ async function main() {
       ],
     });
     console.log("Seeded sample coupons: WELCOME10, SAVE5");
+  }
+
+  const shippingExists = await prisma.shippingSettings.findUnique({
+    where: { id: "default" },
+  });
+  if (!shippingExists) {
+    await prisma.shippingSettings.create({
+      data: {
+        id: "default",
+        freeShippingThreshold: DEFAULT_SHIPPING_SETTINGS.freeShippingThreshold,
+        flatRate: DEFAULT_SHIPPING_SETTINGS.flatRate,
+        euRate: DEFAULT_SHIPPING_SETTINGS.euRate,
+        countryRates: JSON.stringify(DEFAULT_SHIPPING_SETTINGS.countryRates),
+      },
+    });
+    console.log("Seeded default shipping settings");
   }
 }
 

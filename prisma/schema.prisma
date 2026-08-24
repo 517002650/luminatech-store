@@ -45,6 +45,15 @@ model Coupon {
   updatedAt DateTime  @updatedAt
 }
 
+model ShippingSettings {
+  id                    String   @id @default("default")
+  freeShippingThreshold Float    @default(100)
+  flatRate              Float    @default(15.99)
+  euRate                Float    @default(12.99)
+  countryRates          String   @default("{}")
+  updatedAt             DateTime @updatedAt
+}
+
 model Product {
   id            String         @id @default(cuid())
   slug          String         @unique

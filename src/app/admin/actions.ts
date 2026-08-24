@@ -15,6 +15,10 @@ import {
   productInputToDbData,
   validateProductInput,
 } from "@/lib/product-admin";
+import {
+  buildCountryRatesFromForm,
+  updateShippingSettings,
+} from "@/lib/shipping-settings";
 
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
@@ -173,4 +177,38 @@ export async function deleteCouponAction(id: string) {
   await requireAdmin();
   await prisma.coupon.delete({ where: { id } });
   revalidatePath("/admin/coupons");
+}
+
+export async function updateShippingSettingsAction(formData: FormData) {
+  await requireAdmin();
+
+  const freeShippingThreshold = Number(formData.get("freeShippingThreshold") ?? 0);
+  const flatRate = Number(formData.get("flatRate") ?? 0);
+  const euRate = Number(formData.get("euRate") ?? 0);
+
+  if (
+    !Number.isFinite(freeShippingThreshold) ||
+    freeShippingThreshold < 0 ||
+    !Number.isFinite(flatRate) ||
+    flatRate < 0 ||
+    !Number.isFinite(euRate) ||
+    euRate < 0
+  ) {
+    return { error: "请填写有效的运费数值" };
+  }
+
+  const countryRates = buildCountryRatesFromForm(formData);
+
+  await updateShippingSettings({
+    freeShippingThreshold,
+    flatRate,
+    euRate,
+    countryRates,
+  });
+
+  revalidatePath("/admin/shipping");
+  revalidatePath("/zh/checkout");
+  revalidatePath("/en/checkout");
+
+  return { success: true as const };
 }

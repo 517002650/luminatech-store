@@ -1,3 +1,7 @@
+import type { ShippingSettingsData } from "@/lib/shipping-settings";
+import { DEFAULT_SHIPPING_SETTINGS } from "@/lib/shipping-settings";
+import { getShippingSettings } from "@/lib/shipping-settings";
+
 import type { ShippingAddress } from "@/lib/orders";
 
 export type CartLine = {
@@ -56,6 +60,10 @@ const EU_COUNTRIES = new Set([
   "GR", "CZ", "RO", "HU", "SK", "BG", "HR", "SI", "LT", "LV", "EE", "LU", "MT", "CY",
 ]);
 
+export function isEuCountry(countryCode: string) {
+  return EU_COUNTRIES.has(countryCode);
+}
+
 const COUNTRY_ALIASES: Record<string, string> = {
   us: "US", usa: "US", "united states": "US", america: "US", 美国: "US",
   ca: "CA", canada: "CA", 加拿大: "CA",
@@ -99,6 +107,14 @@ const SHIPPING_RATES: Record<string, number> = {
   JP: 12.99,
   SG: 11.99,
   HK: 9.99,
+  CN: 12.99,
+  TW: 11.99,
+  KR: 12.99,
+};
+
+/** Default per-country shipping rates (used when DB has no override). */
+export const DEFAULT_COUNTRY_SHIPPING_RATES: Record<string, number> = {
+  ...SHIPPING_RATES,
 };
 
 function envNumber(key: string, fallback: number) {
@@ -123,25 +139,26 @@ export function normalizeCountryCode(country: string): string {
   return match?.code ?? "OTHER";
 }
 
-function getShippingFee(countryCode: string, discountedSubtotal: number): number {
-  const threshold = envNumber("FREE_SHIPPING_THRESHOLD", 100);
-  if (discountedSubtotal >= threshold) return 0;
+export function getCountryLabel(country: string, locale: "en" | "zh" = "en") {
+  const code = normalizeCountryCode(country);
+  const match = COUNTRY_OPTIONS.find((c) => c.code === code);
+  if (!match) return country;
+  return locale === "zh" ? match.zh : match.en;
+}
 
-  const flat = envNumber("SHIPPING_FLAT_RATE", 15.99);
-  if (countryCode === "OTHER") return flat;
+export function calcShippingFee(
+  countryCode: string,
+  discountedSubtotal: number,
+  settings: ShippingSettingsData = DEFAULT_SHIPPING_SETTINGS,
+): number {
+  if (discountedSubtotal >= settings.freeShippingThreshold) return 0;
+  if (countryCode === "OTHER") return settings.flatRate;
 
-  if (EU_COUNTRIES.has(countryCode)) {
-    return envNumber("SHIPPING_EU", 12.99);
+  if (isEuCountry(countryCode)) {
+    return settings.countryRates[countryCode] ?? settings.euRate;
   }
 
-  const envKey = `SHIPPING_${countryCode}`;
-  const envRate = process.env[envKey]?.trim();
-  if (envRate) {
-    const n = Number(envRate);
-    if (Number.isFinite(n)) return n;
-  }
-
-  return SHIPPING_RATES[countryCode] ?? flat;
+  return settings.countryRates[countryCode] ?? settings.flatRate;
 }
 
 function getTaxInfo(countryCode: string) {
@@ -169,17 +186,21 @@ export function roundMoney(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-export function buildOrderQuote(
+export async function buildOrderQuote(
   items: CartLine[],
   shippingAddress: Pick<ShippingAddress, "country">,
   discountAmount: number,
   couponCode: string | null,
-): OrderQuote {
+  settings?: ShippingSettingsData,
+): Promise<OrderQuote> {
+  const shippingSettings = settings ?? (await getShippingSettings());
   const subtotal = calcSubtotal(items);
   const discount = roundMoney(Math.min(discountAmount, subtotal));
   const discountedSubtotal = roundMoney(subtotal - discount);
   const countryCode = normalizeCountryCode(shippingAddress.country);
-  const shippingFee = roundMoney(getShippingFee(countryCode, discountedSubtotal));
+  const shippingFee = roundMoney(
+    calcShippingFee(countryCode, discountedSubtotal, shippingSettings),
+  );
   const { rate, label } = getTaxInfo(countryCode);
   const taxBase = roundMoney(discountedSubtotal + shippingFee);
   const taxAmount = roundMoney(taxBase * rate);

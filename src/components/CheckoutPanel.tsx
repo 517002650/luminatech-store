@@ -35,13 +35,13 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponError, setCouponError] = useState("");
   const [quote, setQuote] = useState<OrderQuote | null>(null);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState("100");
   const [shipping, setShipping] = useState<ShippingAddress>(() =>
     emptyShippingAddress(initialEmail, initialName),
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
-  const freeShippingThreshold = process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD ?? "100";
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +80,9 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
 
         setCouponError("");
         setQuote(data.quote ?? null);
+        if (data.freeShippingThreshold != null) {
+          setFreeShippingThreshold(String(data.freeShippingThreshold));
+        }
       } catch {
         if (!cancelled) setQuote(null);
       }

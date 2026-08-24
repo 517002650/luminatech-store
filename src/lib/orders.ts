@@ -1,3 +1,5 @@
+import { getCountryLabel } from "@/lib/pricing";
+
 export type OrderItem = {
   productId: string;
   slug: string;
@@ -73,13 +75,14 @@ export function parseShippingAddress(raw: string): ShippingAddress | null {
   }
 }
 
-export function formatShippingAddress(addr: ShippingAddress) {
+export function formatShippingAddress(addr: ShippingAddress, locale: "en" | "zh" = "en") {
+  const countryLabel = getCountryLabel(addr.country, locale);
   const lines = [
     addr.name,
     addr.line1,
     addr.line2,
     [addr.city, addr.state, addr.postalCode].filter(Boolean).join(", "),
-    addr.country,
+    countryLabel,
   ].filter(Boolean);
   if (addr.phone) lines.push(addr.phone);
   return lines.join("\n");

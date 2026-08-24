@@ -96,8 +96,8 @@ export function buildCheckoutMetadata(
   };
 }
 
-export function verifyQuoteTotal(quote: OrderQuote, items: CheckoutItem[]) {
-  const rebuilt = buildOrderQuote(
+export async function verifyQuoteTotal(quote: OrderQuote, items: CheckoutItem[]) {
+  const rebuilt = await buildOrderQuote(
     items,
     { country: quote.countryCode === "OTHER" ? "Other" : quote.countryCode },
     quote.discountAmount,

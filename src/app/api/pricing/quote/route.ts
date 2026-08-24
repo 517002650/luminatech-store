@@ -37,15 +37,19 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const quote = buildOrderQuote(
+    const quote = await buildOrderQuote(
       items,
       shippingAddress as ShippingAddress,
       couponResult.discountAmount,
       couponResult.couponCode,
     );
 
+    const { getShippingSettings } = await import("@/lib/shipping-settings");
+    const settings = await getShippingSettings();
+
     return NextResponse.json({
       quote,
+      freeShippingThreshold: settings.freeShippingThreshold,
       addressIncomplete: false,
       couponError: null,
     });

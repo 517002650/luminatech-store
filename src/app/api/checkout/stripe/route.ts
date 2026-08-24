@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     }
 
     const address = shippingAddress!;
-    const quote = buildOrderQuote(
+    const quote = await buildOrderQuote(
       items,
       address,
       couponResult.discountAmount,
