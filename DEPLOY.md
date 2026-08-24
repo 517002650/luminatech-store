@@ -1,5 +1,9 @@
 # 部署指南 — Vercel + Cloudinary + PostgreSQL
 
+> **推荐阅读（更完整、含你第一次成功上线的记录）：**  
+> [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)  
+> 日常运营：[docs/TECHNICAL.md](./docs/TECHNICAL.md)
+
 ## ⚠️ 安全提醒
 
 **切勿在聊天、代码或截图中分享 GitHub 密码。**  

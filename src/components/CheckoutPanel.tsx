@@ -136,6 +136,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         >
           {loading ? t("redirecting") : t("payStripe")}
         </button>
+        <p className="text-center text-xs text-stone-500">{t("stripeMethodsHint")}</p>
 
         {paypalClientId ? (
           <PayPalScriptProvider
