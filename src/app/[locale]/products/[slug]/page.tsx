@@ -16,6 +16,8 @@ import { ProductRating } from "@/components/ProductRating";
 import { ReviewForm } from "@/components/ReviewForm";
 import { ReviewList } from "@/components/ReviewList";
 import { WishlistButton } from "@/components/WishlistButton";
+import { ProductDownloadsSection } from "@/components/ProductDownloadsSection";
+import { userHasPurchasedProduct } from "@/lib/product-downloads";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
@@ -44,7 +46,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const p = localizeProduct(product, locale);
   const user = await getCurrentUser();
 
-  const [ratingMap, reviews, wishlistItem, userReview] = await Promise.all([
+  const [ratingMap, reviews, wishlistItem, userReview, purchased] = await Promise.all([
     getProductRatingMap([product.id]),
     getProductReviews(product.id),
     user
@@ -57,7 +59,15 @@ export default async function ProductDetailPage({ params }: Props) {
           where: { userId_productId: { userId: user.id, productId: product.id } },
         })
       : null,
+    userHasPurchasedProduct(user, product.id),
   ]);
+
+  const downloads = purchased
+    ? await prisma.productDownload.findMany({
+        where: { productId: product.id },
+        orderBy: [{ type: "asc" }, { isLatest: "desc" }, { createdAt: "desc" }],
+      })
+    : [];
 
   const rating = ratingMap.get(product.id);
   const reviewItems = reviews.map((review) => ({
@@ -75,36 +85,36 @@ export default async function ProductDetailPage({ params }: Props) {
         <ProductGallery images={p.gallery} alt={p.name} />
 
         <div>
-          <p className="text-sm font-medium uppercase tracking-wider text-amber-600">
+          <p className="text-sm font-medium uppercase tracking-wider text-cyan-400">
             {p.category}
           </p>
-          <h1 className="mt-2 text-4xl font-bold text-stone-900">{p.name}</h1>
+          <h1 className="mt-2 text-4xl font-bold text-zinc-50">{p.name}</h1>
           {rating && rating.count > 0 && (
             <div className="mt-3">
               <ProductRating avg={rating.avg} count={rating.count} size="md" />
             </div>
           )}
-          <p className="mt-3 text-lg text-stone-600">{p.shortDesc}</p>
-          <p className="mt-4 text-3xl font-bold text-stone-800">
+          <p className="mt-3 text-lg text-zinc-400">{p.shortDesc}</p>
+          <p className="mt-4 text-3xl font-bold text-zinc-50">
             {formatPrice(p.price)}
           </p>
 
-          <dl className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm">
+          <dl className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 text-sm">
             <div>
-              <dt className="text-stone-500">{t("brand")}</dt>
-              <dd className="font-medium text-stone-900">{p.brand}</dd>
+              <dt className="text-zinc-500">{t("brand")}</dt>
+              <dd className="font-medium text-zinc-100">{p.brand}</dd>
             </div>
             <div>
-              <dt className="text-stone-500">{t("sku")}</dt>
-              <dd className="font-medium text-stone-900">{p.sku}</dd>
+              <dt className="text-zinc-500">{t("sku")}</dt>
+              <dd className="font-medium text-zinc-100">{p.sku}</dd>
             </div>
             <div>
-              <dt className="text-stone-500">{t("warranty")}</dt>
-              <dd className="font-medium text-stone-900">{p.warranty}</dd>
+              <dt className="text-zinc-500">{t("warranty")}</dt>
+              <dd className="font-medium text-zinc-100">{p.warranty}</dd>
             </div>
             <div>
-              <dt className="text-stone-500">{t("stockLabel")}</dt>
-              <dd className="font-medium text-stone-900">
+              <dt className="text-zinc-500">{t("stockLabel")}</dt>
+              <dd className="font-medium text-zinc-100">
                 {p.stock > 0 ? t("inStock", { count: p.stock }) : t("outOfStock")}
               </dd>
             </div>
@@ -124,7 +134,7 @@ export default async function ProductDetailPage({ params }: Props) {
               <button
                 type="button"
                 disabled
-                className="w-full rounded-xl bg-stone-200 px-6 py-3 text-sm font-semibold text-stone-500"
+                className="w-full rounded-xl bg-zinc-800 px-6 py-3 text-sm font-semibold text-zinc-500"
               >
                 {t("outOfStock")}
               </button>
@@ -139,14 +149,14 @@ export default async function ProductDetailPage({ params }: Props) {
 
       <div className="mt-16 grid gap-10 lg:grid-cols-2">
         <section>
-          <h2 className="text-xl font-bold text-stone-900">{t("highlights")}</h2>
+          <h2 className="text-xl font-bold text-zinc-50">{t("highlights")}</h2>
           <ul className="mt-4 space-y-3">
             {p.highlights.map((item) => (
               <li
                 key={item}
-                className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-700"
+                className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-zinc-300"
               >
-                <span className="mt-0.5 text-amber-500">✦</span>
+                <span className="mt-0.5 text-cyan-400">✦</span>
                 {item}
               </li>
             ))}
@@ -154,32 +164,48 @@ export default async function ProductDetailPage({ params }: Props) {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold text-stone-900">{t("specs")}</h2>
-          <dl className="mt-4 overflow-hidden rounded-2xl border border-stone-200">
+          <h2 className="text-xl font-bold text-zinc-50">{t("specs")}</h2>
+          <dl className="mt-4 overflow-hidden rounded-2xl border border-zinc-800">
             {p.specs.map((spec, index) => (
               <div
                 key={spec.label}
                 className={`grid grid-cols-2 gap-4 px-4 py-3 text-sm ${
-                  index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                  index % 2 === 0 ? "bg-zinc-900/80" : "bg-zinc-900/40"
                 }`}
               >
-                <dt className="font-medium text-stone-600">{spec.label}</dt>
-                <dd className="text-stone-900">{spec.value}</dd>
+                <dt className="font-medium text-zinc-400">{spec.label}</dt>
+                <dd className="text-zinc-100">{spec.value}</dd>
               </div>
             ))}
           </dl>
         </section>
       </div>
 
-      <section className="mt-12 rounded-2xl border border-stone-200 bg-white p-6">
-        <h2 className="text-xl font-bold text-stone-900">{t("description")}</h2>
-        <div className="mt-4 leading-relaxed text-stone-600">
+      <section className="mt-12 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+        <h2 className="text-xl font-bold text-zinc-50">{t("description")}</h2>
+        <div className="mt-4 leading-relaxed text-zinc-400">
           <ProductMarkdown content={p.description} />
         </div>
       </section>
 
+      {purchased && downloads.length > 0 ? (
+        <ProductDownloadsSection
+          items={downloads.map((d) => ({
+            id: d.id,
+            type: d.type,
+            version: d.version,
+            title: locale === "zh" ? d.titleZh : d.titleEn,
+            notes: locale === "zh" ? d.notesZh : d.notesEn,
+            fileName: d.fileName,
+            fileSize: d.fileSize,
+            isLatest: d.isLatest,
+            createdAt: d.createdAt.toISOString(),
+          }))}
+        />
+      ) : null}
+
       <section className="mt-12">
-        <h2 className="text-xl font-bold text-stone-900">{t("reviews")}</h2>
+        <h2 className="text-xl font-bold text-zinc-50">{t("reviews")}</h2>
         <div className="mt-6 grid gap-8 lg:grid-cols-2">
           <ReviewForm
             productId={p.id}
@@ -195,7 +221,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 count={rating.count}
               />
             ) : (
-              <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">
+              <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 p-6 text-sm text-zinc-500">
                 {t("noReviews")}
               </p>
             )}

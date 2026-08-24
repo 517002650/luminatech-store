@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { ProductDownloadsPanel } from "@/components/admin/ProductDownloadsPanel";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { resolveCategoryKey } from "@/lib/categories";
 import { prisma } from "@/lib/db";
 import { specsToText } from "@/lib/product-admin";
 
@@ -26,7 +28,12 @@ function parseJsonSpecs(value: string) {
 
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
-  const product = await prisma.product.findUnique({ where: { id } });
+  const product = await prisma.product.findUnique({
+    where: { id },
+    include: {
+      downloads: { orderBy: [{ type: "asc" }, { createdAt: "desc" }] },
+    },
+  });
 
   if (!product) notFound();
 
@@ -34,32 +41,57 @@ export default async function EditProductPage({ params }: Props) {
 
   return (
     <AdminShell title={`编辑商品：${product.nameZh}`}>
-      <ProductForm
-        productId={product.id}
-        initialValues={{
-          slug: product.slug,
-          sku: product.sku,
-          brand: product.brand,
-          nameEn: product.nameEn,
-          nameZh: product.nameZh,
-          shortDescEn: product.shortDescEn,
-          shortDescZh: product.shortDescZh,
-          descriptionEn: product.descriptionEn,
-          descriptionZh: product.descriptionZh,
-          categoryEn: product.categoryEn,
-          categoryZh: product.categoryZh,
-          price: product.price,
-          image: product.image,
-          galleryText: gallery.join("\n"),
-          specsEnText: specsToText(parseJsonSpecs(product.specsEn)),
-          specsZhText: specsToText(parseJsonSpecs(product.specsZh)),
-          highlightsEnText: parseJsonArray(product.highlightsEn).join("\n"),
-          highlightsZhText: parseJsonArray(product.highlightsZh).join("\n"),
-          stock: product.stock,
-          featured: product.featured,
-          warranty: product.warranty,
-        }}
-      />
+      <div className="space-y-8">
+        <ProductForm
+          productId={product.id}
+          initialValues={{
+            slug: product.slug,
+            sku: product.sku,
+            brand: product.brand,
+            nameEn: product.nameEn,
+            nameZh: product.nameZh,
+            shortDescEn: product.shortDescEn,
+            shortDescZh: product.shortDescZh,
+            descriptionEn: product.descriptionEn,
+            descriptionZh: product.descriptionZh,
+            categoryKey: resolveCategoryKey({
+              categoryKey: product.categoryKey,
+              categoryEn: product.categoryEn,
+              slug: product.slug,
+            }),
+            categoryEn: product.categoryEn,
+            categoryZh: product.categoryZh,
+            price: product.price,
+            image: product.image,
+            galleryText: gallery.join("\n"),
+            specsEnText: specsToText(parseJsonSpecs(product.specsEn)),
+            specsZhText: specsToText(parseJsonSpecs(product.specsZh)),
+            highlightsEnText: parseJsonArray(product.highlightsEn).join("\n"),
+            highlightsZhText: parseJsonArray(product.highlightsZh).join("\n"),
+            stock: product.stock,
+            featured: product.featured,
+            warranty: product.warranty,
+          }}
+        />
+
+        <ProductDownloadsPanel
+          productId={product.id}
+          downloads={product.downloads.map((d) => ({
+            id: d.id,
+            type: d.type,
+            version: d.version,
+            titleEn: d.titleEn,
+            titleZh: d.titleZh,
+            notesEn: d.notesEn,
+            notesZh: d.notesZh,
+            fileUrl: d.fileUrl,
+            fileName: d.fileName,
+            fileSize: d.fileSize,
+            isLatest: d.isLatest,
+            createdAt: d.createdAt.toISOString(),
+          }))}
+        />
+      </div>
     </AdminShell>
   );
 }

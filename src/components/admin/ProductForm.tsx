@@ -5,6 +5,7 @@ import { createProductAction, updateProductAction } from "@/app/admin/actions";
 import { GalleryUploadField } from "@/components/admin/GalleryUploadField";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
+import { PRODUCT_CATEGORIES, resolveCategoryKey, type ProductCategoryKey } from "@/lib/categories";
 
 type ProductFormValues = {
   slug?: string;
@@ -16,6 +17,7 @@ type ProductFormValues = {
   shortDescZh?: string;
   descriptionEn?: string;
   descriptionZh?: string;
+  categoryKey?: ProductCategoryKey;
   categoryEn?: string;
   categoryZh?: string;
   price?: number;
@@ -44,6 +46,11 @@ export function ProductForm({ productId, initialValues = {} }: Props) {
   const [galleryText, setGalleryText] = useState(initialValues.galleryText ?? "");
   const [descriptionEn, setDescriptionEn] = useState(initialValues.descriptionEn ?? "");
   const [descriptionZh, setDescriptionZh] = useState(initialValues.descriptionZh ?? "");
+  const defaultCategoryKey = resolveCategoryKey({
+    categoryKey: initialValues.categoryKey,
+    categoryEn: initialValues.categoryEn,
+    slug: initialValues.slug,
+  });
 
   const action = productId
     ? updateProductAction.bind(null, productId)
@@ -79,6 +86,21 @@ export function ProductForm({ productId, initialValues = {} }: Props) {
           <div>
             <label className={labelClass}>SKU 货号 *</label>
             <input name="sku" required defaultValue={initialValues.sku} className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>商品分类 *</label>
+            <select
+              name="categoryKey"
+              required
+              defaultValue={defaultCategoryKey}
+              className={inputClass}
+            >
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <option key={cat.key} value={cat.key}>
+                  {cat.zh} ({cat.en})
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={labelClass}>品牌 *</label>
@@ -139,16 +161,6 @@ export function ProductForm({ productId, initialValues = {} }: Props) {
             <input name="nameEn" required defaultValue={initialValues.nameEn} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>英文分类 *</label>
-            <input
-              name="categoryEn"
-              required
-              defaultValue={initialValues.categoryEn}
-              placeholder="Audio / Peripherals"
-              className={inputClass}
-            />
-          </div>
-          <div>
             <label className={labelClass}>英文简介 *</label>
             <input
               name="shortDescEn"
@@ -193,16 +205,6 @@ export function ProductForm({ productId, initialValues = {} }: Props) {
           <div>
             <label className={labelClass}>中文名称 *</label>
             <input name="nameZh" required defaultValue={initialValues.nameZh} className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>中文分类 *</label>
-            <input
-              name="categoryZh"
-              required
-              defaultValue={initialValues.categoryZh}
-              placeholder="音频 / 外设"
-              className={inputClass}
-            />
           </div>
           <div>
             <label className={labelClass}>中文简介 *</label>

@@ -18,11 +18,11 @@ export function ProductRating({ avg, count, size = "sm" }: Props) {
         {[1, 2, 3, 4, 5].map((i) => (
           <Star
             key={i}
-            className={`${iconSize} ${i <= stars ? "fill-amber-400 text-amber-400" : "text-stone-300"}`}
+            className={`${iconSize} ${i <= stars ? "fill-cyan-400 text-cyan-400" : "text-zinc-600"}`}
           />
         ))}
       </div>
-      <span className={`text-stone-500 ${size === "sm" ? "text-xs" : "text-sm"}`}>
+      <span className={`text-zinc-500 ${size === "sm" ? "text-xs" : "text-sm"}`}>
         {avg.toFixed(1)} ({count})
       </span>
     </div>

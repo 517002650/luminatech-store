@@ -8,18 +8,38 @@
     "wishlist": "收藏夹"
   },
   "home": {
-    "badge": "数码精选",
-    "title": "科技好物，点亮生活",
-    "subtitle": "精选数码产品，全球配送。支持 Stripe 和 PayPal 安全支付。",
-    "cta": "立即选购",
-    "featuredTitle": "精选商品",
-    "featuredSubtitle": "数码品类热销推荐",
+    "badge": "专业舞台灯光",
+    "title": "点亮每一个舞台",
+    "subtitle": "灯光控制台、激光灯、舞台灯具与特效设备 — 面向演出、婚庆、酒吧与租赁行业，全球配送，安全支付。",
+    "cta": "浏览设备",
+    "ctaSecondary": "了解我们",
+    "categoriesTitle": "产品品类",
+    "categories": {
+      "consoles": {
+        "title": "灯光控制台",
+        "desc": "MA / Avolites / Chamsys 等专业控台"
+      },
+      "lasers": {
+        "title": "激光灯",
+        "desc": "RGB 全彩激光与动画激光系统"
+      },
+      "fixtures": {
+        "title": "舞台灯具",
+        "desc": "摇头灯、帕灯、面光与效果灯"
+      },
+      "effects": {
+        "title": "特效设备",
+        "desc": "烟雾机、泡泡机、频闪与控制器"
+      }
+    },
+    "featuredTitle": "精选设备",
+    "featuredSubtitle": "专业演出与租赁热门推荐",
     "viewAll": "查看全部",
     "whyTitle": "为什么选择 LuminaTech？",
     "features": {
       "shipping": {
         "title": "全球配送",
-        "desc": "支持美国、欧盟、英国等地区，物流可追踪。"
+        "desc": "支持美国、欧盟、英国等地区，专业设备安全包装，物流可追踪。"
       },
       "payment": {
         "title": "安全支付",
@@ -27,13 +47,23 @@
       },
       "warranty": {
         "title": "官方质保",
-        "desc": "所有商品均含厂商质保，支持便捷退换。"
+        "desc": "所有设备均含厂商质保，DMX 兼容性与技术参数经严格核验。"
       }
     }
   },
   "products": {
-    "title": "全部商品",
-    "count": "共 {count} 件商品",
+    "title": "舞台设备",
+    "count": "共 {count} 件设备",
+    "categoryCount": "该分类 {count} 件",
+    "allCategories": "全部",
+    "emptyCategory": "该分类暂无商品。",
+    "categories": {
+      "consoles": "灯光控制台",
+      "lasers": "激光灯",
+      "fixtures": "舞台灯具",
+      "effects": "特效设备",
+      "accessories": "控制与配件"
+    },
     "notFound": "商品未找到"
   },
   "product": {
@@ -49,14 +79,28 @@
     "specs": "规格参数",
     "description": "详细描述",
     "reviews": "用户评价",
-    "noReviews": "暂无评价，来写第一条吧！"
+    "noReviews": "暂无评价，来写第一条吧！",
+    "downloadsTitle": "固件与文件下载",
+    "downloadsSubtitle": "您已购买本产品，可下载固件、文件与插件（含历史版本）。",
+    "downloadButton": "下载",
+    "downloadLatest": "最新",
+    "downloadHistory": "历史版本",
+    "downloadTypes": {
+      "firmware": "固件",
+      "file": "文件",
+      "plugin": "插件"
+    }
   },
   "cart": {
     "title": "购物车",
     "empty": "购物车是空的。",
     "browse": "去逛逛",
     "subtotal": "小计",
-    "checkout": "去结算"
+    "checkout": "去结算",
+    "remove": "删除",
+    "quantity": "数量",
+    "decrease": "减少数量",
+    "increase": "增加数量"
   },
   "checkout": {
     "title": "结算",
@@ -119,23 +163,24 @@
     "processing": "正在确认订单..."
   },
   "footer": {
+    "tagline": "专业舞台灯光设备 — 控制台、激光、灯具与特效",
     "rights": "保留所有权利。",
     "privacy": "隐私政策",
     "terms": "服务条款",
     "contact": "联系我们"
   },
   "meta": {
-    "title": "LuminaTech — 精选数码产品",
-    "description": "面向海外的独立数码电商，支持 Stripe 和 PayPal 支付"
+    "title": "LuminaTech — 专业舞台灯光设备",
+    "description": "灯光控制台、激光灯、舞台灯具与特效设备 — 面向演出与租赁行业的海外独立站"
   },
   "pages": {
     "about": {
       "title": "关于 LuminaTech",
-      "subtitle": "为全球用户精选优质数码产品。",
+      "subtitle": "为全球演出、婚庆、酒吧与租赁行业提供专业舞台灯光设备。",
       "section1Title": "品牌故事",
-      "section1Body": "LuminaTech 的创立源于一个简单的愿景：让高品质的数码产品触手可及。我们严格甄选每一件上架商品——从音频设备到智能穿戴——确保其在设计、性能与性价比上均达到我们的标准。",
+      "section1Body": "LuminaTech 专注于舞台灯光与演出设备。从灯光控制台到激光系统、摇头灯与特效设备，我们严格甄选每一件上架产品，确保 DMX 兼容性、光效表现与耐用性均达到专业演出标准。",
       "section2Title": "我们卖什么",
-      "section2Body": "店铺涵盖音频、外设、存储、穿戴、配件等数码品类。所有商品均含官方质保，并有专业客服团队提供售后支持。",
+      "section2Body": "店铺涵盖灯光控制台、激光灯、舞台灯具（摇头灯、帕灯、面光）、特效设备（烟雾机、频闪）及 DMX 配件。所有设备均含官方质保，并提供专业技术支持。",
       "section3Title": "全球配送",
       "section3Body": "我们支持向美国、欧盟、英国及更多地区发货。每笔订单均可追踪物流，并与可靠的物流伙伴合作，确保安全、准时送达。",
       "section4Title": "我们的承诺",
@@ -222,10 +267,14 @@
   "account": {
     "myAccount": "我的账户",
     "orders": "我的订单",
+    "downloads": "我的下载",
     "wishlist": "收藏夹",
     "noOrders": "您还没有下过订单。",
+    "noDownloads": "暂无可下载文件。购买带固件/插件的商品后，将显示在此处。",
+    "downloadsHint": "仅显示您已购买商品的固件、文件与插件（含历史版本）。",
     "emptyWishlist": "收藏夹是空的。",
     "startShopping": "去逛逛",
+    "viewProduct": "查看商品",
     "items": "件商品",
     "order": "订单",
     "backToOrders": "返回订单列表",

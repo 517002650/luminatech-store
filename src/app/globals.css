@@ -2,28 +2,98 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --color-brand: #22d3ee;
+  --color-brand-dark: #0891b2;
+  --color-accent: #c084fc;
+  --color-surface: #09090b;
+  --color-surface-elevated: #18181b;
+  --color-surface-muted: #27272a;
 }
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Primary CTA — stage lighting gradient */
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-500/20 transition hover:from-cyan-400 hover:to-violet-500 hover:shadow-cyan-500/30;
+}
+
+.btn-primary-solid {
+  @apply inline-flex items-center justify-center rounded-xl bg-zinc-100 px-6 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-white;
+}
+
+/* Stage hero light beams */
+.stage-beam {
+  background: linear-gradient(to top, var(--beam-color, rgba(34, 211, 238, 0.5)), transparent);
+  clip-path: polygon(30% 100%, 70% 100%, 100% 0%, 0% 0%);
+  filter: blur(1px);
+}
+
+.stage-beam-cyan {
+  --beam-color: rgba(34, 211, 238, 0.45);
+}
+
+.stage-beam-violet {
+  --beam-color: rgba(168, 85, 247, 0.4);
+}
+
+.stage-beam-fuchsia {
+  --beam-color: rgba(217, 70, 239, 0.4);
+}
+
+@keyframes beam-sway {
+  0%,
+  100% {
+    transform: rotate(var(--beam-rotate, 0deg));
+  }
+  50% {
+    transform: rotate(calc(var(--beam-rotate, 0deg) + 4deg));
+  }
+}
+
+.stage-beam {
+  animation: beam-sway 6s ease-in-out infinite;
+}
+
+.stage-beam-violet {
+  --beam-rotate: 5deg;
+  animation-delay: 1s;
+}
+
+.stage-beam-fuchsia {
+  --beam-rotate: 32deg;
+  animation-delay: 2s;
+}
+
+.stage-beam-cyan {
+  --beam-rotate: -28deg;
+  animation-delay: 0.5s;
+}
+
+/* Category card hover glow */
+.category-card {
+  @apply rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-cyan-500/30 hover:bg-zinc-900 hover:shadow-lg hover:shadow-cyan-500/5;
+}
+
 .markdown-content h2 {
   margin-top: 1.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #1c1917;
+  color: #fafafa;
 }
 
 .markdown-content p {
   margin-top: 0.75rem;
   line-height: 1.75;
+  color: #a1a1aa;
 }
 
 .markdown-content ul {
   margin-top: 0.75rem;
   list-style: disc;
   padding-left: 1.5rem;
+  color: #a1a1aa;
 }
 
 .markdown-content li {
@@ -34,10 +104,10 @@ body {
   margin: 1rem 0;
   width: 100%;
   border-radius: 0.75rem;
-  border: 1px solid #e7e5e4;
+  border: 1px solid #3f3f46;
 }
 
 .markdown-content a {
-  color: #d97706;
+  color: #22d3ee;
   text-decoration: underline;
 }

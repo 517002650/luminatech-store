@@ -1,14 +1,23 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
+import { Lightbulb, Radio, SlidersHorizontal, Zap } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { localizeProduct } from "@/lib/product-i18n";
 import { getProductRatingMap } from "@/lib/reviews";
 import { ProductCard } from "@/components/ProductCard";
+import { StageHeroVisual } from "@/components/StageHeroVisual";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
   params: Promise<{ locale: Locale }>;
 };
+
+const categoryIcons = {
+  consoles: SlidersHorizontal,
+  lasers: Zap,
+  fixtures: Lightbulb,
+  effects: Radio,
+} as const;
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
@@ -32,30 +41,60 @@ export default async function HomePage({ params }: Props) {
   }
 
   const features = ["shipping", "payment", "warranty"] as const;
+  const categories = ["consoles", "lasers", "fixtures", "effects"] as const;
 
   return (
     <>
-      <section className="bg-gradient-to-br from-slate-900 via-stone-900 to-stone-800 text-white">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-28">
+      <section className="relative overflow-hidden bg-zinc-950">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(34,211,238,0.08)_0%,_transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(168,85,247,0.06)_0%,_transparent_40%)]" />
+        <div className="relative mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-28">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-amber-400">
+            <p className="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-cyan-400">
               {t("badge")}
             </p>
-            <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl">
+            <h1 className="mt-6 text-4xl font-bold leading-tight text-zinc-50 sm:text-5xl lg:text-6xl">
               {t("title")}
             </h1>
-            <p className="mt-6 max-w-lg text-lg text-stone-300">{t("subtitle")}</p>
-            <Link
-              href="/products"
-              className="mt-8 inline-block rounded-xl bg-amber-500 px-8 py-3 text-sm font-semibold text-stone-900 transition hover:bg-amber-400"
-            >
-              {t("cta")}
-            </Link>
+            <p className="mt-6 max-w-lg text-lg text-zinc-400">{t("subtitle")}</p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link href="/products" className="btn-primary">
+                {t("cta")}
+              </Link>
+              <Link
+                href="/about"
+                className="inline-flex items-center rounded-xl border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-300 transition hover:border-zinc-600 hover:text-zinc-100"
+              >
+                {t("ctaSecondary")}
+              </Link>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-48 rounded-3xl bg-amber-500/20" />
-            <div className="mt-8 h-48 rounded-3xl bg-white/10" />
-            <div className="col-span-2 h-32 rounded-3xl bg-indigo-500/20" />
+          <StageHeroVisual />
+        </div>
+      </section>
+
+      <section className="border-y border-zinc-800 bg-zinc-900/50">
+        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <h2 className="text-center text-sm font-semibold uppercase tracking-widest text-zinc-500">
+            {t("categoriesTitle")}
+          </h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {categories.map((key) => {
+              const Icon = categoryIcons[key];
+              return (
+                <Link key={key} href={`/products?category=${key}`} className="category-card group text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/10 to-violet-500/10 ring-1 ring-cyan-500/20 transition group-hover:ring-cyan-500/40">
+                    <Icon className="h-6 w-6 text-cyan-400" />
+                  </div>
+                  <h3 className="mt-4 font-semibold text-zinc-100">
+                    {t(`categories.${key}.title`)}
+                  </h3>
+                  <p className="mt-1 text-sm text-zinc-500">
+                    {t(`categories.${key}.desc`)}
+                  </p>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -63,17 +102,17 @@ export default async function HomePage({ params }: Props) {
       <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
         <div className="mb-10 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-stone-900">{t("featuredTitle")}</h2>
-            <p className="mt-2 text-stone-500">{t("featuredSubtitle")}</p>
+            <h2 className="text-3xl font-bold text-zinc-50">{t("featuredTitle")}</h2>
+            <p className="mt-2 text-zinc-500">{t("featuredSubtitle")}</p>
           </div>
-          <Link href="/products" className="text-sm font-semibold text-amber-600 hover:underline">
+          <Link href="/products" className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
             {t("viewAll")} →
           </Link>
         </div>
         {dbError ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-6 text-sm text-amber-200">
             商品数据暂时无法加载。请确认已配置 PostgreSQL（DATABASE_URL）并重新部署。
-            <pre className="mt-2 overflow-auto text-xs text-amber-700">{dbError}</pre>
+            <pre className="mt-2 overflow-auto text-xs text-amber-300/80">{dbError}</pre>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -96,16 +135,17 @@ export default async function HomePage({ params }: Props) {
         )}
       </section>
 
-      <section id="about" className="border-t border-stone-200 bg-stone-50">
+      <section id="about" className="border-t border-zinc-800 bg-zinc-900/30">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-          <h2 className="text-3xl font-bold text-stone-900">{t("whyTitle")}</h2>
-          <div className="mt-10 grid gap-8 md:grid-cols-3">
+          <h2 className="text-3xl font-bold text-zinc-50">{t("whyTitle")}</h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {features.map((key) => (
-              <div key={key} className="rounded-2xl bg-white p-6 shadow-sm">
-                <h3 className="font-semibold text-stone-900">
-                  {t(`features.${key}.title`)}
-                </h3>
-                <p className="mt-2 text-stone-600">{t(`features.${key}.desc`)}</p>
+              <div
+                key={key}
+                className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 transition hover:border-cyan-500/20"
+              >
+                <h3 className="font-semibold text-zinc-100">{t(`features.${key}.title`)}</h3>
+                <p className="mt-2 text-zinc-400">{t(`features.${key}.desc`)}</p>
               </div>
             ))}
           </div>

@@ -8,18 +8,38 @@
     "wishlist": "Wishlist"
   },
   "home": {
-    "badge": "Digital Collection",
-    "title": "Premium tech for everyday life",
-    "subtitle": "Explore curated electronics with worldwide shipping. Secure checkout via Stripe and PayPal.",
-    "cta": "Shop Now",
-    "featuredTitle": "Featured Products",
-    "featuredSubtitle": "Top picks from our digital catalog",
+    "badge": "Professional Stage Lighting",
+    "title": "Light up every stage",
+    "subtitle": "Lighting consoles, laser systems, stage fixtures, and effects — for concerts, weddings, clubs, and rental. Worldwide shipping with secure checkout.",
+    "cta": "Browse Equipment",
+    "ctaSecondary": "About Us",
+    "categoriesTitle": "Product Categories",
+    "categories": {
+      "consoles": {
+        "title": "Lighting Consoles",
+        "desc": "MA, Avolites, Chamsys & pro desks"
+      },
+      "lasers": {
+        "title": "Laser Systems",
+        "desc": "Full-color RGB & animation lasers"
+      },
+      "fixtures": {
+        "title": "Stage Fixtures",
+        "desc": "Moving heads, PAR cans, washes & spots"
+      },
+      "effects": {
+        "title": "Effects",
+        "desc": "Fog machines, strobes & DMX control"
+      }
+    },
+    "featuredTitle": "Featured Equipment",
+    "featuredSubtitle": "Top picks for pro shows and rental",
     "viewAll": "View all",
     "whyTitle": "Why LuminaTech?",
     "features": {
       "shipping": {
         "title": "Global Shipping",
-        "desc": "Fast delivery to the US, EU, UK, and more with tracking."
+        "desc": "Fast delivery to the US, EU, UK, and more — pro gear packed for safe transit with tracking."
       },
       "payment": {
         "title": "Secure Payments",
@@ -27,13 +47,23 @@
       },
       "warranty": {
         "title": "Official Warranty",
-        "desc": "All products include manufacturer warranty and easy returns."
+        "desc": "All equipment includes manufacturer warranty. DMX compatibility and specs verified."
       }
     }
   },
   "products": {
-    "title": "All Products",
+    "title": "Stage Equipment",
     "count": "{count} items available",
+    "categoryCount": "{count} in this category",
+    "allCategories": "All",
+    "emptyCategory": "No products in this category yet.",
+    "categories": {
+      "consoles": "Lighting Consoles",
+      "lasers": "Laser Systems",
+      "fixtures": "Stage Fixtures",
+      "effects": "Effects",
+      "accessories": "Control & Accessories"
+    },
     "notFound": "Product Not Found"
   },
   "product": {
@@ -49,14 +79,28 @@
     "specs": "Specifications",
     "description": "Description",
     "reviews": "Customer Reviews",
-    "noReviews": "No reviews yet. Be the first to share your experience!"
+    "noReviews": "No reviews yet. Be the first to share your experience!",
+    "downloadsTitle": "Firmware & Files",
+    "downloadsSubtitle": "You purchased this product. Download firmware, files, and plugins including historical versions.",
+    "downloadButton": "Download",
+    "downloadLatest": "Latest",
+    "downloadHistory": "Archive",
+    "downloadTypes": {
+      "firmware": "Firmware",
+      "file": "File",
+      "plugin": "Plugin"
+    }
   },
   "cart": {
     "title": "Shopping Cart",
     "empty": "Your cart is empty.",
     "browse": "Browse Products",
     "subtotal": "Subtotal",
-    "checkout": "Proceed to Checkout"
+    "checkout": "Proceed to Checkout",
+    "remove": "Remove",
+    "quantity": "Qty",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity"
   },
   "checkout": {
     "title": "Checkout",
@@ -119,23 +163,24 @@
     "processing": "Confirming your order..."
   },
   "footer": {
+    "tagline": "Professional stage lighting — consoles, lasers, fixtures & effects",
     "rights": "All rights reserved.",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "contact": "Contact"
   },
   "meta": {
-    "title": "LuminaTech — Premium Digital Products",
-    "description": "Independent e-commerce store for digital products with Stripe and PayPal checkout"
+    "title": "LuminaTech — Professional Stage Lighting",
+    "description": "Lighting consoles, lasers, stage fixtures, and effects for concerts, events, and rental — worldwide shipping"
   },
   "pages": {
     "about": {
       "title": "About LuminaTech",
-      "subtitle": "Curating premium digital products for customers worldwide.",
+      "subtitle": "Professional stage lighting for concerts, weddings, clubs, and rental worldwide.",
       "section1Title": "Our Story",
-      "section1Body": "LuminaTech was founded with a simple mission: make high-quality consumer electronics accessible to everyone, everywhere. We hand-pick every product in our catalog — from audio gear to smart wearables — ensuring each item meets our standards for design, performance, and value.",
+      "section1Body": "LuminaTech specializes in stage lighting and live-event equipment. From lighting consoles to laser systems, moving heads, and effects — every product is vetted for DMX compatibility, output quality, and road-ready durability.",
       "section2Title": "What We Offer",
-      "section2Body": "Our store features carefully selected digital products across categories including audio, peripherals, storage, wearables, and accessories. Every product ships with official warranty coverage and is backed by our customer support team.",
+      "section2Body": "Our catalog covers lighting consoles, laser systems, stage fixtures (moving heads, PAR cans, washes), effects (fog machines, strobes), and DMX accessories. All equipment includes official warranty and technical support.",
       "section3Title": "Global Reach",
       "section3Body": "We ship to customers in the United States, European Union, United Kingdom, and many other regions. All orders include tracking, and we work with trusted logistics partners to ensure safe, timely delivery.",
       "section4Title": "Our Commitment",
@@ -222,10 +267,14 @@
   "account": {
     "myAccount": "My Account",
     "orders": "Orders",
+    "downloads": "My Downloads",
     "wishlist": "Wishlist",
     "noOrders": "You haven't placed any orders yet.",
+    "noDownloads": "No downloads yet. Purchased products with firmware, files, or plugins will appear here.",
+    "downloadsHint": "Firmware, files, and plugins for products you purchased, including archive versions.",
     "emptyWishlist": "Your wishlist is empty.",
     "startShopping": "Start shopping",
+    "viewProduct": "View product",
     "items": "items",
     "order": "Order",
     "backToOrders": "Back to orders",

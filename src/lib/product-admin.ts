@@ -1,5 +1,11 @@
 import type { ProductSpec } from "@/lib/product-i18n";
 
+import {
+  getCategoryByKey,
+  resolveCategoryKey,
+  type ProductCategoryKey,
+} from "@/lib/categories";
+
 export type ProductFormInput = {
   slug: string;
   sku: string;
@@ -10,6 +16,7 @@ export type ProductFormInput = {
   shortDescZh: string;
   descriptionEn: string;
   descriptionZh: string;
+  categoryKey: ProductCategoryKey;
   categoryEn: string;
   categoryZh: string;
   price: number;
@@ -63,6 +70,13 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
   const nameEn = String(formData.get("nameEn") ?? "").trim();
   const slugInput = String(formData.get("slug") ?? "").trim();
 
+  const categoryKey = resolveCategoryKey({
+    categoryKey: String(formData.get("categoryKey") ?? "").trim(),
+    categoryEn: String(formData.get("categoryEn") ?? "").trim(),
+    slug: slugInput || slugify(nameEn),
+  });
+  const category = getCategoryByKey(categoryKey);
+
   return {
     slug: slugInput || slugify(nameEn),
     sku: String(formData.get("sku") ?? "").trim(),
@@ -73,8 +87,9 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     shortDescZh: String(formData.get("shortDescZh") ?? "").trim(),
     descriptionEn: String(formData.get("descriptionEn") ?? "").trim(),
     descriptionZh: String(formData.get("descriptionZh") ?? "").trim(),
-    categoryEn: String(formData.get("categoryEn") ?? "").trim(),
-    categoryZh: String(formData.get("categoryZh") ?? "").trim(),
+    categoryKey,
+    categoryEn: category.en,
+    categoryZh: category.zh,
     price: Number(formData.get("price") ?? 0),
     image: String(formData.get("image") ?? "").trim(),
     galleryText: String(formData.get("galleryText") ?? ""),
@@ -102,6 +117,7 @@ export function productInputToDbData(input: ProductFormInput) {
     shortDescZh: input.shortDescZh,
     descriptionEn: input.descriptionEn,
     descriptionZh: input.descriptionZh,
+    categoryKey: input.categoryKey,
     categoryEn: input.categoryEn,
     categoryZh: input.categoryZh,
     price: input.price,

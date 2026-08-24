@@ -38,6 +38,7 @@ yarn-error.log*
 /prisma/dev.db
 /prisma/*.db
 /prisma/*.db-journal
+/prisma/prisma/
 
 # vercel
 .vercel
@@ -51,3 +52,5 @@ next-env.d.ts
 # uploaded product images
 /public/uploads/*
 !/public/uploads/.gitkeep
+/public/downloads/*
+!/public/downloads/.gitkeep

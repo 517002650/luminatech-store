@@ -8,328 +8,316 @@ const photo = (seed: string, w = 800, h = 800) =>
 
 const products = [
   {
-    slug: "wireless-earbuds-pro",
-    sku: "LT-AE-001",
+    slug: "ma2-onpc-console",
+    sku: "LT-CON-001",
     brand: "LuminaTech",
-    nameEn: "Wireless Earbuds Pro",
-    nameZh: "无线降噪耳机 Pro",
-    shortDescEn: "Active noise cancellation with 36-hour total battery life.",
-    shortDescZh: "主动降噪，总续航 36 小时。",
-    descriptionEn: `Experience immersive sound with hybrid ANC that blocks up to 98% of ambient noise.
+    nameEn: "MA2 onPC Lighting Console",
+    nameZh: "MA2 onPC 灯光控制台",
+    shortDescEn: "Industry-standard lighting desk with 4,096 parameters and onPC software.",
+    shortDescZh: "行业标准灯光控台，4,096 参数，含 onPC 软件授权。",
+    descriptionEn: `Professional lighting control for concerts, tours, and fixed installations.
 
-![Earbuds detail](${photo("earbuds-detail-en", 900, 500)})
+![Console](${photo("ma2-console-en", 900, 500)})
 
 ## Key Features
-- Hybrid ANC + transparency mode
-- Dual-device multipoint connection
-- IPX5 water resistance
+- 4,096 control parameters
+- Full MA2 software feature set
+- Art-Net and sACN output
+- Multi-user session support`,
+    descriptionZh: `适用于演唱会、巡演与固定安装的专业灯光控制。
 
-## In the Box
-- Earbuds × 2
-- Wireless charging case
-- USB-C cable
-- 3 sizes of ear tips`,
-    descriptionZh: `混合主动降噪可隔绝高达 98% 环境噪音，带来沉浸式听感。
-
-![耳机细节](${photo("earbuds-detail-zh", 900, 500)})
+![控制台](${photo("ma2-console-zh", 900, 500)})
 
 ## 核心功能
-- 混合降噪 + 通透模式
-- 双设备多点连接
-- IPX5 防水
-
-## 包装清单
-- 耳机 × 2
-- 无线充电盒
-- USB-C 数据线
-- 耳塞 3 种尺寸`,
-    categoryEn: "Audio",
-    categoryZh: "音频",
-    price: 89.99,
-    image: photo("earbuds-main"),
-    images: JSON.stringify([
-      photo("earbuds-1"),
-      photo("earbuds-2"),
-      photo("earbuds-3"),
-    ]),
+- 4,096 控制参数
+- 完整 MA2 软件功能
+- Art-Net / sACN 输出
+- 多用户会话支持`,
+    categoryEn: "Lighting Consoles",
+    categoryZh: "灯光控制台",
+    price: 2499.0,
+    image: photo("ma2-main"),
+    images: JSON.stringify([photo("ma2-1"), photo("ma2-2"), photo("ma2-3")]),
     specsEn: JSON.stringify([
-      { label: "Driver", value: "10mm titanium composite" },
-      { label: "Bluetooth", value: "5.3 with AAC / LDAC" },
-      { label: "Battery (buds)", value: "8 hours (ANC on)" },
-      { label: "Battery (case)", value: "28 hours extra" },
-      { label: "Charging", value: "USB-C + Qi wireless" },
-      { label: "Weight", value: "5.2g per bud" },
+      { label: "Parameters", value: "4,096" },
+      { label: "Outputs", value: "Art-Net, sACN, DMX512" },
+      { label: "Software", value: "grandMA2 onPC" },
+      { label: "Display", value: "Multi-monitor supported" },
+      { label: "Power", value: "100–240V AC" },
     ]),
     specsZh: JSON.stringify([
-      { label: "驱动单元", value: "10mm 钛复合振膜" },
-      { label: "蓝牙", value: "5.3，支持 AAC / LDAC" },
-      { label: "耳机续航", value: "8 小时（降噪开）" },
-      { label: "充电盒续航", value: "额外 28 小时" },
-      { label: "充电方式", value: "USB-C + 无线充电" },
-      { label: "重量", value: "单耳 5.2g" },
+      { label: "参数", value: "4,096" },
+      { label: "输出", value: "Art-Net、sACN、DMX512" },
+      { label: "软件", value: "grandMA2 onPC" },
+      { label: "显示", value: "支持多显示器" },
+      { label: "电源", value: "100–240V AC" },
     ]),
     highlightsEn: JSON.stringify([
-      "Hybrid ANC with transparency mode",
-      "Multipoint connection for 2 devices",
-      "Low-latency gaming mode (60ms)",
+      "Industry-standard for touring and rental",
+      "Compatible with MA fixture profiles",
+      "Includes onPC software license",
     ]),
     highlightsZh: JSON.stringify([
-      "混合降噪 + 通透模式",
-      "双设备多点连接",
-      "低延迟游戏模式（60ms）",
+      "巡演与租赁行业主流控台",
+      "兼容 MA 灯库文件",
+      "含 onPC 软件授权",
     ]),
-    stock: 120,
+    stock: 15,
+    featured: true,
+    warranty: "2 years",
+  },
+  {
+    slug: "rgb-laser-5w",
+    sku: "LT-LSR-002",
+    brand: "LuminaTech",
+    nameEn: "RGB Laser Projector 5W",
+    nameZh: "RGB 全彩激光灯 5W",
+    shortDescEn: "5W full-color ILDA laser with DMX, SD card animations, and safety key.",
+    shortDescZh: "5W 全彩 ILDA 激光，DMX 控制，SD 卡动画，含安全钥匙。",
+    descriptionEn: `Vivid RGB laser effects for clubs, weddings, and stage shows.
+
+![Laser](${photo("laser-detail-en", 900, 500)})
+
+Built-in SD card with 128 preset patterns. ILDA port for custom animations.`,
+    descriptionZh: `适用于酒吧、婚礼与舞台演出的全彩激光效果。
+
+![激光灯](${photo("laser-detail-zh", 900, 500)})
+
+内置 SD 卡 128 组预设图案，ILDA 接口支持自定义动画。`,
+    categoryEn: "Laser Systems",
+    categoryZh: "激光灯",
+    price: 899.0,
+    image: photo("laser-main"),
+    images: JSON.stringify([photo("laser-1"), photo("laser-2")]),
+    specsEn: JSON.stringify([
+      { label: "Power", value: "5W RGB combined" },
+      { label: "Control", value: "DMX512, ILDA, Auto, Sound-active" },
+      { label: "Scan speed", value: "30K @ 8°" },
+      { label: "Safety", value: "Key switch + remote interlock" },
+      { label: "Cooling", value: "Forced air" },
+    ]),
+    specsZh: JSON.stringify([
+      { label: "功率", value: "5W RGB 混合" },
+      { label: "控制", value: "DMX512、ILDA、自动、声控" },
+      { label: "扫描速度", value: "30K @ 8°" },
+      { label: "安全", value: "钥匙开关 + 远程互锁" },
+      { label: "散热", value: "强制风冷" },
+    ]),
+    highlightsEn: JSON.stringify([
+      "128 built-in laser animations",
+      "DMX and ILDA control modes",
+      "Safety key included for venue compliance",
+    ]),
+    highlightsZh: JSON.stringify([
+      "128 组内置激光动画",
+      "DMX 与 ILDA 双控制模式",
+      "含安全钥匙，符合场馆规范",
+    ]),
+    stock: 40,
     featured: true,
     warranty: "1 year",
   },
   {
-    slug: "mechanical-keyboard-75",
-    sku: "LT-KB-002",
+    slug: "350w-beam-moving-head",
+    sku: "LT-FIX-003",
     brand: "LuminaTech",
-    nameEn: "Mechanical Keyboard 75%",
-    nameZh: "75% 机械键盘",
-    shortDescEn: "Hot-swap RGB keyboard with gasket mount and wireless mode.",
-    shortDescZh: "热插拔 RGB，垫片结构，支持无线连接。",
-    descriptionEn: `Compact 75% layout without sacrificing arrow keys.
+    nameEn: "350W Beam Moving Head",
+    nameZh: "350W 光束摇头灯",
+    shortDescEn: "Sharp 350W beam fixture with 14-color wheel, frost, and linear dimming.",
+    shortDescZh: "350W 锐利光束，14 色盘，雾化片，线性调光。",
+    descriptionEn: `High-output beam moving head for concerts and large venues.
 
-![Keyboard](${photo("keyboard-detail-en", 900, 500)})
+![Moving head](${photo("beam-fixture-en", 900, 500)})
 
-Gasket-mounted for a soft typing feel. Hot-swap sockets support 3-pin and 5-pin switches.`,
-    descriptionZh: `紧凑 75% 配列，保留方向键与功能区。
+14-color + open, 17 gobos, 8-facet prism with linear dimmer 0–100%.`,
+    descriptionZh: `适用于演唱会与大型场馆的高亮光束摇头灯。
 
-![键盘](${photo("keyboard-detail-zh", 900, 500)})
+![摇头灯](${photo("beam-fixture-zh", 900, 500)})
 
-垫片结构打字更柔和。热插拔座支持 3 脚 / 5 脚轴体。`,
-    categoryEn: "Peripherals",
-    categoryZh: "外设",
-    price: 129.99,
-    image: photo("keyboard-main"),
-    images: JSON.stringify([photo("keyboard-1"), photo("keyboard-2")]),
+14 色 + 白光，17 图案，8 棱镜，0–100% 线性调光。`,
+    categoryEn: "Stage Fixtures",
+    categoryZh: "舞台灯具",
+    price: 649.0,
+    image: photo("beam-main"),
+    images: JSON.stringify([photo("beam-1"), photo("beam-2")]),
     specsEn: JSON.stringify([
-      { label: "Layout", value: "75% / 84 keys" },
-      { label: "Switch", value: "Hot-swap (pre-lubed)" },
-      { label: "Connection", value: "2.4G / Bluetooth / USB-C" },
-      { label: "Battery", value: "4000mAh" },
-      { label: "Lighting", value: "Per-key RGB" },
+      { label: "Light source", value: "350W discharge lamp" },
+      { label: "Beam angle", value: "2° narrow beam" },
+      { label: "Pan / Tilt", value: "540° / 270°" },
+      { label: "DMX channels", value: "16 / 20 channel modes" },
+      { label: "Weight", value: "18.5 kg" },
     ]),
     specsZh: JSON.stringify([
-      { label: "配列", value: "75% / 84 键" },
-      { label: "轴体", value: "热插拔（预润）" },
-      { label: "连接", value: "2.4G / 蓝牙 / USB-C" },
-      { label: "电池", value: "4000mAh" },
-      { label: "灯效", value: "单键 RGB" },
+      { label: "光源", value: "350W 气体放电泡" },
+      { label: "光束角", value: "2° 窄光束" },
+      { label: "XY 轴", value: "540° / 270°" },
+      { label: "DMX 通道", value: "16 / 20 通道模式" },
+      { label: "重量", value: "18.5 kg" },
     ]),
     highlightsEn: JSON.stringify([
-      "Gasket mount soft typing feel",
-      "Tri-mode wireless connectivity",
-      "Mac / Windows key remapping",
+      "Ultra-narrow 2° beam for aerial effects",
+      "RDM compatible",
+      "Flight case recommended for touring",
     ]),
     highlightsZh: JSON.stringify([
-      "垫片结构，打字更软",
-      "三模无线连接",
-      "Mac / Windows 键位切换",
-    ]),
-    stock: 80,
-    featured: true,
-    warranty: "1 year",
-  },
-  {
-    slug: "usb-c-hub-8in1",
-    sku: "LT-HB-003",
-    brand: "LuminaTech",
-    nameEn: "USB-C Hub 8-in-1",
-    nameZh: "USB-C 扩展坞 8合1",
-    shortDescEn: "HDMI 4K, Ethernet, SD/TF, and 100W PD pass-through.",
-    shortDescZh: "HDMI 4K、千兆网口、SD/TF、100W PD 供电。",
-    descriptionEn: `One cable for your entire desk setup.
-
-![Hub](${photo("hub-detail-en", 900, 500)})
-
-Supports 4K@60Hz HDMI and 100W Power Delivery charging.`,
-    descriptionZh: `一根线搞定桌面扩展。
-
-![扩展坞](${photo("hub-detail-zh", 900, 500)})
-
-支持 HDMI 4K@60Hz 与 100W PD 充电。`,
-    categoryEn: "Accessories",
-    categoryZh: "配件",
-    price: 49.99,
-    image: photo("hub-main"),
-    images: JSON.stringify([photo("hub-1"), photo("hub-2")]),
-    specsEn: JSON.stringify([
-      { label: "Ports", value: "HDMI, RJ45, USB-A x2, USB-C, SD, TF, PD" },
-      { label: "HDMI", value: "4K@60Hz" },
-      { label: "PD", value: "100W pass-through" },
-      { label: "Ethernet", value: "1Gbps" },
-    ]),
-    specsZh: JSON.stringify([
-      { label: "接口", value: "HDMI、网口、USB-A×2、USB-C、SD、TF、PD" },
-      { label: "HDMI", value: "4K@60Hz" },
-      { label: "PD", value: "100W 供电直通" },
-      { label: "网口", value: "1Gbps" },
-    ]),
-    highlightsEn: JSON.stringify([
-      "Aluminum body, compact travel size",
-      "Compatible with MacBook, iPad, Windows laptops",
-      "Plug and play",
-    ]),
-    highlightsZh: JSON.stringify([
-      "铝合金机身，便携出差",
-      "兼容 MacBook、iPad、Windows 笔记本",
-      "即插即用",
-    ]),
-    stock: 200,
-    featured: true,
-    warranty: "1 year",
-  },
-  {
-    slug: "portable-ssd-1tb",
-    sku: "LT-SS-004",
-    brand: "LuminaTech",
-    nameEn: "Portable SSD 1TB",
-    nameZh: "移动固态硬盘 1TB",
-    shortDescEn: "1050MB/s read speeds with USB-C and rugged enclosure.",
-    shortDescZh: "读取最高 1050MB/s，USB-C，三防外壳。",
-    descriptionEn: `Fast external storage for creators on the go.
-
-![SSD](${photo("ssd-detail-en", 900, 500)})
-
-IP65 dust and water resistance with shock-absorbing silicone bumper.`,
-    descriptionZh: `创作者随身高速存储。
-
-![固态硬盘](${photo("ssd-detail-zh", 900, 500)})
-
-IP65 防尘防水，硅胶减震套保护。`,
-    categoryEn: "Storage",
-    categoryZh: "存储",
-    price: 99.99,
-    image: photo("ssd-main"),
-    images: JSON.stringify([photo("ssd-1"), photo("ssd-2")]),
-    specsEn: JSON.stringify([
-      { label: "Capacity", value: "1TB" },
-      { label: "Read", value: "Up to 1050MB/s" },
-      { label: "Write", value: "Up to 1000MB/s" },
-      { label: "Interface", value: "USB 3.2 Gen2 Type-C" },
-    ]),
-    specsZh: JSON.stringify([
-      { label: "容量", value: "1TB" },
-      { label: "读取", value: "最高 1050MB/s" },
-      { label: "写入", value: "最高 1000MB/s" },
-      { label: "接口", value: "USB 3.2 Gen2 Type-C" },
-    ]),
-    highlightsEn: JSON.stringify([
-      "Works with Windows, macOS, Android",
-      "Hardware encryption supported",
-      "Compact pocket size",
-    ]),
-    highlightsZh: JSON.stringify([
-      "兼容 Windows、macOS、Android",
-      "支持硬件加密",
-      "口袋便携尺寸",
-    ]),
-    stock: 150,
-    featured: false,
-    warranty: "3 years",
-  },
-  {
-    slug: "smart-watch-ultra",
-    sku: "LT-SW-005",
-    brand: "LuminaTech",
-    nameEn: "Smart Watch Ultra",
-    nameZh: "智能手表 Ultra",
-    shortDescEn: "AMOLED display, GPS, SpO2, and 14-day battery life.",
-    shortDescZh: "AMOLED 屏，GPS，血氧，续航约 14 天。",
-    descriptionEn: `Track workouts and health with a bright AMOLED watch.
-
-![Watch](${photo("watch-detail-en", 900, 500)})
-
-Built-in GPS, heart rate, SpO2, and sleep monitoring.`,
-    descriptionZh: `高亮 AMOLED 屏幕，运动与健康一站追踪。
-
-![手表](${photo("watch-detail-zh", 900, 500)})
-
-内置 GPS、心率、血氧与睡眠监测。`,
-    categoryEn: "Wearables",
-    categoryZh: "穿戴",
-    price: 159.99,
-    image: photo("watch-main"),
-    images: JSON.stringify([photo("watch-1"), photo("watch-2")]),
-    specsEn: JSON.stringify([
-      { label: "Display", value: "1.43\" AMOLED" },
-      { label: "Battery", value: "Up to 14 days" },
-      { label: "Water", value: "5ATM" },
-      { label: "Sensors", value: "HR, SpO2, GPS, accelerometer" },
-    ]),
-    specsZh: JSON.stringify([
-      { label: "屏幕", value: "1.43 英寸 AMOLED" },
-      { label: "续航", value: "最长约 14 天" },
-      { label: "防水", value: "5ATM" },
-      { label: "传感器", value: "心率、血氧、GPS、加速度计" },
-    ]),
-    highlightsEn: JSON.stringify([
-      "100+ sports modes",
-      "Bluetooth calling",
-      "Smart notifications",
-    ]),
-    highlightsZh: JSON.stringify([
-      "100+ 运动模式",
-      "蓝牙通话",
-      "智能消息提醒",
+      "2° 超窄光束，空中效果出众",
+      "支持 RDM 远程设备管理",
+      "巡演建议配航空箱",
     ]),
     stock: 60,
+    featured: true,
+    warranty: "1 year",
+  },
+  {
+    slug: "led-par-rgbwa-18x12",
+    sku: "LT-FIX-004",
+    brand: "LuminaTech",
+    nameEn: "LED PAR RGBWA 18×12W",
+    nameZh: "LED 帕灯 RGBWA 18×12W",
+    shortDescEn: "18×12W RGBWA PAR can with silent fan mode and power link.",
+    shortDescZh: "18×12W RGBWA 帕灯，静音模式，电源串联。",
+    descriptionEn: `Versatile wash fixture for uplighting, stage wash, and architectural lighting.
+
+![PAR can](${photo("par-fixture-en", 900, 500)})
+
+PowerCON in/out for daisy-chain setup. 3/7/8 DMX channel modes.`,
+    descriptionZh: `适用于洗墙、面光与建筑照明的全能帕灯。
+
+![帕灯](${photo("par-fixture-zh", 900, 500)})
+
+PowerCON 入/出串联供电，3/7/8 通道 DMX 模式。`,
+    categoryEn: "Stage Fixtures",
+    categoryZh: "舞台灯具",
+    price: 189.0,
+    image: photo("par-main"),
+    images: JSON.stringify([photo("par-1"), photo("par-2")]),
+    specsEn: JSON.stringify([
+      { label: "LEDs", value: "18×12W RGBWA 5-in-1" },
+      { label: "Beam angle", value: "25°" },
+      { label: "DMX", value: "3 / 7 / 8 channels" },
+      { label: "Power link", value: "PowerCON in/out" },
+      { label: "Noise", value: "Silent mode < 25 dB" },
+    ]),
+    specsZh: JSON.stringify([
+      { label: "灯珠", value: "18×12W RGBWA 五合一" },
+      { label: "光束角", value: "25°" },
+      { label: "DMX", value: "3 / 7 / 8 通道" },
+      { label: "电源串联", value: "PowerCON 入/出" },
+      { label: "噪音", value: "静音模式 < 25 dB" },
+    ]),
+    highlightsEn: JSON.stringify([
+      "True white from dedicated W + A LEDs",
+      "Silent fan for wedding and church use",
+      "Power link reduces cable runs",
+    ]),
+    highlightsZh: JSON.stringify([
+      "独立 W + A 灯珠呈现真实白光",
+      "静音风扇适合婚礼与教堂",
+      "电源串联减少布线",
+    ]),
+    stock: 120,
+    featured: false,
+    warranty: "2 years",
+  },
+  {
+    slug: "dmx512-wireless-transceiver",
+    sku: "LT-ACC-005",
+    brand: "LuminaTech",
+    nameEn: "DMX512 Wireless Transceiver",
+    nameZh: "DMX512 无线收发器",
+    shortDescEn: "2.4G ISM wireless DMX with 400m range and automatic pairing.",
+    shortDescZh: "2.4G ISM 无线 DMX，400 米距离，自动配对。",
+    descriptionEn: `Eliminate long DMX cable runs with reliable wireless DMX.
+
+![Wireless DMX](${photo("dmx-wireless-en", 900, 500)})
+
+Set as transmitter or receiver. Supports up to 512 channels.`,
+    descriptionZh: `可靠无线 DMX，告别长距离信号线布线。
+
+![无线 DMX](${photo("dmx-wireless-zh", 900, 500)})
+
+可切换发射/接收模式，支持 512 通道。`,
+    categoryEn: "Control & Accessories",
+    categoryZh: "控制与配件",
+    price: 129.0,
+    image: photo("dmx-main"),
+    images: JSON.stringify([photo("dmx-1")]),
+    specsEn: JSON.stringify([
+      { label: "Frequency", value: "2.4G ISM" },
+      { label: "Range", value: "Up to 400m (open line of sight)" },
+      { label: "Channels", value: "512 DMX channels" },
+      { label: "Latency", value: "< 5ms" },
+      { label: "Power", value: "5V USB / DC 9–24V" },
+    ]),
+    specsZh: JSON.stringify([
+      { label: "频段", value: "2.4G ISM" },
+      { label: "距离", value: "最远 400 米（视距）" },
+      { label: "通道", value: "512 DMX 通道" },
+      { label: "延迟", value: "< 5ms" },
+      { label: "供电", value: "5V USB / DC 9–24V" },
+    ]),
+    highlightsEn: JSON.stringify([
+      "Auto-pairing in seconds",
+      "Works with any DMX512 console",
+      "Compact for truss mount",
+    ]),
+    highlightsZh: JSON.stringify([
+      "数秒自动配对",
+      "兼容任意 DMX512 控台",
+      "紧凑设计可装桁架",
+    ]),
+    stock: 200,
     featured: false,
     warranty: "1 year",
   },
   {
-    slug: "webcam-4k-pro",
-    sku: "LT-WC-006",
+    slug: "low-fog-machine-1500w",
+    sku: "LT-FX-006",
     brand: "LuminaTech",
-    nameEn: "Webcam 4K Pro",
-    nameZh: "4K 网络摄像头 Pro",
-    shortDescEn: "4K 30fps with auto-focus, HDR, and built-in dual mics.",
-    shortDescZh: "4K 30fps，自动对焦，HDR，内置双麦克风。",
-    descriptionEn: `Look your best on every video call with 4K clarity and autofocus.
+    nameEn: "Low Fog Machine 1500W",
+    nameZh: "1500W 低烟机",
+    shortDescEn: "1500W low-lying fog machine with DMX and timer control.",
+    shortDescZh: "1500W 低烟机，DMX 与定时控制，地面贴地烟雾效果。",
+    descriptionEn: `Create ground-hugging fog effects for dramatic stage reveals.
 
-![Webcam 4K](${photo("webcam-detail-en", 900, 500)})
+![Fog machine](${photo("fog-machine-en", 900, 500)})
 
-HDR balances backlighting. Dual noise-reducing microphones included.`,
-    descriptionZh: `4K 超清画质配合自动对焦，视频通话始终清晰。
+Use standard fog fluid or low-lying fluid with optional chiller for floor-hugging effect.`,
+    descriptionZh: `制造贴地低烟效果，适合舞台出场与氛围营造。
 
-![4K 摄像头](${photo("webcam-detail-zh", 900, 500)})
+![烟雾机](${photo("fog-machine-zh", 900, 500)})
 
-HDR 平衡逆光，双降噪麦克风，附隐私挡板。`,
-    categoryEn: "Peripherals",
-    categoryZh: "外设",
-    price: 79.99,
-    image: photo("webcam-main"),
-    images: JSON.stringify([photo("webcam-1"), photo("webcam-2")]),
+可使用标准烟油或低烟液，选配冷却器实现贴地效果。`,
+    categoryEn: "Effects",
+    categoryZh: "特效设备",
+    price: 279.0,
+    image: photo("fog-main"),
+    images: JSON.stringify([photo("fog-1"), photo("fog-2")]),
     specsEn: JSON.stringify([
-      { label: "Resolution", value: "4K@30fps, 1080p@60fps" },
-      { label: "Field of view", value: "90° diagonal" },
-      { label: "Focus", value: "Auto-focus with face priority" },
-      { label: "Microphone", value: "Dual stereo with noise reduction" },
-      { label: "Mount", value: "Monitor clip + 1/4\" tripod thread" },
-      { label: "Connection", value: "USB-C (USB 2.0)" },
+      { label: "Heater", value: "1500W" },
+      { label: "Output", value: "40,000 cu.ft/min" },
+      { label: "Heat-up time", value: "4 minutes" },
+      { label: "Control", value: "DMX, wired remote, timer" },
+      { label: "Tank", value: "2.5L removable" },
     ]),
     specsZh: JSON.stringify([
-      { label: "分辨率", value: "4K@30fps，1080p@60fps" },
-      { label: "视场角", value: "90° 对角线" },
-      { label: "对焦", value: "自动对焦，人脸优先" },
-      { label: "麦克风", value: "双声道立体声降噪" },
-      { label: "安装", value: "显示器夹 + 1/4 英寸螺纹" },
-      { label: "连接", value: "USB-C（USB 2.0）" },
+      { label: "加热", value: "1500W" },
+      { label: "出烟量", value: "40,000 立方英尺/分钟" },
+      { label: "预热", value: "4 分钟" },
+      { label: "控制", value: "DMX、有线遥控、定时" },
+      { label: "油箱", value: "2.5L 可拆卸" },
     ]),
     highlightsEn: JSON.stringify([
-      "Works with Zoom, Teams, OBS, and macOS FaceTime",
-      "Low-light enhancement algorithm",
-      "Physical privacy cover included",
+      "DMX controllable for automated shows",
+      "Fast heat-up for quick changeovers",
+      "Compatible with standard fog fluids",
     ]),
     highlightsZh: JSON.stringify([
-      "兼容 Zoom、Teams、OBS、FaceTime",
-      "弱光增强算法",
-      "物理隐私盖板",
+      "DMX 控制，适合自动化演出",
+      "快速预热，换场效率高",
+      "兼容标准烟油",
     ]),
-    stock: 95,
+    stock: 75,
     featured: false,
     warranty: "1 year",
   },
@@ -343,7 +331,7 @@ async function main() {
     for (const product of products) {
       await prisma.product.create({ data: product });
     }
-    console.log(`Seeded ${products.length} digital products with markdown descriptions`);
+    console.log(`Seeded ${products.length} stage lighting products`);
   }
 
   const couponCount = await prisma.coupon.count();

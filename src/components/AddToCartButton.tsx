@@ -35,7 +35,7 @@ export function AddToCartButton({
     <button
       type="button"
       onClick={handleClick}
-      className="w-full rounded-xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700"
+      className="btn-primary w-full"
     >
       {added ? t("addedToCart") : t("addToCart")}
     </button>

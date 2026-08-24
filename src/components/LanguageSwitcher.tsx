@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="flex rounded-lg border border-stone-200 bg-stone-50 p-0.5 text-xs font-medium">
+    <div className="flex rounded-lg border border-zinc-700 bg-zinc-900 p-0.5 text-xs font-medium">
       {(["en", "zh"] as Locale[]).map((code) => (
         <button
           key={code}
@@ -28,8 +28,8 @@ export function LanguageSwitcher() {
           onClick={() => switchLocale(code)}
           className={`rounded-md px-2.5 py-1 transition ${
             locale === code
-              ? "bg-white text-stone-900 shadow-sm"
-              : "text-stone-500 hover:text-stone-800"
+              ? "bg-zinc-800 text-cyan-400 shadow-sm"
+              : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
           {labels[code]}

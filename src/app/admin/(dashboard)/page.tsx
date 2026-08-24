@@ -18,6 +18,8 @@ export default async function AdminDashboardPage() {
         featured: true,
         image: true,
         categoryEn: true,
+        categoryZh: true,
+        categoryKey: true,
       },
     });
 

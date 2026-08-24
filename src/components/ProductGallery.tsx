@@ -16,7 +16,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
 
   return (
     <div className="space-y-4">
-      <div className="relative aspect-square overflow-hidden rounded-3xl bg-stone-100">
+      <div className="relative aspect-square overflow-hidden rounded-3xl bg-zinc-800">
         <SafeImage
           src={gallery[active]}
           alt={alt}
@@ -34,7 +34,7 @@ export function ProductGallery({ images, alt }: ProductGalleryProps) {
               onClick={() => setActive(index)}
               className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition ${
                 active === index
-                  ? "border-amber-500"
+                  ? "border-cyan-500"
                   : "border-transparent opacity-70 hover:opacity-100"
               }`}
             >

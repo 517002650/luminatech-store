@@ -1,9 +1,10 @@
+// Local development only (SQLite). Production/Vercel uses prisma/schema.prisma (PostgreSQL).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 

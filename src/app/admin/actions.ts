@@ -105,6 +105,100 @@ export async function deleteProductAction(id: string) {
   revalidatePath("/zh/products");
 }
 
+export async function createProductDownloadAction(productId: string, formData: FormData) {
+  await requireAdmin();
+
+  const type = String(formData.get("type") ?? "").trim();
+  const version = String(formData.get("version") ?? "").trim();
+  const titleEn = String(formData.get("titleEn") ?? "").trim();
+  const titleZh = String(formData.get("titleZh") ?? "").trim();
+  const notesEn = String(formData.get("notesEn") ?? "").trim();
+  const notesZh = String(formData.get("notesZh") ?? "").trim();
+  const fileUrl = String(formData.get("fileUrl") ?? "").trim();
+  const fileName = String(formData.get("fileName") ?? "").trim();
+  const fileSize = Number(formData.get("fileSize") ?? 0);
+  const isLatest = formData.get("isLatest") === "on";
+
+  if (!["firmware", "file", "plugin"].includes(type)) {
+    return { error: "请选择类型：固件 / 文件 / 插件" };
+  }
+  if (!version || !titleEn || !titleZh || !fileUrl || !fileName) {
+    return { error: "请填写版本、标题并上传文件" };
+  }
+
+  const product = await prisma.product.findUnique({ where: { id: productId } });
+  if (!product) return { error: "商品不存在" };
+
+  if (isLatest) {
+    await prisma.productDownload.updateMany({
+      where: { productId, type },
+      data: { isLatest: false },
+    });
+  }
+
+  await prisma.productDownload.create({
+    data: {
+      productId,
+      type,
+      version,
+      titleEn,
+      titleZh,
+      notesEn,
+      notesZh,
+      fileUrl,
+      fileName,
+      fileSize: Number.isFinite(fileSize) ? fileSize : 0,
+      isLatest,
+    },
+  });
+
+  revalidatePath(`/admin/products/${productId}/edit`);
+  revalidatePath(`/en/products/${product.slug}`);
+  revalidatePath(`/zh/products/${product.slug}`);
+  return { success: true as const };
+}
+
+export async function deleteProductDownloadAction(id: string) {
+  await requireAdmin();
+
+  const row = await prisma.productDownload.findUnique({
+    where: { id },
+    include: { product: { select: { id: true, slug: true } } },
+  });
+  if (!row) return { error: "记录不存在" };
+
+  await prisma.productDownload.delete({ where: { id } });
+
+  revalidatePath(`/admin/products/${row.product.id}/edit`);
+  revalidatePath(`/en/products/${row.product.slug}`);
+  revalidatePath(`/zh/products/${row.product.slug}`);
+  return { success: true as const };
+}
+
+export async function setLatestProductDownloadAction(id: string) {
+  await requireAdmin();
+
+  const row = await prisma.productDownload.findUnique({
+    where: { id },
+    include: { product: { select: { id: true, slug: true } } },
+  });
+  if (!row) return { error: "记录不存在" };
+
+  await prisma.productDownload.updateMany({
+    where: { productId: row.productId, type: row.type },
+    data: { isLatest: false },
+  });
+  await prisma.productDownload.update({
+    where: { id },
+    data: { isLatest: true },
+  });
+
+  revalidatePath(`/admin/products/${row.product.id}/edit`);
+  revalidatePath(`/en/products/${row.product.slug}`);
+  revalidatePath(`/zh/products/${row.product.slug}`);
+  return { success: true as const };
+}
+
 export async function updateOrderStatusAction(id: string, status: string) {
   await requireAdmin();
 
