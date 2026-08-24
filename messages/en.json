@@ -275,15 +275,31 @@
     "emptyWishlist": "Your wishlist is empty.",
     "startShopping": "Start shopping",
     "viewProduct": "View product",
+    "viewDetails": "View details",
     "items": "items",
     "order": "Order",
+    "orderItems": "Items",
     "backToOrders": "Back to orders",
     "status": "Status",
     "payment": "Payment",
     "total": "Total",
     "repurchase": "Buy again",
     "remove": "Remove",
-    "shippingAddress": "Shipping Address"
+    "shippingAddress": "Shipping Address",
+    "addrName": "Recipient",
+    "addrPhone": "Phone",
+    "addrEmail": "Email",
+    "addrLine": "Address",
+    "addrCity": "City / ZIP",
+    "addrPostal": "ZIP",
+    "addrCountry": "Country",
+    "statuses": {
+      "paid": "Paid",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
   },
   "wishlist": {
     "add": "Add to Wishlist",

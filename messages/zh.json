@@ -275,15 +275,31 @@
     "emptyWishlist": "收藏夹是空的。",
     "startShopping": "去逛逛",
     "viewProduct": "查看商品",
+    "viewDetails": "查看详情",
     "items": "件商品",
     "order": "订单",
+    "orderItems": "商品明细",
     "backToOrders": "返回订单列表",
     "status": "状态",
     "payment": "支付方式",
     "total": "合计",
     "repurchase": "再次购买",
     "remove": "移除",
-    "shippingAddress": "收货地址"
+    "shippingAddress": "收货地址",
+    "addrName": "收件人",
+    "addrPhone": "电话",
+    "addrEmail": "邮箱",
+    "addrLine": "地址",
+    "addrCity": "城市/邮编",
+    "addrPostal": "邮编",
+    "addrCountry": "国家/地区",
+    "statuses": {
+      "paid": "已付款",
+      "processing": "处理中",
+      "shipped": "已发货",
+      "completed": "已完成",
+      "cancelled": "已取消"
+    }
   },
   "wishlist": {
     "add": "加入收藏",

@@ -77,7 +77,7 @@ export function OrderDetailPanel({ order }: Props) {
       </div>
 
       {shipping && (
-        <ShippingAddressDisplay address={shipping} title="收货地址" />
+        <ShippingAddressDisplay address={shipping} title="收货地址" variant="admin" />
       )}
 
       <div className="rounded-2xl border border-stone-200 bg-white p-6">

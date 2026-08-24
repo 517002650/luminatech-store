@@ -37,15 +37,18 @@ export default async function WishlistPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">{t("myAccount")}</h1>
+      <h1 className="text-2xl font-bold text-zinc-50">{t("myAccount")}</h1>
       <div className="mt-6">
         <AccountNav />
       </div>
 
       {items.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-stone-300 p-12 text-center">
-          <p className="text-stone-600">{t("emptyWishlist")}</p>
-          <Link href="/products" className="mt-4 inline-block text-amber-600 hover:underline">
+        <div className="mt-10 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 p-12 text-center">
+          <p className="text-zinc-400">{t("emptyWishlist")}</p>
+          <Link
+            href="/products"
+            className="mt-4 inline-block text-cyan-400 hover:text-cyan-300 hover:underline"
+          >
             {t("startShopping")}
           </Link>
         </div>
@@ -71,7 +74,7 @@ export default async function WishlistPage({ params }: Props) {
                 >
                   <button
                     type="submit"
-                    className="rounded-full bg-white/90 px-2 py-1 text-xs text-red-600 shadow hover:bg-white"
+                    className="rounded-full bg-zinc-950/90 px-2 py-1 text-xs text-red-400 ring-1 ring-zinc-700 hover:bg-zinc-900"
                   >
                     {t("remove")}
                   </button>

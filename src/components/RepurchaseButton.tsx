@@ -33,7 +33,7 @@ export function RepurchaseButton({ items }: { items: OrderItem[] }) {
     <button
       type="button"
       onClick={handleRepurchase}
-      className="rounded-xl bg-amber-500 px-6 py-2.5 text-sm font-semibold text-stone-900 hover:bg-amber-400"
+      className="rounded-xl bg-gradient-to-r from-cyan-600 to-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-cyan-900/30 transition hover:from-cyan-500 hover:to-violet-500"
     >
       {t("repurchase")}
     </button>
