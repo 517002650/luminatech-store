@@ -4,6 +4,9 @@ import { getCurrentUser } from "@/lib/user-auth";
 import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { fulfillStripeCheckoutSession } from "@/lib/stripe-order";
+import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
+import { buildOrderQuote } from "@/lib/pricing";
+import { sendOrderConfirmationEmail } from "@/lib/email";
 
 type CartItem = {
   productId: string;
@@ -21,16 +24,13 @@ type CompleteOrderBody = {
   paypalOrderId?: string;
   items?: CartItem[];
   shippingAddress?: ShippingAddress;
+  couponCode?: string;
 };
-
-function calcTotal(items: CartItem[]) {
-  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-}
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as CompleteOrderBody;
-    const { provider, sessionId, paypalOrderId, items, shippingAddress } = body;
+    const { provider, sessionId, paypalOrderId, items, shippingAddress, couponCode } = body;
 
     if (provider === "stripe") {
       if (!sessionId) {
@@ -76,18 +76,34 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "收货地址不完整" }, { status: 400 });
       }
 
+      const couponResult = await validateCouponCode(couponCode, items);
+      if (couponCode?.trim() && !couponResult.valid) {
+        return NextResponse.json({ error: "优惠码无效" }, { status: 400 });
+      }
+
+      const quote = buildOrderQuote(
+        items,
+        resolvedShipping,
+        couponResult.discountAmount,
+        couponResult.couponCode,
+      );
+
       const user = await getCurrentUser();
       let email = resolvedShipping.email;
       if (user && !email) {
         email = user.email;
       }
 
-      const total = calcTotal(items);
       const order = await prisma.order.create({
         data: {
           userId: user?.id,
           email,
-          total,
+          subtotal: quote.subtotal,
+          shippingFee: quote.shippingFee,
+          taxAmount: quote.taxAmount,
+          discountAmount: quote.discountAmount,
+          couponCode: quote.couponCode ?? "",
+          total: quote.total,
           status: "paid",
           paymentMethod: "paypal",
           paymentId,
@@ -96,11 +112,21 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      if (quote.couponCode) {
+        await incrementCouponUsage(quote.couponCode);
+      }
+
       for (const item of items) {
         await prisma.product.updateMany({
           where: { id: item.productId, stock: { gt: 0 } },
           data: { stock: { decrement: item.quantity } },
         });
+      }
+
+      try {
+        await sendOrderConfirmationEmail(order);
+      } catch (err) {
+        console.error("Order confirmation email failed:", err);
       }
 
       return NextResponse.json({ orderId: order.id });

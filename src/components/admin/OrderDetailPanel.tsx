@@ -19,6 +19,11 @@ type Props = {
   order: {
     id: string;
     email: string;
+    subtotal?: number;
+    shippingFee?: number;
+    taxAmount?: number;
+    discountAmount?: number;
+    couponCode?: string;
     total: number;
     status: string;
     paymentMethod: string;
@@ -48,7 +53,21 @@ export function OrderDetailPanel({ order }: Props) {
       <div className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-6 sm:grid-cols-2 lg:grid-cols-3">
         <Info label="订单号" value={`#${formatOrderId(order.id)}`} />
         <Info label="客户邮箱" value={order.email || "—"} />
-        <Info label="订单金额" value={formatPrice(order.total)} />
+        <Info label="商品小计" value={formatPrice(order.subtotal ?? order.total)} />
+        {(order.discountAmount ?? 0) > 0 && (
+          <Info
+            label="优惠"
+            value={`-${formatPrice(order.discountAmount!)}${order.couponCode ? ` (${order.couponCode})` : ""}`}
+          />
+        )}
+        <Info
+          label="运费"
+          value={(order.shippingFee ?? 0) === 0 ? "免运费" : formatPrice(order.shippingFee!)}
+        />
+        {(order.taxAmount ?? 0) > 0 && (
+          <Info label="税费" value={formatPrice(order.taxAmount!)} />
+        )}
+        <Info label="订单总额" value={formatPrice(order.total)} />
         <Info label="支付方式" value={order.paymentMethod.toUpperCase()} />
         <Info label="支付 ID" value={order.paymentId ?? "—"} />
         <Info

@@ -1,8 +1,10 @@
 "use server";
 
+import { createHash, randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { sendPasswordResetEmail } from "@/lib/email";
 import {
   clearUserSession,
   getCurrentUser,
@@ -124,4 +126,68 @@ export async function removeWishlistItemAction(productId: string) {
     where: { userId: user.id, productId },
   });
   revalidatePath("/account/wishlist");
+}
+
+function hashResetToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const locale = String(formData.get("locale") ?? "en");
+
+  if (!email) {
+    return { error: "email_required" as const };
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (user) {
+    const token = randomBytes(32).toString("hex");
+    const tokenHash = hashResetToken(token);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+    await prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash, expiresAt },
+    });
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const resetUrl = `${appUrl}/${locale}/reset-password?token=${token}`;
+
+    try {
+      await sendPasswordResetEmail(email, resetUrl);
+    } catch (err) {
+      console.error("Password reset email failed:", err);
+    }
+  }
+
+  return { success: true as const };
+}
+
+export async function resetPasswordAction(formData: FormData) {
+  const token = String(formData.get("token") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const locale = String(formData.get("locale") ?? "en");
+
+  if (!token || password.length < 6) {
+    return { error: "invalid" as const };
+  }
+
+  const tokenHash = hashResetToken(token);
+  const record = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash },
+    include: { user: true },
+  });
+
+  if (!record || record.expiresAt < new Date()) {
+    return { error: "expired" as const };
+  }
+
+  await prisma.user.update({
+    where: { id: record.userId },
+    data: { passwordHash: await hashPassword(password) },
+  });
+  await prisma.passwordResetToken.deleteMany({ where: { userId: record.userId } });
+
+  redirect(`/${locale}/login`);
 }

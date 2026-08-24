@@ -62,10 +62,20 @@
     "title": "Checkout",
     "subtitle": "Enter your shipping address and choose payment",
     "empty": "Add items to your cart before checkout.",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "shipping": "Shipping",
+    "shippingFree": "Free",
+    "shippingPending": "Enter address to calculate",
     "total": "Total",
-    "shippingNote": "Free shipping on all orders during launch.",
+    "shippingNote": "Free shipping on orders over ${amount}. Tax is calculated by destination.",
     "shippingTitle": "Shipping Address",
     "paymentTitle": "Payment",
+    "countryPlaceholder": "Select country / region",
+    "couponTitle": "Coupon Code",
+    "couponPlaceholder": "Enter code",
+    "applyCoupon": "Apply",
+    "couponApplied": "Coupon {code} applied",
     "email": "Email",
     "fullName": "Full name",
     "phone": "Phone (optional)",
@@ -82,6 +92,7 @@
     "paypalError": "PayPal payment failed. Please try again.",
     "errors": {
       "form": "Please complete all required shipping fields.",
+      "coupon": "Please check your coupon code.",
       "email_required": "Email is required.",
       "email_invalid": "Please enter a valid email.",
       "name_required": "Full name is required.",
@@ -89,6 +100,12 @@
       "city_required": "City is required.",
       "country_required": "Country is required.",
       "postal_required": "Postal code is required."
+    },
+    "couponErrors": {
+      "invalid": "Invalid or inactive coupon.",
+      "expired": "This coupon has expired.",
+      "max_uses": "This coupon has reached its usage limit.",
+      "min_order": "Order does not meet the minimum amount."
     }
   },
   "success": {
@@ -185,7 +202,22 @@
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
     "signUp": "Sign up",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "forgotPassword": "Forgot password?",
+    "forgotSubtitle": "Enter your email and we'll send a reset link (SMTP required).",
+    "sendResetLink": "Send reset link",
+    "sendingReset": "Sending...",
+    "resetEmailSent": "If that email is registered, you will receive a reset link shortly (check spam too).",
+    "resetPassword": "Reset password",
+    "resetSubtitle": "Choose a new password (at least 6 characters).",
+    "newPassword": "New password",
+    "resettingPassword": "Saving...",
+    "backToLogin": "Back to sign in",
+    "resetErrors": {
+      "email_required": "Email is required.",
+      "invalid": "Invalid link or password too short.",
+      "expired": "This link has expired. Please request a new one."
+    }
   },
   "account": {
     "myAccount": "My Account",

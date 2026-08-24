@@ -1,8 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { ShippingAddress } from "@/lib/orders";
-import { SHIPPING_STORAGE_KEY } from "@/lib/orders";
+import { COUPON_STORAGE_KEY, SHIPPING_STORAGE_KEY } from "@/lib/orders";
+import { COUNTRY_OPTIONS } from "@/lib/pricing";
+import type { Locale } from "@/i18n/routing";
 
 type Props = {
   value: ShippingAddress;
@@ -15,6 +17,7 @@ const inputClass =
 
 export function ShippingAddressForm({ value, onChange, errors }: Props) {
   const t = useTranslations("checkout");
+  const locale = useLocale() as Locale;
 
   function update<K extends keyof ShippingAddress>(key: K, fieldValue: ShippingAddress[K]) {
     onChange({ ...value, [key]: fieldValue });
@@ -112,14 +115,20 @@ export function ShippingAddressForm({ value, onChange, errors }: Props) {
 
         <div>
           <label className="text-sm font-medium text-stone-700">{t("country")}</label>
-          <input
-            type="text"
+          <select
             required
             autoComplete="country-name"
             value={value.country}
             onChange={(e) => update("country", e.target.value)}
             className={inputClass}
-          />
+          >
+            <option value="">{t("countryPlaceholder")}</option>
+            {COUNTRY_OPTIONS.map((c) => (
+              <option key={c.code} value={locale === "zh" ? c.zh : c.en}>
+                {locale === "zh" ? c.zh : c.en}
+              </option>
+            ))}
+          </select>
           {errors?.country && <p className="mt-1 text-xs text-red-600">{errors.country}</p>}
         </div>
 
@@ -170,4 +179,16 @@ export function loadShippingFromSession(): ShippingAddress | null {
 
 export function clearShippingSession() {
   sessionStorage.removeItem(SHIPPING_STORAGE_KEY);
+}
+
+export function saveCouponToSession(code: string) {
+  sessionStorage.setItem(COUPON_STORAGE_KEY, code);
+}
+
+export function loadCouponFromSession(): string {
+  return sessionStorage.getItem(COUPON_STORAGE_KEY) ?? "";
+}
+
+export function clearCouponSession() {
+  sessionStorage.removeItem(COUPON_STORAGE_KEY);
 }

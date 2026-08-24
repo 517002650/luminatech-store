@@ -338,14 +338,37 @@ async function main() {
   const existing = await prisma.product.count();
   if (existing > 0) {
     console.log(`Skip seed: ${existing} products already exist`);
-    return;
+  } else {
+    for (const product of products) {
+      await prisma.product.create({ data: product });
+    }
+    console.log(`Seeded ${products.length} digital products with markdown descriptions`);
   }
 
-  for (const product of products) {
-    await prisma.product.create({ data: product });
+  const couponCount = await prisma.coupon.count();
+  if (couponCount === 0) {
+    await prisma.coupon.createMany({
+      data: [
+        {
+          code: "WELCOME10",
+          type: "percent",
+          value: 10,
+          minOrder: 0,
+          maxUses: 1000,
+          active: true,
+        },
+        {
+          code: "SAVE5",
+          type: "fixed",
+          value: 5,
+          minOrder: 50,
+          maxUses: null,
+          active: true,
+        },
+      ],
+    });
+    console.log("Seeded sample coupons: WELCOME10, SAVE5");
   }
-
-  console.log(`Seeded ${products.length} digital products with markdown descriptions`);
 }
 
 main()

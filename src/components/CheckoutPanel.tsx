@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { formatPrice } from "@/lib/format";
 import { getCartItemName } from "@/lib/product-i18n";
+import type { OrderQuote } from "@/lib/pricing";
 import type { Locale } from "@/i18n/routing";
 import { useCartStore } from "@/store/cart";
 import {
   ShippingAddressForm,
   emptyShippingAddress,
+  saveCouponToSession,
   saveShippingToSession,
 } from "@/components/ShippingAddressForm";
 import type { ShippingAddress } from "@/lib/orders";
@@ -26,15 +28,69 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   const locale = useLocale() as Locale;
   const router = useRouter();
   const items = useCartStore((s) => s.items);
-  const totalPrice = useCartStore((s) => s.totalPrice());
+  const subtotal = useCartStore((s) => s.totalPrice());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [shipping, setShipping] = useState<ShippingAddress>(() =>
     emptyShippingAddress(initialEmail, initialName),
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+  const freeShippingThreshold = process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD ?? "100";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchQuote() {
+      if (!items.length) {
+        setQuote(null);
+        return;
+      }
+
+      const addressError = validateShippingAddress(shipping);
+      if (addressError) {
+        setQuote(null);
+        setCouponError("");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/pricing/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({ price: i.price, quantity: i.quantity })),
+            shippingAddress: shipping,
+            couponCode: appliedCoupon || undefined,
+          }),
+        });
+        const data = await res.json();
+        if (cancelled) return;
+
+        if (data.couponError) {
+          setCouponError(t(`couponErrors.${data.couponError as string}`));
+          setQuote(null);
+          return;
+        }
+
+        setCouponError("");
+        setQuote(data.quote ?? null);
+      } catch {
+        if (!cancelled) setQuote(null);
+      }
+    }
+
+    const timer = setTimeout(fetchQuote, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [items, shipping, appliedCoupon, t]);
 
   function validateForm() {
     const code = validateShippingAddress(shipping);
@@ -55,21 +111,43 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
       setError(t("errors.form"));
       return false;
     }
+    if (couponError || (appliedCoupon && !quote)) {
+      setError(t("errors.coupon"));
+      return false;
+    }
     setFieldErrors({});
     setError("");
     return true;
   }
 
-  function persistShipping() {
+  function persistCheckoutSession() {
     saveShippingToSession(shipping);
+    if (appliedCoupon) saveCouponToSession(appliedCoupon);
+  }
+
+  function applyCoupon() {
+    setAppliedCoupon(couponInput.trim().toUpperCase());
+  }
+
+  function mapCartItems() {
+    return items.map((item) => ({
+      productId: item.productId,
+      slug: item.slug,
+      nameEn: item.nameEn,
+      nameZh: item.nameZh,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      name: getCartItemName(item, "en"),
+    }));
   }
 
   async function payWithStripe() {
-    if (!validateForm()) return;
+    if (!validateForm() || !quote) return;
 
     setLoading(true);
     setError("");
-    persistShipping();
+    persistCheckoutSession();
 
     try {
       const res = await fetch("/api/checkout/stripe", {
@@ -78,16 +156,8 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         body: JSON.stringify({
           locale,
           shippingAddress: shipping,
-          items: items.map((item) => ({
-            productId: item.productId,
-            slug: item.slug,
-            nameEn: item.nameEn,
-            nameZh: item.nameZh,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-            name: getCartItemName(item, "en"),
-          })),
+          couponCode: appliedCoupon || undefined,
+          items: mapCartItems(),
         }),
       });
       const data = await res.json();
@@ -103,6 +173,8 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
     return <p className="text-stone-500">{t("empty")}</p>;
   }
 
+  const displayTotal = quote?.total ?? subtotal;
+
   return (
     <div className="space-y-6">
       <ShippingAddressForm
@@ -111,18 +183,72 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         errors={fieldErrors}
       />
 
-      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6">
-        <div className="flex justify-between text-lg font-bold">
-          <span>{t("total")}</span>
-          <span>{formatPrice(totalPrice)}</span>
+      <div className="rounded-2xl border border-stone-200 bg-white p-6">
+        <h2 className="text-lg font-semibold text-stone-900">{t("couponTitle")}</h2>
+        <div className="mt-3 flex gap-2">
+          <input
+            type="text"
+            value={couponInput}
+            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+            placeholder={t("couponPlaceholder")}
+            className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm uppercase outline-none focus:border-amber-500"
+          />
+          <button
+            type="button"
+            onClick={applyCoupon}
+            className="rounded-lg bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-700"
+          >
+            {t("applyCoupon")}
+          </button>
         </div>
-        <p className="mt-2 text-sm text-stone-500">{t("shippingNote")}</p>
+        {appliedCoupon && !couponError && (
+          <p className="mt-2 text-sm text-green-700">{t("couponApplied", { code: appliedCoupon })}</p>
+        )}
+        {couponError && <p className="mt-2 text-sm text-red-600">{couponError}</p>}
+      </div>
+
+      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6">
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-stone-600">{t("subtotal")}</span>
+            <span>{formatPrice(quote?.subtotal ?? subtotal)}</span>
+          </div>
+          {quote && quote.discountAmount > 0 && (
+            <div className="flex justify-between text-green-700">
+              <span>{t("discount")}</span>
+              <span>-{formatPrice(quote.discountAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-stone-600">{t("shipping")}</span>
+            <span>
+              {quote
+                ? quote.shippingFree
+                  ? t("shippingFree")
+                  : formatPrice(quote.shippingFee)
+                : t("shippingPending")}
+            </span>
+          </div>
+          {quote && quote.taxAmount > 0 && (
+            <div className="flex justify-between">
+              <span className="text-stone-600">
+                {quote.taxLabel} ({Math.round(quote.taxRate * 100)}%)
+              </span>
+              <span>{formatPrice(quote.taxAmount)}</span>
+            </div>
+          )}
+          <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold">
+            <span>{t("total")}</span>
+            <span>{formatPrice(displayTotal)}</span>
+          </div>
+        </div>
+        <p className="mt-3 text-xs text-stone-500">
+          {t("shippingNote", { amount: freeShippingThreshold })}
+        </p>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
+        <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
       <div className="space-y-3">
@@ -131,14 +257,14 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         <button
           type="button"
           onClick={payWithStripe}
-          disabled={loading}
+          disabled={loading || !quote}
           className="w-full rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-60"
         >
           {loading ? t("redirecting") : t("payStripe")}
         </button>
         <p className="text-center text-xs text-stone-500">{t("stripeMethodsHint")}</p>
 
-        {paypalClientId ? (
+        {paypalClientId && quote ? (
           <PayPalScriptProvider
             options={{
               clientId: paypalClientId,
@@ -149,22 +275,35 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           >
             <PayPalButtons
               style={{ layout: "vertical", color: "gold", shape: "rect" }}
+              disabled={!quote}
               createOrder={(_, actions) => {
-                if (!validateForm()) {
-                  return Promise.reject(new Error("invalid_shipping"));
+                if (!validateForm() || !quote) {
+                  return Promise.reject(new Error("invalid_checkout"));
                 }
-                persistShipping();
+                persistCheckoutSession();
                 return actions.order.create({
                   intent: "CAPTURE",
                   purchase_units: [
                     {
                       amount: {
                         currency_code: "USD",
-                        value: totalPrice.toFixed(2),
+                        value: quote.total.toFixed(2),
                         breakdown: {
                           item_total: {
                             currency_code: "USD",
-                            value: totalPrice.toFixed(2),
+                            value: quote.subtotal.toFixed(2),
+                          },
+                          shipping: {
+                            currency_code: "USD",
+                            value: quote.shippingFee.toFixed(2),
+                          },
+                          tax_total: {
+                            currency_code: "USD",
+                            value: quote.taxAmount.toFixed(2),
+                          },
+                          discount: {
+                            currency_code: "USD",
+                            value: quote.discountAmount.toFixed(2),
                           },
                         },
                       },
@@ -190,7 +329,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
               onError={() => setError(t("paypalError"))}
             />
           </PayPalScriptProvider>
-        ) : (
+        ) : paypalClientId ? null : (
           <p className="rounded-xl border border-dashed border-stone-300 px-4 py-3 text-sm text-stone-500">
             {t("paypalHint")}
           </p>

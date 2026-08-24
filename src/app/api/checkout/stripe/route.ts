@@ -3,6 +3,12 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
+import { validateCouponCode } from "@/lib/coupons";
+import { buildOrderQuote } from "@/lib/pricing";
+import {
+  buildCheckoutMetadata,
+  buildStripeLineItems,
+} from "@/lib/checkout-pricing";
 
 type CartItem = {
   productId: string;
@@ -40,10 +46,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { items, locale = "en", shippingAddress } = (await req.json()) as {
+    const { items, locale = "en", shippingAddress, couponCode } = (await req.json()) as {
       items: CartItem[];
       locale?: string;
       shippingAddress?: ShippingAddress;
+      couponCode?: string;
     };
 
     if (!items?.length) {
@@ -55,43 +62,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid shipping address" }, { status: 400 });
     }
 
+    const couponResult = await validateCouponCode(couponCode, items);
+    if (couponCode?.trim() && !couponResult.valid) {
+      return NextResponse.json({ error: "Invalid coupon code" }, { status: 400 });
+    }
+
+    const address = shippingAddress!;
+    const quote = buildOrderQuote(
+      items,
+      address,
+      couponResult.discountAmount,
+      couponResult.couponCode,
+    );
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const stripe = getStripe();
-    const address = shippingAddress!;
     const paymentMethodTypes = getPaymentMethodTypes();
-
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-      (item) => ({
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.name,
-            images: item.image.startsWith("http") ? [item.image] : undefined,
-          },
-          unit_amount: Math.round(item.price * 100),
-        },
-        quantity: item.quantity,
-      }),
-    );
+    const lineItems = buildStripeLineItems(items, quote);
 
     const baseParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
       customer_email: address.email,
       line_items: lineItems,
-      metadata: {
-        shipping: JSON.stringify(address),
-        items: JSON.stringify(
-          items.map((item) => ({
-            productId: item.productId,
-            slug: item.slug,
-            nameEn: item.nameEn,
-            nameZh: item.nameZh,
-            price: item.price,
-            quantity: item.quantity,
-            image: item.image,
-          })),
-        ),
-      },
+      metadata: buildCheckoutMetadata(address, items, quote),
       success_url: `${appUrl}/${locale}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${locale}/cart`,
     };
@@ -110,7 +103,6 @@ export async function POST(req: NextRequest) {
         payment_method_types: paymentMethodTypes,
       });
     } catch (primaryErr) {
-      // If Alipay/WeChat not enabled on the Stripe account, fall back to card-only
       const message =
         primaryErr instanceof Error ? primaryErr.message.toLowerCase() : "";
       const shouldFallback =

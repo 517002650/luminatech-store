@@ -8,6 +8,8 @@ import { useCartStore } from "@/store/cart";
 import {
   clearShippingSession,
   loadShippingFromSession,
+  loadCouponFromSession,
+  clearCouponSession,
 } from "@/components/ShippingAddressForm";
 
 type Props = {
@@ -45,6 +47,7 @@ export function SuccessContent({ isLoggedIn }: Props) {
           });
         } else if (provider === "paypal") {
           if (items.length === 0) return;
+          const couponCode = loadCouponFromSession();
           await fetch("/api/orders/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -53,6 +56,7 @@ export function SuccessContent({ isLoggedIn }: Props) {
               paypalOrderId: paypalOrderId ?? undefined,
               items,
               shippingAddress: shippingAddress ?? undefined,
+              couponCode: couponCode || undefined,
             }),
           });
         }
@@ -61,6 +65,7 @@ export function SuccessContent({ isLoggedIn }: Props) {
       } finally {
         completedRef.current = true;
         clearShippingSession();
+        clearCouponSession();
         clearCart();
         setProcessing(false);
       }

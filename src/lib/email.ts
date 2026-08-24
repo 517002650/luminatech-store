@@ -110,6 +110,42 @@ Thank you for shopping at ${storeName}!`;
   return { sent: true as const };
 }
 
+export async function sendPasswordResetEmail(email: string, resetUrl: string) {
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const subject = `Reset your password — ${storeName}`;
+  const text = `You requested a password reset for your ${storeName} account.
+
+Open this link to set a new password (valid for 1 hour):
+${resetUrl}
+
+If you did not request this, you can ignore this email.`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1917">
+      <h2 style="color:#d97706">Reset your password</h2>
+      <p>Click the button below to choose a new password. This link expires in 1 hour.</p>
+      <p><a href="${resetUrl}" style="display:inline-block;background:#1c1917;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Reset password</a></p>
+      <p style="color:#78716c;font-size:14px">If you didn't request this, ignore this email.</p>
+      <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />
+      <p style="color:#78716c;font-size:14px">您请求重置 ${storeName} 账户密码，请点击上方链接（1 小时内有效）。</p>
+    </div>
+  `;
+
+  await createTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to: email,
+    subject,
+    text,
+    html,
+  });
+
+  return { sent: true as const };
+}
+
 export async function sendShippingEmail(order: Order) {
   if (!order.email) {
     return { sent: false, reason: "no_email" as const };

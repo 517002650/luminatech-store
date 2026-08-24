@@ -49,6 +49,11 @@ export function LoginForm({ redirect = "/account/orders" }: Props) {
       >
         {pending ? t("loggingIn") : t("submitLogin")}
       </button>
+      <p className="text-right text-sm">
+        <Link href="/forgot-password" className="text-amber-600 hover:underline">
+          {t("forgotPassword")}
+        </Link>
+      </p>
       <p className="text-center text-sm text-stone-500">
         {t("noAccount")}{" "}
         <Link href={`/register?redirect=${encodeURIComponent(redirect)}`} className="text-amber-600 hover:underline">

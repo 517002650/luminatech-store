@@ -1,6 +1,8 @@
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { incrementCouponUsage } from "@/lib/coupons";
+import { parsePricingMetadata } from "@/lib/pricing";
 import type { OrderItem, ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
@@ -114,11 +116,17 @@ export async function fulfillStripeCheckoutSession(
   }
 
   const total = (session.amount_total ?? 0) / 100;
+  const pricing = parsePricingMetadata(session.metadata ?? undefined);
 
   const order = await prisma.order.create({
     data: {
       userId: options?.userId,
       email,
+      subtotal: pricing?.subtotal ?? total,
+      shippingFee: pricing?.shippingFee ?? 0,
+      taxAmount: pricing?.taxAmount ?? 0,
+      discountAmount: pricing?.discountAmount ?? 0,
+      couponCode: pricing?.couponCode ?? "",
       total,
       status: "paid",
       paymentMethod: "stripe",
@@ -127,6 +135,10 @@ export async function fulfillStripeCheckoutSession(
       shippingAddress: JSON.stringify(resolvedShipping),
     },
   });
+
+  if (pricing?.couponCode) {
+    await incrementCouponUsage(pricing.couponCode);
+  }
 
   for (const item of items) {
     if (item.productId === "unknown") continue;

@@ -62,10 +62,20 @@
     "title": "结算",
     "subtitle": "填写收货地址并选择支付方式",
     "empty": "请先添加商品到购物车。",
+    "subtotal": "商品小计",
+    "discount": "优惠",
+    "shipping": "运费",
+    "shippingFree": "免运费",
+    "shippingPending": "填写地址后计算",
     "total": "合计",
-    "shippingNote": "开业期间全场包邮。",
+    "shippingNote": "订单满 ${amount} 包邮，税费按收货国家/地区计算。",
     "shippingTitle": "收货地址",
     "paymentTitle": "支付方式",
+    "countryPlaceholder": "请选择国家/地区",
+    "couponTitle": "优惠码",
+    "couponPlaceholder": "输入优惠码",
+    "applyCoupon": "应用",
+    "couponApplied": "已应用优惠码 {code}",
     "email": "邮箱",
     "fullName": "收件人姓名",
     "phone": "电话（选填）",
@@ -82,6 +92,7 @@
     "paypalError": "PayPal 支付失败，请重试。",
     "errors": {
       "form": "请完整填写收货地址。",
+      "coupon": "请检查优惠码是否正确。",
       "email_required": "请填写邮箱。",
       "email_invalid": "邮箱格式不正确。",
       "name_required": "请填写收件人姓名。",
@@ -89,6 +100,12 @@
       "city_required": "请填写城市。",
       "country_required": "请填写国家。",
       "postal_required": "请填写邮编。"
+    },
+    "couponErrors": {
+      "invalid": "优惠码无效或已停用。",
+      "expired": "优惠码已过期。",
+      "max_uses": "优惠码已达使用上限。",
+      "min_order": "未达到最低订单金额。"
     }
   },
   "success": {
@@ -185,7 +202,22 @@
     "noAccount": "还没有账号？",
     "hasAccount": "已有账号？",
     "signUp": "去注册",
-    "signIn": "去登录"
+    "signIn": "去登录",
+    "forgotPassword": "忘记密码？",
+    "forgotSubtitle": "输入注册邮箱，我们将发送重置链接（需配置 SMTP）。",
+    "sendResetLink": "发送重置链接",
+    "sendingReset": "发送中...",
+    "resetEmailSent": "若该邮箱已注册，您将收到重置密码邮件，请查收（含垃圾邮件箱）。",
+    "resetPassword": "重置密码",
+    "resetSubtitle": "请输入新密码（至少 6 位）。",
+    "newPassword": "新密码",
+    "resettingPassword": "保存中...",
+    "backToLogin": "返回登录",
+    "resetErrors": {
+      "email_required": "请填写邮箱。",
+      "invalid": "链接无效或密码太短。",
+      "expired": "链接已过期，请重新申请重置。"
+    }
   },
   "account": {
     "myAccount": "我的账户",

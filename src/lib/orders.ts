@@ -99,3 +99,4 @@ export function validateShippingAddress(
 }
 
 export const SHIPPING_STORAGE_KEY = "luminatech_shipping";
+export const COUPON_STORAGE_KEY = "luminatech_coupon";

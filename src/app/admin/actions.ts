@@ -123,3 +123,54 @@ export async function updateOrderStatusAction(id: string, status: string) {
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
 }
+
+export async function createCouponAction(formData: FormData) {
+  await requireAdmin();
+
+  const code = String(formData.get("code") ?? "").trim().toUpperCase();
+  const type = String(formData.get("type") ?? "percent");
+  const value = Number(formData.get("value") ?? 0);
+  const minOrder = Number(formData.get("minOrder") ?? 0);
+  const maxUsesRaw = String(formData.get("maxUses") ?? "").trim();
+  const maxUses = maxUsesRaw ? Number(maxUsesRaw) : null;
+  const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
+  const expiresAt = expiresRaw ? new Date(expiresRaw) : null;
+
+  if (!code || !["percent", "fixed"].includes(type) || value <= 0) {
+    return { error: "请填写有效的优惠码信息" };
+  }
+  if (type === "percent" && value > 100) {
+    return { error: "百分比折扣不能超过 100%" };
+  }
+
+  try {
+    await prisma.coupon.create({
+      data: {
+        code,
+        type,
+        value,
+        minOrder,
+        maxUses: Number.isFinite(maxUses) ? maxUses : null,
+        expiresAt,
+        active: true,
+      },
+    });
+  } catch {
+    return { error: "创建失败，优惠码可能已存在" };
+  }
+
+  revalidatePath("/admin/coupons");
+  redirect("/admin/coupons");
+}
+
+export async function toggleCouponAction(id: string, active: boolean) {
+  await requireAdmin();
+  await prisma.coupon.update({ where: { id }, data: { active } });
+  revalidatePath("/admin/coupons");
+}
+
+export async function deleteCouponAction(id: string) {
+  await requireAdmin();
+  await prisma.coupon.delete({ where: { id } });
+  revalidatePath("/admin/coupons");
+}
