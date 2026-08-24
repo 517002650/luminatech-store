@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String         @default("")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  orders       Order[]
+  wishlist     WishlistItem[]
+  reviews      Review[]
+}
+
+model Product {
+  id            String         @id @default(cuid())
+  slug          String         @unique
+  sku           String
+  brand         String
+  nameEn        String
+  nameZh        String
+  shortDescEn   String
+  shortDescZh   String
+  descriptionEn String
+  descriptionZh String
+  categoryEn    String
+  categoryZh    String
+  price         Float
+  image         String
+  images        String
+  specsEn       String
+  specsZh       String
+  highlightsEn  String
+  highlightsZh  String
+  stock         Int            @default(100)
+  featured      Boolean        @default(false)
+  warranty      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  wishlist      WishlistItem[]
+  reviews       Review[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  email           String   @default("")
+  total           Float
+  status          String   @default("paid")
+  paymentMethod   String
+  paymentId       String?  @unique
+  items           String
+  shippingAddress String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}

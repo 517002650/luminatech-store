@@ -1,0 +1,222 @@
+{
+  "nav": {
+    "shop": "Shop",
+    "about": "About",
+    "cart": "Cart",
+    "login": "Sign in",
+    "logout": "Sign out",
+    "wishlist": "Wishlist"
+  },
+  "home": {
+    "badge": "Digital Collection",
+    "title": "Premium tech for everyday life",
+    "subtitle": "Explore curated electronics with worldwide shipping. Secure checkout via Stripe and PayPal.",
+    "cta": "Shop Now",
+    "featuredTitle": "Featured Products",
+    "featuredSubtitle": "Top picks from our digital catalog",
+    "viewAll": "View all",
+    "whyTitle": "Why LuminaTech?",
+    "features": {
+      "shipping": {
+        "title": "Global Shipping",
+        "desc": "Fast delivery to the US, EU, UK, and more with tracking."
+      },
+      "payment": {
+        "title": "Secure Payments",
+        "desc": "Pay safely with Stripe or PayPal — your card data stays protected."
+      },
+      "warranty": {
+        "title": "Official Warranty",
+        "desc": "All products include manufacturer warranty and easy returns."
+      }
+    }
+  },
+  "products": {
+    "title": "All Products",
+    "count": "{count} items available",
+    "notFound": "Product Not Found"
+  },
+  "product": {
+    "brand": "Brand",
+    "sku": "SKU",
+    "warranty": "Warranty",
+    "stockLabel": "Stock",
+    "inStock": "{count} available",
+    "outOfStock": "Out of stock",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to Cart ✓",
+    "highlights": "Highlights",
+    "specs": "Specifications",
+    "description": "Description",
+    "reviews": "Customer Reviews",
+    "noReviews": "No reviews yet. Be the first to share your experience!"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty.",
+    "browse": "Browse Products",
+    "subtotal": "Subtotal",
+    "checkout": "Proceed to Checkout"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "subtitle": "Enter your shipping address and choose payment",
+    "empty": "Add items to your cart before checkout.",
+    "total": "Total",
+    "shippingNote": "Free shipping on all orders during launch.",
+    "shippingTitle": "Shipping Address",
+    "paymentTitle": "Payment",
+    "email": "Email",
+    "fullName": "Full name",
+    "phone": "Phone (optional)",
+    "addressLine1": "Address line 1",
+    "addressLine2": "Address line 2 (optional)",
+    "city": "City",
+    "state": "State / Province",
+    "country": "Country",
+    "postalCode": "Postal code",
+    "payStripe": "Pay with Stripe",
+    "redirecting": "Redirecting to Stripe...",
+    "paypalHint": "PayPal: add NEXT_PUBLIC_PAYPAL_CLIENT_ID to .env to enable.",
+    "paypalError": "PayPal payment failed. Please try again.",
+    "errors": {
+      "form": "Please complete all required shipping fields.",
+      "email_required": "Email is required.",
+      "email_invalid": "Please enter a valid email.",
+      "name_required": "Full name is required.",
+      "line1_required": "Address is required.",
+      "city_required": "City is required.",
+      "country_required": "Country is required.",
+      "postal_required": "Postal code is required."
+    }
+  },
+  "success": {
+    "title": "Thank you!",
+    "message": "Your payment via {provider} was successful. You will receive a confirmation email shortly.",
+    "providerStripe": "Stripe",
+    "providerPaypal": "PayPal",
+    "continue": "Continue Shopping",
+    "viewOrders": "View My Orders",
+    "emailNote": "A confirmation email will be sent to your inbox shortly.",
+    "processing": "Confirming your order..."
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "Contact"
+  },
+  "meta": {
+    "title": "LuminaTech — Premium Digital Products",
+    "description": "Independent e-commerce store for digital products with Stripe and PayPal checkout"
+  },
+  "pages": {
+    "about": {
+      "title": "About LuminaTech",
+      "subtitle": "Curating premium digital products for customers worldwide.",
+      "section1Title": "Our Story",
+      "section1Body": "LuminaTech was founded with a simple mission: make high-quality consumer electronics accessible to everyone, everywhere. We hand-pick every product in our catalog — from audio gear to smart wearables — ensuring each item meets our standards for design, performance, and value.",
+      "section2Title": "What We Offer",
+      "section2Body": "Our store features carefully selected digital products across categories including audio, peripherals, storage, wearables, and accessories. Every product ships with official warranty coverage and is backed by our customer support team.",
+      "section3Title": "Global Reach",
+      "section3Body": "We ship to customers in the United States, European Union, United Kingdom, and many other regions. All orders include tracking, and we work with trusted logistics partners to ensure safe, timely delivery.",
+      "section4Title": "Our Commitment",
+      "section4Body": "Your trust matters. We use industry-standard encryption for payments (Stripe and PayPal), never store your card details on our servers, and offer hassle-free returns within 30 days on unused items."
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "subtitle": "Last updated: August 2026. This policy explains how LuminaTech collects, uses, and protects your information.",
+      "section1Title": "Information We Collect",
+      "section1Body": "When you place an order, we collect your email address and payment information processed securely by Stripe or PayPal. We also collect browsing data (pages visited, device type) through standard server logs to improve our website.",
+      "section2Title": "How We Use Your Information",
+      "section2Body": "We use your email to send order confirmations and shipping updates. Payment data is used solely to process transactions. We do not sell your personal information to third parties.",
+      "section3Title": "Cookies",
+      "section3Body": "Our website uses essential cookies to maintain your shopping cart and language preference. We do not use third-party advertising cookies.",
+      "section4Title": "Data Security",
+      "section4Body": "All payment processing is handled by PCI-compliant providers (Stripe, PayPal). We implement industry-standard security measures to protect data stored on our servers.",
+      "section5Title": "Your Rights",
+      "section5Body": "You may request access to, correction of, or deletion of your personal data by contacting us at support@luminatech.com. EU and UK residents have additional rights under GDPR.",
+      "section6Title": "Contact",
+      "section6Body": "For privacy-related questions, email us at support@luminatech.com."
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "subtitle": "Last updated: August 2026. By using LuminaTech, you agree to these terms.",
+      "section1Title": "General",
+      "section1Body": "These Terms of Service govern your use of the LuminaTech website and purchase of products. By placing an order, you confirm that you are at least 18 years old and that the information you provide is accurate.",
+      "section2Title": "Products & Pricing",
+      "section2Body": "All prices are listed in USD unless otherwise stated. We reserve the right to correct pricing errors. Product images are for illustration; actual items may vary slightly. Stock availability is shown on each product page.",
+      "section3Title": "Orders & Payment",
+      "section3Body": "An order is confirmed once payment is successfully processed. We accept credit/debit cards via Stripe and PayPal. You will receive an email confirmation after purchase.",
+      "section4Title": "Shipping",
+      "section4Body": "We ship to most countries worldwide. Delivery times vary by destination (typically 7–15 business days). Shipping costs and free-shipping thresholds are displayed at checkout.",
+      "section5Title": "Returns & Refunds",
+      "section5Body": "Unused items in original packaging may be returned within 30 days of delivery. Contact support@luminatech.com to initiate a return. Refunds are processed within 5–10 business days after we receive the returned item.",
+      "section6Title": "Limitation of Liability",
+      "section6Body": "LuminaTech is not liable for indirect or consequential damages arising from product use. Our liability is limited to the purchase price of the product in question."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "subtitle": "We're here to help. Reach out and we'll get back to you within 1–2 business days.",
+      "section1Title": "Customer Support",
+      "section1Body": "For order inquiries, returns, product questions, or technical support, email us at the address below. Please include your order number if applicable.",
+      "section2Title": "Business Inquiries",
+      "section2Body": "For wholesale, partnership, or press inquiries, please use the same contact email with your company details and we will route your message to the appropriate team.",
+      "emailLabel": "Email",
+      "hoursLabel": "Support Hours",
+      "hoursValue": "Mon–Fri, 9:00–18:00 (UTC+8)",
+      "regionLabel": "Service Region",
+      "regionValue": "Worldwide shipping"
+    }
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Create account",
+    "loginSubtitle": "Access your orders, wishlist, and reviews.",
+    "registerSubtitle": "Create an account to track orders and save favorites.",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name (optional)",
+    "submitLogin": "Sign in",
+    "submitRegister": "Create account",
+    "loggingIn": "Signing in...",
+    "registering": "Creating account...",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "signUp": "Sign up",
+    "signIn": "Sign in"
+  },
+  "account": {
+    "myAccount": "My Account",
+    "orders": "Orders",
+    "wishlist": "Wishlist",
+    "noOrders": "You haven't placed any orders yet.",
+    "emptyWishlist": "Your wishlist is empty.",
+    "startShopping": "Start shopping",
+    "items": "items",
+    "order": "Order",
+    "backToOrders": "Back to orders",
+    "status": "Status",
+    "payment": "Payment",
+    "total": "Total",
+    "repurchase": "Buy again",
+    "remove": "Remove",
+    "shippingAddress": "Shipping Address"
+  },
+  "wishlist": {
+    "add": "Add to Wishlist",
+    "remove": "Remove from Wishlist"
+  },
+  "reviews": {
+    "loginToReview": "Sign in to write a review.",
+    "login": "Sign in",
+    "writeReview": "Write a review",
+    "editReview": "Edit your review",
+    "rating": "Rating",
+    "title": "Title",
+    "content": "Review",
+    "submit": "Submit review",
+    "submitting": "Submitting...",
+    "submitted": "Thank you! Your review has been published."
+  }
+}

@@ -1,0 +1,169 @@
+import nodemailer from "nodemailer";
+import {
+  formatOrderId,
+  formatShippingAddress,
+  parseOrderItems,
+  parseShippingAddress,
+} from "@/lib/orders";
+import { formatPrice } from "@/lib/format";
+
+type Order = {
+  id: string;
+  email: string;
+  total: number;
+  items: string;
+  shippingAddress?: string;
+};
+
+function isSmtpConfigured() {
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
+}
+
+function createTransport() {
+  const port = Number(process.env.SMTP_PORT ?? 587);
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure: port === 465,
+    auth:
+      process.env.SMTP_USER && process.env.SMTP_PASS
+        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+        : undefined,
+  });
+}
+
+function buildItemRows(items: ReturnType<typeof parseOrderItems>) {
+  return items
+    .map((item) => `• ${item.nameEn} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`)
+    .join("\n");
+}
+
+function buildItemHtml(items: ReturnType<typeof parseOrderItems>) {
+  return `<ul>${items
+    .map(
+      (i) =>
+        `<li>${i.nameEn} × ${i.quantity} — <strong>${formatPrice(i.price * i.quantity)}</strong></li>`,
+    )
+    .join("")}</ul>`;
+}
+
+export async function sendOrderConfirmationEmail(order: Order) {
+  if (!order.email) {
+    return { sent: false, reason: "no_email" as const };
+  }
+
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const items = parseOrderItems(order.items);
+  const shipping = parseShippingAddress(order.shippingAddress ?? "");
+  const orderNo = formatOrderId(order.id);
+
+  const subject = `Order confirmed #${orderNo} — ${storeName}`;
+  const shippingBlock = shipping
+    ? `\nShipping to:\n${formatShippingAddress(shipping)}\n`
+    : "";
+
+  const text = `Hi${shipping ? ` ${shipping.name}` : ""},
+
+Thank you for your order! We've received your payment.
+
+Order #${orderNo}
+
+Items:
+${buildItemRows(items)}
+
+Total: ${formatPrice(order.total)}
+${shippingBlock}
+We'll notify you when your order ships.
+
+Thank you for shopping at ${storeName}!`;
+
+  const shippingHtml = shipping
+    ? `<p><strong>Ship to:</strong><br/>${formatShippingAddress(shipping).replace(/\n/g, "<br/>")}</p>`
+    : "";
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1917">
+      <h2 style="color:#d97706">Order confirmed!</h2>
+      <p>Thank you for your purchase. Order <strong>#${orderNo}</strong> is confirmed.</p>
+      ${buildItemHtml(items)}
+      <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
+      ${shippingHtml}
+      <p>We'll email you again when your order ships.</p>
+      <p style="color:#78716c">Thank you for shopping at ${storeName}.</p>
+      <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />
+      <p style="color:#78716c;font-size:14px">您好，您的订单 #${orderNo} 已确认，付款成功。发货后我们会再次通知您。</p>
+    </div>
+  `;
+
+  await createTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to: order.email,
+    subject,
+    text,
+    html,
+  });
+
+  return { sent: true as const };
+}
+
+export async function sendShippingEmail(order: Order) {
+  if (!order.email) {
+    return { sent: false, reason: "no_email" as const };
+  }
+
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const items = parseOrderItems(order.items);
+  const shipping = parseShippingAddress(order.shippingAddress ?? "");
+  const orderNo = formatOrderId(order.id);
+
+  const subject = `Your order #${orderNo} has shipped — ${storeName}`;
+  const shippingBlock = shipping
+    ? `\nShipping to:\n${formatShippingAddress(shipping)}\n`
+    : "";
+
+  const text = `Hi,
+
+Good news! Your order #${orderNo} has been shipped.
+
+Items:
+${buildItemRows(items)}
+
+Total: ${formatPrice(order.total)}
+${shippingBlock}
+Thank you for shopping at ${storeName}!`;
+
+  const shippingHtml = shipping
+    ? `<p><strong>Ship to:</strong><br/>${formatShippingAddress(shipping).replace(/\n/g, "<br/>")}</p>`
+    : "";
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1917">
+      <h2 style="color:#d97706">Your order has shipped!</h2>
+      <p>Order <strong>#${orderNo}</strong> is on its way.</p>
+      ${buildItemHtml(items)}
+      <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
+      ${shippingHtml}
+      <p style="color:#78716c">Thank you for shopping at ${storeName}.</p>
+      <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />
+      <p style="color:#78716c;font-size:14px">您好，您的订单 #${orderNo} 已发货，感谢您的购买！</p>
+    </div>
+  `;
+
+  await createTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to: order.email,
+    subject,
+    text,
+    html,
+  });
+
+  return { sent: true as const };
+}

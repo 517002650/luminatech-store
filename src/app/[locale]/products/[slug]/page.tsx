@@ -1,0 +1,207 @@
+import { notFound } from "next/navigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/format";
+import { localizeProduct } from "@/lib/product-i18n";
+import {
+  displayReviewerName,
+  getProductRatingMap,
+  getProductReviews,
+} from "@/lib/reviews";
+import { getCurrentUser } from "@/lib/user-auth";
+import { AddToCartButton } from "@/components/AddToCartButton";
+import { ProductGallery } from "@/components/ProductGallery";
+import { ProductMarkdown } from "@/components/ProductMarkdown";
+import { ProductRating } from "@/components/ProductRating";
+import { ReviewForm } from "@/components/ReviewForm";
+import { ReviewList } from "@/components/ReviewList";
+import { WishlistButton } from "@/components/WishlistButton";
+import type { Locale } from "@/i18n/routing";
+
+type Props = {
+  params: Promise<{ locale: Locale; slug: string }>;
+};
+
+export async function generateMetadata({ params }: Props) {
+  const { locale, slug } = await params;
+  const product = await prisma.product.findUnique({ where: { slug } });
+  if (!product) {
+    const t = await getTranslations({ locale, namespace: "products" });
+    return { title: t("notFound") };
+  }
+  const localized = localizeProduct(product, locale);
+  return { title: `${localized.name} | LuminaTech` };
+}
+
+export default async function ProductDetailPage({ params }: Props) {
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("product");
+
+  const product = await prisma.product.findUnique({ where: { slug } });
+  if (!product) notFound();
+
+  const p = localizeProduct(product, locale);
+  const user = await getCurrentUser();
+
+  const [ratingMap, reviews, wishlistItem, userReview] = await Promise.all([
+    getProductRatingMap([product.id]),
+    getProductReviews(product.id),
+    user
+      ? prisma.wishlistItem.findUnique({
+          where: { userId_productId: { userId: user.id, productId: product.id } },
+        })
+      : null,
+    user
+      ? prisma.review.findUnique({
+          where: { userId_productId: { userId: user.id, productId: product.id } },
+        })
+      : null,
+  ]);
+
+  const rating = ratingMap.get(product.id);
+  const reviewItems = reviews.map((review) => ({
+    id: review.id,
+    rating: review.rating,
+    title: review.title,
+    content: review.content,
+    createdAt: review.createdAt,
+    authorName: displayReviewerName(review.user.name, review.user.email),
+  }));
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <div className="grid gap-12 lg:grid-cols-2">
+        <ProductGallery images={p.gallery} alt={p.name} />
+
+        <div>
+          <p className="text-sm font-medium uppercase tracking-wider text-amber-600">
+            {p.category}
+          </p>
+          <h1 className="mt-2 text-4xl font-bold text-stone-900">{p.name}</h1>
+          {rating && rating.count > 0 && (
+            <div className="mt-3">
+              <ProductRating avg={rating.avg} count={rating.count} size="md" />
+            </div>
+          )}
+          <p className="mt-3 text-lg text-stone-600">{p.shortDesc}</p>
+          <p className="mt-4 text-3xl font-bold text-stone-800">
+            {formatPrice(p.price)}
+          </p>
+
+          <dl className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm">
+            <div>
+              <dt className="text-stone-500">{t("brand")}</dt>
+              <dd className="font-medium text-stone-900">{p.brand}</dd>
+            </div>
+            <div>
+              <dt className="text-stone-500">{t("sku")}</dt>
+              <dd className="font-medium text-stone-900">{p.sku}</dd>
+            </div>
+            <div>
+              <dt className="text-stone-500">{t("warranty")}</dt>
+              <dd className="font-medium text-stone-900">{p.warranty}</dd>
+            </div>
+            <div>
+              <dt className="text-stone-500">{t("stockLabel")}</dt>
+              <dd className="font-medium text-stone-900">
+                {p.stock > 0 ? t("inStock", { count: p.stock }) : t("outOfStock")}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="mt-8 max-w-sm space-y-3">
+            {p.stock > 0 ? (
+              <AddToCartButton
+                productId={p.id}
+                slug={p.slug}
+                nameEn={p.nameEn}
+                nameZh={p.nameZh}
+                price={p.price}
+                image={p.image}
+              />
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="w-full rounded-xl bg-stone-200 px-6 py-3 text-sm font-semibold text-stone-500"
+              >
+                {t("outOfStock")}
+              </button>
+            )}
+            <WishlistButton
+              productId={p.id}
+              initialWishlisted={Boolean(wishlistItem)}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-16 grid gap-10 lg:grid-cols-2">
+        <section>
+          <h2 className="text-xl font-bold text-stone-900">{t("highlights")}</h2>
+          <ul className="mt-4 space-y-3">
+            {p.highlights.map((item) => (
+              <li
+                key={item}
+                className="flex items-start gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3 text-stone-700"
+              >
+                <span className="mt-0.5 text-amber-500">✦</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-bold text-stone-900">{t("specs")}</h2>
+          <dl className="mt-4 overflow-hidden rounded-2xl border border-stone-200">
+            {p.specs.map((spec, index) => (
+              <div
+                key={spec.label}
+                className={`grid grid-cols-2 gap-4 px-4 py-3 text-sm ${
+                  index % 2 === 0 ? "bg-stone-50" : "bg-white"
+                }`}
+              >
+                <dt className="font-medium text-stone-600">{spec.label}</dt>
+                <dd className="text-stone-900">{spec.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </div>
+
+      <section className="mt-12 rounded-2xl border border-stone-200 bg-white p-6">
+        <h2 className="text-xl font-bold text-stone-900">{t("description")}</h2>
+        <div className="mt-4 leading-relaxed text-stone-600">
+          <ProductMarkdown content={p.description} />
+        </div>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="text-xl font-bold text-stone-900">{t("reviews")}</h2>
+        <div className="mt-6 grid gap-8 lg:grid-cols-2">
+          <ReviewForm
+            productId={p.id}
+            slug={p.slug}
+            isLoggedIn={Boolean(user)}
+            userReview={userReview}
+          />
+          <div>
+            {rating && rating.count > 0 ? (
+              <ReviewList
+                reviews={reviewItems}
+                avg={rating.avg}
+                count={rating.count}
+              />
+            ) : (
+              <p className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-600">
+                {t("noReviews")}
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

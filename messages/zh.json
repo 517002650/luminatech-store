@@ -1,0 +1,222 @@
+{
+  "nav": {
+    "shop": "商城",
+    "about": "关于",
+    "cart": "购物车",
+    "login": "登录",
+    "logout": "退出",
+    "wishlist": "收藏夹"
+  },
+  "home": {
+    "badge": "数码精选",
+    "title": "科技好物，点亮生活",
+    "subtitle": "精选数码产品，全球配送。支持 Stripe 和 PayPal 安全支付。",
+    "cta": "立即选购",
+    "featuredTitle": "精选商品",
+    "featuredSubtitle": "数码品类热销推荐",
+    "viewAll": "查看全部",
+    "whyTitle": "为什么选择 LuminaTech？",
+    "features": {
+      "shipping": {
+        "title": "全球配送",
+        "desc": "支持美国、欧盟、英国等地区，物流可追踪。"
+      },
+      "payment": {
+        "title": "安全支付",
+        "desc": "Stripe / PayPal 加密支付，卡号信息不经过我们的服务器。"
+      },
+      "warranty": {
+        "title": "官方质保",
+        "desc": "所有商品均含厂商质保，支持便捷退换。"
+      }
+    }
+  },
+  "products": {
+    "title": "全部商品",
+    "count": "共 {count} 件商品",
+    "notFound": "商品未找到"
+  },
+  "product": {
+    "brand": "品牌",
+    "sku": "货号",
+    "warranty": "质保",
+    "stockLabel": "库存",
+    "inStock": "现货 {count} 件",
+    "outOfStock": "已售罄",
+    "addToCart": "加入购物车",
+    "addedToCart": "已加入购物车 ✓",
+    "highlights": "产品亮点",
+    "specs": "规格参数",
+    "description": "详细描述",
+    "reviews": "用户评价",
+    "noReviews": "暂无评价，来写第一条吧！"
+  },
+  "cart": {
+    "title": "购物车",
+    "empty": "购物车是空的。",
+    "browse": "去逛逛",
+    "subtotal": "小计",
+    "checkout": "去结算"
+  },
+  "checkout": {
+    "title": "结算",
+    "subtitle": "填写收货地址并选择支付方式",
+    "empty": "请先添加商品到购物车。",
+    "total": "合计",
+    "shippingNote": "开业期间全场包邮。",
+    "shippingTitle": "收货地址",
+    "paymentTitle": "支付方式",
+    "email": "邮箱",
+    "fullName": "收件人姓名",
+    "phone": "电话（选填）",
+    "addressLine1": "详细地址",
+    "addressLine2": "地址补充（选填）",
+    "city": "城市",
+    "state": "省 / 州",
+    "country": "国家",
+    "postalCode": "邮编",
+    "payStripe": "Stripe 支付",
+    "redirecting": "正在跳转 Stripe...",
+    "paypalHint": "PayPal：请在 .env 中配置 NEXT_PUBLIC_PAYPAL_CLIENT_ID 以启用。",
+    "paypalError": "PayPal 支付失败，请重试。",
+    "errors": {
+      "form": "请完整填写收货地址。",
+      "email_required": "请填写邮箱。",
+      "email_invalid": "邮箱格式不正确。",
+      "name_required": "请填写收件人姓名。",
+      "line1_required": "请填写详细地址。",
+      "city_required": "请填写城市。",
+      "country_required": "请填写国家。",
+      "postal_required": "请填写邮编。"
+    }
+  },
+  "success": {
+    "title": "感谢购买！",
+    "message": "您已通过 {provider} 完成支付，确认邮件将很快发送。",
+    "providerStripe": "Stripe",
+    "providerPaypal": "PayPal",
+    "continue": "继续购物",
+    "viewOrders": "查看我的订单",
+    "emailNote": "订单确认邮件将很快发送到您的邮箱。",
+    "processing": "正在确认订单..."
+  },
+  "footer": {
+    "rights": "保留所有权利。",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "contact": "联系我们"
+  },
+  "meta": {
+    "title": "LuminaTech — 精选数码产品",
+    "description": "面向海外的独立数码电商，支持 Stripe 和 PayPal 支付"
+  },
+  "pages": {
+    "about": {
+      "title": "关于 LuminaTech",
+      "subtitle": "为全球用户精选优质数码产品。",
+      "section1Title": "品牌故事",
+      "section1Body": "LuminaTech 的创立源于一个简单的愿景：让高品质的数码产品触手可及。我们严格甄选每一件上架商品——从音频设备到智能穿戴——确保其在设计、性能与性价比上均达到我们的标准。",
+      "section2Title": "我们卖什么",
+      "section2Body": "店铺涵盖音频、外设、存储、穿戴、配件等数码品类。所有商品均含官方质保，并有专业客服团队提供售后支持。",
+      "section3Title": "全球配送",
+      "section3Body": "我们支持向美国、欧盟、英国及更多地区发货。每笔订单均可追踪物流，并与可靠的物流伙伴合作，确保安全、准时送达。",
+      "section4Title": "我们的承诺",
+      "section4Body": "您的信任至关重要。我们使用 Stripe 和 PayPal 等行业标准加密支付，不在服务器上存储您的卡号信息，并为未使用的商品提供 30 天无忧退换。"
+    },
+    "privacy": {
+      "title": "隐私政策",
+      "subtitle": "最后更新：2026 年 8 月。本政策说明 LuminaTech 如何收集、使用和保护您的信息。",
+      "section1Title": "我们收集的信息",
+      "section1Body": "下单时，我们会收集您的邮箱地址，支付信息由 Stripe 或 PayPal 安全处理。网站还会通过标准服务器日志记录浏览数据（访问页面、设备类型），用于改进网站体验。",
+      "section2Title": "信息使用方式",
+      "section2Body": "我们使用您的邮箱发送订单确认和发货通知。支付数据仅用于处理交易。我们不会将您的个人信息出售给第三方。",
+      "section3Title": "Cookie",
+      "section3Body": "网站使用必要的 Cookie 来保存购物车和语言偏好。我们不使用第三方广告 Cookie。",
+      "section4Title": "数据安全",
+      "section4Body": "所有支付由符合 PCI 标准的 Stripe、PayPal 处理。我们采用行业标准安全措施保护服务器上的数据。",
+      "section5Title": "您的权利",
+      "section5Body": "您可通过 support@luminatech.com 申请访问、更正或删除个人数据。欧盟和英国用户还享有 GDPR 规定的额外权利。",
+      "section6Title": "联系我们",
+      "section6Body": "如有隐私相关问题，请发送邮件至 support@luminatech.com。"
+    },
+    "terms": {
+      "title": "服务条款",
+      "subtitle": "最后更新：2026 年 8 月。使用 LuminaTech 即表示您同意以下条款。",
+      "section1Title": "总则",
+      "section1Body": "本服务条款适用于您对 LuminaTech 网站的使用及商品购买。下单即表示您年满 18 周岁，且所提供信息真实准确。",
+      "section2Title": "商品与定价",
+      "section2Body": "所有价格以美元（USD）标示，除非另有说明。我们保留纠正标价的权利。商品图片仅供参考，实物可能略有差异。库存情况见各商品页面。",
+      "section3Title": "订单与支付",
+      "section3Body": "支付成功处理后订单即确认。我们接受 Stripe 信用卡/借记卡及 PayPal 支付。购买后将收到确认邮件。",
+      "section4Title": "配送",
+      "section4Body": "我们向全球大部分地区发货。送达时间因目的地而异（通常 7–15 个工作日）。运费及包邮门槛在结算页显示。",
+      "section5Title": "退换货",
+      "section5Body": "未使用且保持原包装的商品可在收货后 30 天内退货。请联系 support@luminatech.com 发起退货。收到退货后 5–10 个工作日内处理退款。",
+      "section6Title": "责任限制",
+      "section6Body": "LuminaTech 不对因使用产品而产生的间接或附带损害承担责任。我们的责任上限为相关商品的购买价格。"
+    },
+    "contact": {
+      "title": "联系我们",
+      "subtitle": "我们随时为您服务，通常会在 1–2 个工作日内回复。",
+      "section1Title": "客户支持",
+      "section1Body": "订单查询、退换货、产品咨询或技术支持，请发送邮件至下方地址。如有订单号请一并附上。",
+      "section2Title": "商务合作",
+      "section2Body": "批发、合作或媒体采访等商务事宜，请使用同一邮箱联系并注明公司名称，我们会转交相应团队处理。",
+      "emailLabel": "邮箱",
+      "hoursLabel": "客服时间",
+      "hoursValue": "周一至周五 9:00–18:00（UTC+8）",
+      "regionLabel": "服务范围",
+      "regionValue": "全球配送"
+    }
+  },
+  "auth": {
+    "login": "登录",
+    "register": "注册",
+    "loginSubtitle": "登录后可查看订单、收藏和评价。",
+    "registerSubtitle": "注册账号，追踪订单并保存心仪商品。",
+    "email": "邮箱",
+    "password": "密码",
+    "name": "昵称（选填）",
+    "submitLogin": "登录",
+    "submitRegister": "注册",
+    "loggingIn": "登录中...",
+    "registering": "注册中...",
+    "noAccount": "还没有账号？",
+    "hasAccount": "已有账号？",
+    "signUp": "去注册",
+    "signIn": "去登录"
+  },
+  "account": {
+    "myAccount": "我的账户",
+    "orders": "我的订单",
+    "wishlist": "收藏夹",
+    "noOrders": "您还没有下过订单。",
+    "emptyWishlist": "收藏夹是空的。",
+    "startShopping": "去逛逛",
+    "items": "件商品",
+    "order": "订单",
+    "backToOrders": "返回订单列表",
+    "status": "状态",
+    "payment": "支付方式",
+    "total": "合计",
+    "repurchase": "再次购买",
+    "remove": "移除",
+    "shippingAddress": "收货地址"
+  },
+  "wishlist": {
+    "add": "加入收藏",
+    "remove": "取消收藏"
+  },
+  "reviews": {
+    "loginToReview": "登录后即可发表评价。",
+    "login": "登录",
+    "writeReview": "写评价",
+    "editReview": "修改评价",
+    "rating": "评分",
+    "title": "标题",
+    "content": "评价内容",
+    "submit": "提交评价",
+    "submitting": "提交中...",
+    "submitted": "感谢！您的评价已发布。"
+  }
+}
