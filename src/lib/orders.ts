@@ -1,4 +1,4 @@
-import { getCountryLabel } from "@/lib/pricing";
+import { getCountryLabel } from "@/lib/countries";
 
 export type OrderItem = {
   productId: string;

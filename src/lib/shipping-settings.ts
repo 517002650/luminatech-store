@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { COUNTRY_OPTIONS, DEFAULT_COUNTRY_SHIPPING_RATES } from "@/lib/pricing";
+import { COUNTRY_OPTIONS, DEFAULT_COUNTRY_SHIPPING_RATES } from "@/lib/countries";
 
 export type ShippingSettingsData = {
   freeShippingThreshold: number;
