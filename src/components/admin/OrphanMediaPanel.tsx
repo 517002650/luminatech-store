@@ -128,8 +128,11 @@ export function OrphanMediaPanel() {
       <section className="rounded-2xl border border-stone-200 bg-white p-6">
         <h2 className="text-lg font-semibold text-stone-900">清理未引用媒体</h2>
         <p className="mt-1 text-sm text-stone-500">
-          扫描 Cloudinary 文件夹 <code className="rounded bg-stone-100 px-1">luminatech/products</code>{" "}
-          与 <code className="rounded bg-stone-100 px-1">luminatech/downloads</code>
+          扫描 Cloudinary 文件夹{" "}
+          <code className="rounded bg-stone-100 px-1">stagevio/products</code>、
+          <code className="rounded bg-stone-100 px-1">stagevio/downloads</code>
+          （及历史路径{" "}
+          <code className="rounded bg-stone-100 px-1">luminatech/*</code>）
           ，对比商品主图/图库/详情、附件，以及（可选）历史订单缩略图。仅列出未被引用的文件。
         </p>
 

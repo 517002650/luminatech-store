@@ -89,8 +89,8 @@ git push -u origin main
 | `SMTP_PORT` | 587 |
 | `SMTP_USER` | |
 | `SMTP_PASS` | |
-| `SMTP_FROM` | `"LuminaTech <noreply@yourdomain.com>"` |
-| `STORE_NAME` | LuminaTech |
+| `SMTP_FROM` | `"Stagevio <noreply@yourdomain.com>"` |
+| `STORE_NAME` | Stagevio |
 | `CONTACT_EMAIL` | support@yourdomain.com |
 
 5. 点击 **Deploy**

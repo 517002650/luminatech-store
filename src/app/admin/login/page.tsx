@@ -20,7 +20,7 @@ export default async function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-md rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-stone-900">
-          Lumina<span className="text-amber-600">Tech</span> 后台
+          Stage<span className="text-amber-600">vio</span> 后台
         </h1>
         <p className="mt-2 text-sm text-stone-500">
           {needsBootstrap

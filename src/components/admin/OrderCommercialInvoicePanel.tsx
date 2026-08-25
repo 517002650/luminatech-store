@@ -74,7 +74,7 @@ export function OrderCommercialInvoicePanel({ order }: Props) {
         className="mt-4 space-y-5 text-stone-900"
       >
         <header className="border-b border-stone-200 pb-4">
-          <p className="text-2xl font-bold tracking-tight">LuminaTech</p>
+          <p className="text-2xl font-bold tracking-tight">Stagevio</p>
           <p className="mt-1 text-sm font-semibold uppercase tracking-wide">
             Commercial Invoice
           </p>
@@ -101,7 +101,7 @@ export function OrderCommercialInvoicePanel({ order }: Props) {
             <h3 className="font-semibold uppercase tracking-wide text-stone-500">
               Shipper
             </h3>
-            <p className="mt-1 font-medium">LuminaTech</p>
+            <p className="mt-1 font-medium">Stagevio</p>
             <p>Export from China (seller warehouse)</p>
             <p>{order.email || "—"}</p>
           </section>

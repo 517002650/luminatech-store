@@ -10,7 +10,7 @@ export async function GET() {
 
   try {
     const payload = await buildDbBackupPayload("admin");
-    const filename = `luminatech-备份-${backupFileStamp()}.json`;
+    const filename = `stagevio-备份-${backupFileStamp()}.json`;
     const body = JSON.stringify(payload, null, 2);
 
     return new NextResponse(body, {

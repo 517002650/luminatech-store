@@ -60,7 +60,7 @@
     "featuredTitle": "Featured Equipment",
     "featuredSubtitle": "Top picks for pro shows and rental",
     "viewAll": "View all",
-    "whyTitle": "Why LuminaTech?",
+    "whyTitle": "Why Stagevio?",
     "features": {
       "shipping": {
         "title": "Global Shipping",
@@ -211,15 +211,15 @@
     "affiliate": "Become a partner"
   },
   "meta": {
-    "title": "LuminaTech — Professional Stage Lighting",
+    "title": "Stagevio — Professional Stage Lighting",
     "description": "Lighting consoles, lasers, stage fixtures, and effects for concerts, events, and rental — worldwide shipping"
   },
   "pages": {
     "about": {
-      "title": "About LuminaTech",
+      "title": "About Stagevio",
       "subtitle": "Professional stage lighting for concerts, weddings, clubs, and rental worldwide.",
       "section1Title": "Our Story",
-      "section1Body": "LuminaTech specializes in stage lighting and live-event equipment. From lighting consoles to laser systems, moving heads, and effects — every product is vetted for DMX compatibility, output quality, and road-ready durability.",
+      "section1Body": "Stagevio specializes in stage lighting and live-event equipment. From lighting consoles to laser systems, moving heads, and effects — every product is vetted for DMX compatibility, output quality, and road-ready durability.",
       "section2Title": "What We Offer",
       "section2Body": "Our catalog covers lighting consoles, laser systems, stage fixtures (moving heads, PAR cans, washes), effects (fog machines, strobes), and DMX accessories. All equipment includes official warranty and technical support.",
       "section3Title": "Global Reach",
@@ -229,9 +229,9 @@
     },
     "privacy": {
       "title": "Privacy Policy",
-      "subtitle": "Last updated: August 2026. This policy describes how LuminaTech collects, uses, stores, and shares personal data when you use our storefront. It is written for customers in the US, UK, and EU/EEA. It is not a substitute for formal legal counsel.",
+      "subtitle": "Last updated: August 2026. This policy describes how Stagevio collects, uses, stores, and shares personal data when you use our storefront. It is written for customers in the US, UK, and EU/EEA. It is not a substitute for formal legal counsel.",
       "section1Title": "Who we are",
-      "section1Body": "LuminaTech operates this online store selling professional stage lighting and related equipment. For privacy requests, contact support@luminatech.com. If you appoint a local representative or DPO later, those details will be added here.",
+      "section1Body": "Stagevio operates this online store selling professional stage lighting and related equipment. For privacy requests, contact support@stagevio.com. If you appoint a local representative or DPO later, those details will be added here.",
       "section2Title": "Information we collect",
       "section2Body": "Account data: email, optional name, and password hash. Order data: shipping address, phone, email, purchased items, amounts, and payment provider references (Stripe/PayPal IDs — we do not store full card numbers). Support messages you send us. Technical logs: IP address, user agent, and basic request metadata for security and debugging. Product reviews you submit.",
       "section3Title": "How we use information",
@@ -243,13 +243,13 @@
       "section6Title": "Retention",
       "section6Body": "Order and invoice-related records are kept as long as needed for accounting, dispute handling, warranty support, and legal obligations. Account credentials remain until you ask us to delete the account (subject to outstanding orders). Password-reset tokens expire within about one hour. Server logs are retained for a limited operational period.",
       "section7Title": "Your rights",
-      "section7Body": "Depending on your location, you may have rights to access, correct, delete, or export your personal data, restrict or object to certain processing, and lodge a complaint with a supervisory authority (for example an EU/EEA DPA or the UK ICO). Email support@luminatech.com with the subject “Privacy request”. We may need to verify your identity before acting.",
+      "section7Body": "Depending on your location, you may have rights to access, correct, delete, or export your personal data, restrict or object to certain processing, and lodge a complaint with a supervisory authority (for example an EU/EEA DPA or the UK ICO). Email support@stagevio.com with the subject “Privacy request”. We may need to verify your identity before acting.",
       "section8Title": "Contact",
-      "section8Body": "Privacy questions: support@luminatech.com. We aim to respond within a few business days."
+      "section8Body": "Privacy questions: support@stagevio.com. We aim to respond within a few business days."
     },
     "terms": {
       "title": "Terms of Service",
-      "subtitle": "Last updated: August 2026. By browsing or purchasing from LuminaTech you agree to these Terms. Professional stage equipment may be subject to local safety, electrical, and laser regulations — you are responsible for lawful use.",
+      "subtitle": "Last updated: August 2026. By browsing or purchasing from Stagevio you agree to these Terms. Professional stage equipment may be subject to local safety, electrical, and laser regulations — you are responsible for lawful use.",
       "section1Title": "Eligibility and accounts",
       "section1Body": "You must be at least 18 years old (or the age of majority where you live) to place an order. You agree to provide accurate shipping and contact details. You are responsible for keeping account credentials confidential.",
       "section2Title": "Products, specifications, and professional use",
@@ -265,11 +265,11 @@
       "section7Title": "Digital downloads and firmware",
       "section7Body": "Purchased firmware/files/plugins are licensed for your use with the related product and order. Redistribution, public upload, or resale of downloadable assets is prohibited. Download access may depend on order status remaining paid/non-cancelled.",
       "section8Title": "Limitation of liability",
-      "section8Body": "To the fullest extent permitted by law, LuminaTech is not liable for indirect, incidental, special, or consequential damages (including lost shows, rental income, or data). Our aggregate liability for a claim relating to a product is limited to the amount you paid for that product. Some jurisdictions do not allow certain limitations; in those places, our liability is limited to the minimum required by law. Contact: support@luminatech.com."
+      "section8Body": "To the fullest extent permitted by law, Stagevio is not liable for indirect, incidental, special, or consequential damages (including lost shows, rental income, or data). Our aggregate liability for a claim relating to a product is limited to the amount you paid for that product. Some jurisdictions do not allow certain limitations; in those places, our liability is limited to the minimum required by law. Contact: support@stagevio.com."
     },
     "returns": {
       "title": "Returns & Refunds",
-      "subtitle": "Last updated: August 2026. This policy explains how to return eligible stage equipment purchased from LuminaTech. Mandatory consumer rights in your country still apply.",
+      "subtitle": "Last updated: August 2026. This policy explains how to return eligible stage equipment purchased from Stagevio. Mandatory consumer rights in your country still apply.",
       "section1Title": "Return window",
       "section1Body": "You may request a return within 30 days of delivery for unused items in original packaging with all accessories, manuals, and serial labels intact. The request date is when we receive your email with order number and photos if asked.",
       "section2Title": "What is eligible",
@@ -277,7 +277,7 @@
       "section3Title": "Defective or DOA items",
       "section3Body": "If a product arrives dead-on-arrival or has a manufacturing defect, contact us within 7 days of delivery with order number, serial number, and clear photos/video. We may offer replacement, repair coordination under warranty, or refund according to the case.",
       "section4Title": "How to start a return",
-      "section4Body": "Email support@luminatech.com with subject “Return request”, your order number, item SKU(s), and reason. Do not ship anything back until we confirm the RMA/return authorization and address. Unauthorized returns may be refused or delayed.",
+      "section4Body": "Email support@stagevio.com with subject “Return request”, your order number, item SKU(s), and reason. Do not ship anything back until we confirm the RMA/return authorization and address. Unauthorized returns may be refused or delayed.",
       "section5Title": "Return shipping and restocking",
       "section5Body": "Unless we confirm a defect attributable to us or carrier damage we accept, you are responsible for insured return shipping and any freight for heavy goods. We recommend using a trackable service. A restocking fee of up to 15% may apply for non-defective returns of heavy fixtures after inspection. Duties/taxes on cross-border returns may not be recoverable.",
       "section6Title": "Refund timing",
@@ -285,7 +285,7 @@
       "section7Title": "Warranty vs returns",
       "section7Body": "Manufacturer warranty covers defects arising after acceptance under warranty terms and is separate from the 30-day returns window. Warranty service may require proof of purchase and may be handled via repair, replacement parts, or manufacturer channels.",
       "section8Title": "Contact",
-      "section8Body": "Returns & warranty: support@luminatech.com · Mon–Fri 9:00–18:00 (UTC+8)."
+      "section8Body": "Returns & warranty: support@stagevio.com · Mon–Fri 9:00–18:00 (UTC+8)."
     },
     "contact": {
       "title": "Contact Us",

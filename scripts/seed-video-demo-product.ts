@@ -29,7 +29,7 @@ async function main() {
   const data = {
     slug: SLUG,
     sku: "LT-VIDEO-DEMO-001",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "Beam Moving Head — Video Demo",
     nameZh: "光束摇头灯 — 视频演示款",
     shortDescEn: "Demo product with an embedded YouTube intro video in the description.",

@@ -7,12 +7,12 @@ import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
 
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "support@luminatech.com";
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "support@stagevio.com";
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.contact" });
-  return { title: `${t("title")} | LuminaTech` };
+  return { title: `${t("title")} | Stagevio` };
 }
 
 export default async function ContactPage({ params }: Props) {

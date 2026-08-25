@@ -7,7 +7,7 @@ const geist = Geist({
 });
 
 export const metadata = {
-  title: "LuminaTech Admin",
+  title: "Stagevio Admin",
   robots: { index: false, follow: false },
 };
 

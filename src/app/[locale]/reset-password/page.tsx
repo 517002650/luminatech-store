@@ -12,7 +12,7 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "auth" });
-  return { title: `${t("resetPassword")} | LuminaTech` };
+  return { title: `${t("resetPassword")} | Stagevio` };
 }
 
 export default async function ResetPasswordPage({ params, searchParams }: Props) {

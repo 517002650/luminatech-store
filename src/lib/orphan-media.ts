@@ -179,14 +179,20 @@ export async function scanOrphanMedia(options?: {
   const includeOrders = options?.includeOrders !== false;
   const keys = await collectReferencedMediaKeys({ includeOrders });
 
-  const [productImages, downloadFiles] = await Promise.all([
-    listCloudinaryPrefix("image", "luminatech/products"),
-    listCloudinaryPrefix("raw", "luminatech/downloads"),
-  ]);
+  const [productImages, downloadFiles, legacyProductImages, legacyDownloadFiles] =
+    await Promise.all([
+      listCloudinaryPrefix("image", "stagevio/products"),
+      listCloudinaryPrefix("raw", "stagevio/downloads"),
+      listCloudinaryPrefix("image", "luminatech/products"),
+      listCloudinaryPrefix("raw", "luminatech/downloads"),
+    ]);
+
+  const allProductImages = [...productImages, ...legacyProductImages];
+  const allDownloadFiles = [...downloadFiles, ...legacyDownloadFiles];
 
   const orphans: OrphanMediaItem[] = [];
 
-  for (const resource of productImages) {
+  for (const resource of allProductImages) {
     if (isReferenced(resource, keys)) continue;
     orphans.push({
       publicId: resource.public_id,
@@ -199,7 +205,7 @@ export async function scanOrphanMedia(options?: {
     });
   }
 
-  for (const resource of downloadFiles) {
+  for (const resource of allDownloadFiles) {
     if (isReferenced(resource, keys)) continue;
     orphans.push({
       publicId: resource.public_id,
@@ -217,7 +223,7 @@ export async function scanOrphanMedia(options?: {
   return {
     ok: true,
     referencedCount: keys.size,
-    scannedCount: productImages.length + downloadFiles.length,
+    scannedCount: allProductImages.length + allDownloadFiles.length,
     orphans,
     includeOrders,
   };
@@ -243,6 +249,8 @@ export async function deleteOrphanMediaItems(
   for (const item of items) {
     // Safety: only allow our shop folders
     if (
+      !item.publicId.startsWith("stagevio/products/") &&
+      !item.publicId.startsWith("stagevio/downloads/") &&
       !item.publicId.startsWith("luminatech/products/") &&
       !item.publicId.startsWith("luminatech/downloads/")
     ) {

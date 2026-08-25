@@ -13,7 +13,7 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "auth" });
-  return { title: `${t("login")} | LuminaTech` };
+  return { title: `${t("login")} | Stagevio` };
 }
 
 export default async function LoginPage({ params, searchParams }: Props) {

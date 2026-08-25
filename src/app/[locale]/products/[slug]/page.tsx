@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props) {
       : undefined;
 
   return {
-    title: `${localized.name} | LuminaTech`,
+    title: `${localized.name} | Stagevio`,
     description,
     openGraph: {
       title: localized.name,

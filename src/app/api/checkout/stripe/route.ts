@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
         phone: address.phone || undefined,
         shipping,
         address: shipping.address,
-        metadata: { source: "luminatech-checkout" },
+        metadata: { source: "stagevio-checkout" },
       });
 
       baseParams.customer = customer.id;

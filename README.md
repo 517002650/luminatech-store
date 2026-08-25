@@ -1,11 +1,12 @@
-# LuminaStore — AI 协助开发的独立站
+# Stagevio — AI 协助开发的独立站
 
-面向海外市场的电商 MVP，支持 **Stripe** 和 **PayPal** 支付。
+面向海外市场的舞台灯光电商（正式品牌 **Stagevio**，见 [docs/BRAND.md](./docs/BRAND.md)）。支持 **Stripe** 和 **PayPal** 支付。
 
 > 不会写代码也没关系：按下面步骤运行，后续改商品、改页面都可以让 AI 帮你做。
 
 **上线后日常管理请看：** [docs/TECHNICAL.md](./docs/TECHNICAL.md)（网址、环境变量、后台操作、排查故障）  
-**部署上线防忘手册：** [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)（Vercel + Cloudinary + PostgreSQL 完整步骤）
+**部署上线防忘手册：** [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)（Vercel + Cloudinary + PostgreSQL 完整步骤）  
+**品牌与域名方案：** [docs/BRAND.md](./docs/BRAND.md)（首选 Stagevio；备选 Plotnova / Voxrig）
 
 ## 功能
 

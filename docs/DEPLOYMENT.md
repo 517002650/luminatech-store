@@ -8,6 +8,7 @@
 相关文档：
 
 - 日常运营：[TECHNICAL.md](./TECHNICAL.md)
+- **品牌与域名（首选 Stagevio）：** [BRAND.md](./BRAND.md)
 - 首次部署草稿（较简）：[../DEPLOY.md](../DEPLOY.md)
 
 ---
@@ -42,7 +43,8 @@ Vercel（Next.js 网站）
 | 仓库名 | `luminatech-store` |
 | 仓库地址 | https://github.com/517002650/luminatech-store |
 | Vercel 项目名 | `luminatech-store2` |
-| 线上域名 | https://517002650-luminatech-store.vercel.app |
+| 线上域名（当前） | https://517002650-luminatech-store.vercel.app |
+| **目标品牌 / 主域** | **Stagevio** / `stagevio.com`（见 [BRAND.md](./BRAND.md)；备选 Plotnova、Voxrig） |
 | 后台 | https://517002650-luminatech-store.vercel.app/admin |
 | Vercel 团队 / 项目 | `dashan4` / `517002650-luminatech-store` |
 | **环境变量直达** | https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables |
@@ -51,7 +53,7 @@ Vercel（Next.js 网站）
 | 图片 | Cloudinary（三个 `CLOUDINARY_*`） |
 | 后台密码 | Vercel 环境变量 `ADMIN_PASSWORD`（线上须 ≥12 位；禁止 `admin123`，见 §4.1） |
 
-> 若以后换了域名 / 项目名，只改本表和 [TECHNICAL.md](./TECHNICAL.md) 第 2 节即可。
+> 若以后换了域名 / 项目名 / 品牌，改本表、[TECHNICAL.md](./TECHNICAL.md) 第 1–2 节，并同步 [BRAND.md](./BRAND.md)。
 
 ---
 
@@ -528,18 +530,23 @@ npx tsx scripts/verify-cloudinary.ts
 ### 仍失败时
 
 1. Vercel → Deployments → 最新 Ready 版本 → **Runtime Logs**，搜索 `Download delivery failed`  
-2. Cloudinary 控制台 → Media Library → `luminatech/downloads` 确认文件还在  
+2. Cloudinary 控制台 → Media Library → `stagevio/downloads` 或历史 `luminatech/downloads` 确认文件还在  
 3. 文件被删但数据库有记录 → 后台重新上传，或从备份 JSON「只同步商品/分类/附件」恢复  
 
 ---
 
-## 8. 绑定自定义域名（以后可选）
+## 8. 绑定自定义域名（Stagevio 目标域）
 
-1. Vercel → 项目 → **Settings** → **Domains** → 添加域名  
-2. 按提示改 DNS  
-3. 把 `NEXT_PUBLIC_APP_URL` 改成 `https://你的域名`  
-4. Redeploy  
-5. Stripe/PayPal 回调域名一并更新  
+目标品牌见 [BRAND.md](./BRAND.md)：首选 **`stagevio.com`**（备选 `plotnova.com` / `voxrig.com`）。
+
+1. 在注册商购买并持有域名（先确认可注册）  
+2. Vercel → 项目 → **Settings** → **Domains** → 添加域名（如 `stagevio.com`、`www.stagevio.com`）  
+3. 按提示改 DNS（A / CNAME）  
+4. 把 `NEXT_PUBLIC_APP_URL` 改成 `https://stagevio.com`  
+5. 同步改 `STORE_NAME`、`CONTACT_EMAIL`、`SMTP_FROM`（见 BRAND.md §1.3）  
+6. Redeploy（`npx vercel --prod --yes` 或 Dashboard）  
+7. Stripe / PayPal 回调 URL 与商户显示名一并更新  
+8. 更新本文 §1 配置表与 [TECHNICAL.md](./TECHNICAL.md) 第 2 节网址  
 
 ---
 
@@ -584,6 +591,7 @@ npx tsx scripts/verify-cloudinary.ts
 | 文档 | 何时看 |
 |------|--------|
 | **本文 `docs/DEPLOYMENT.md`** | 部署 / **§5.1 触发重新部署** / 忘记上线步骤时 |
+| `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `.cursor/rules/vercel-deploy.mdc` | AI：功能提交后必须生产部署的约定 |
 | `docs/TECHNICAL.md` | 日常改商品、订单、排错 |
 | `DEPLOY.md` | 补充说明与安全提醒 |
@@ -592,4 +600,4 @@ npx tsx scripts/verify-cloudinary.ts
 
 ---
 
-**维护约定**：若更换 Vercel 项目名、域名或数据库提供商，请同步更新本文第 1 节「真实配置」表。
+**维护约定**：若更换 Vercel 项目名、域名、数据库提供商或品牌（Stagevio ↔ 备选），请同步更新本文第 1 节「真实配置」表与 [BRAND.md](./BRAND.md)。

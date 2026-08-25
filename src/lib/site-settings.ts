@@ -89,7 +89,7 @@ export async function getAffiliateAdminContact() {
   const email =
     s.affiliateAdminEmail.trim() ||
     process.env.CONTACT_EMAIL?.trim() ||
-    "support@luminatech.com";
+    "support@stagevio.com";
   return {
     email,
     phone: s.affiliateAdminPhone.trim(),

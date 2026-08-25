@@ -58,7 +58,7 @@ async function uploadToCloudinary(file: File, buffer: Buffer) {
 
   const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
   const result = await cloudinary.uploader.upload(base64, {
-    folder: "luminatech/products",
+    folder: "stagevio/products",
     resource_type: "image",
   });
 
@@ -76,7 +76,7 @@ async function uploadAssetToCloudinary(file: File, buffer: Buffer) {
   const base64 = `data:application/octet-stream;base64,${buffer.toString("base64")}`;
   const safeName = file.name.replace(/[^\w.\-]+/g, "_") || "file.bin";
   const result = await cloudinary.uploader.upload(base64, {
-    folder: "luminatech/downloads",
+    folder: "stagevio/downloads",
     resource_type: "raw",
     type: "upload",
     access_mode: "public",

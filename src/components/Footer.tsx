@@ -12,7 +12,7 @@ export function Footer() {
         <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-lg font-bold text-zinc-100">
-              Lumina<span className="text-cyan-400">Tech</span>
+              Stage<span className="text-cyan-400">vio</span>
             </p>
             <p className="mt-2 max-w-xs text-sm text-zinc-500">{t("tagline")}</p>
           </div>
@@ -35,7 +35,7 @@ export function Footer() {
           </div>
         </div>
         <p className="mt-8 border-t border-zinc-800 pt-8 text-sm text-zinc-600">
-          © {new Date().getFullYear()} LuminaTech. {t("rights")}
+          © {new Date().getFullYear()} Stagevio. {t("rights")}
         </p>
       </div>
     </footer>

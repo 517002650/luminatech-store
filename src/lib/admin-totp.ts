@@ -1,7 +1,7 @@
 import { generateSecret, generateSync, generateURI, verifySync } from "otplib";
 import QRCode from "qrcode";
 
-const ISSUER = "LuminaTech Admin";
+const ISSUER = "Stagevio Admin";
 
 export function generateTotpSecret() {
   return generateSecret();

@@ -78,7 +78,7 @@ export async function sendOrderConfirmationEmail(order: Order) {
     return { sent: false, reason: "smtp_not_configured" as const };
   }
 
-  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const storeName = process.env.STORE_NAME ?? "Stagevio";
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress ?? "");
   const orderNo = formatOrderId(order.id);
@@ -156,7 +156,7 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
     return { sent: false, reason: "smtp_not_configured" as const };
   }
 
-  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const storeName = process.env.STORE_NAME ?? "Stagevio";
   const subject = `Reset your password — ${storeName}`;
   const text = `You requested a password reset for your ${storeName} account.
 
@@ -196,7 +196,7 @@ export async function sendDigitalDeliveryEmail(order: Order) {
     return { sent: false, reason: "smtp_not_configured" as const };
   }
 
-  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const storeName = process.env.STORE_NAME ?? "Stagevio";
   const items = parseOrderItems(order.items);
   const orderNo = formatOrderId(order.id);
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
@@ -250,7 +250,7 @@ export async function sendShippingEmail(order: Order) {
     return { sent: false, reason: "smtp_not_configured" as const };
   }
 
-  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const storeName = process.env.STORE_NAME ?? "Stagevio";
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress ?? "");
   const orderNo = formatOrderId(order.id);
@@ -312,7 +312,7 @@ export async function sendContactInquiryEmail(input: {
     return { sent: false, reason: "smtp_not_configured" as const };
   }
 
-  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const storeName = process.env.STORE_NAME ?? "Stagevio";
   const to =
     process.env.CONTACT_EMAIL?.trim() ||
     process.env.SMTP_FROM?.replace(/.*<([^>]+)>.*/, "$1").trim() ||

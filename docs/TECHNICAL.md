@@ -1,13 +1,14 @@
-# LuminaTech 技术与运维手册
+# Stagevio / 独立站 技术与运维手册
 
 > 适用对象：店铺运营 / 非专职开发  
-> 线上地址：https://517002650-luminatech-store.vercel.app  
+> 线上地址：https://517002650-luminatech-store.vercel.app（迁移自定义域前）  
 > 代码仓库：https://github.com/517002650/luminatech-store  
 > 更新日期：2026-08-26
 
 本文档用于**上线后日常管理**：改商品、看订单、改密码、重新部署、排查故障。
 
-**部署上线完整步骤（防忘）：** [DEPLOYMENT.md](./DEPLOYMENT.md)（Vercel + Cloudinary + PostgreSQL）
+**部署上线完整步骤（防忘）：** [DEPLOYMENT.md](./DEPLOYMENT.md)（Vercel + Cloudinary + PostgreSQL）  
+**品牌与域名方案：** [BRAND.md](./BRAND.md)（首选 **Stagevio**；Plotnova / Voxrig 为备选）
 
 ---
 
@@ -15,7 +16,8 @@
 
 | 项目 | 说明 |
 |------|------|
-| 店铺名 | LuminaTech |
+| 店铺名 | **Stagevio**（正式品牌，见 [BRAND.md](./BRAND.md)） |
+| 目标主域名 | `stagevio.com`（绑定后更新 §2 与 `NEXT_PUBLIC_APP_URL`） |
 | 技术栈 | Next.js 16 + TypeScript + Tailwind + Prisma |
 | 前台语言 | 中文 `/zh`、英文 `/en` |
 | 托管 | Vercel |
@@ -130,8 +132,8 @@
 | `SMTP_PORT` | `587` |
 | `SMTP_USER` | 你的邮箱 |
 | `SMTP_PASS` | 应用专用密码 |
-| `SMTP_FROM` | `"LuminaTech <noreply@yourdomain.com>"` |
-| `STORE_NAME` | `LuminaTech` |
+| `SMTP_FROM` | `"Stagevio <noreply@stagevio.com>"`（迁移前可用临时发件域） |
+| `STORE_NAME` | `Stagevio` |
 | `CONTACT_EMAIL` | 联系页展示邮箱 |
 
 修改环境变量后，需要在 Vercel **Redeploy** 一次才会生效。
@@ -212,7 +214,7 @@
 2. 点 **扫描未引用文件**
 3. 勾选要删的项 → **删除选中**
 
-仅扫描 `luminatech/products`（图片）与 `luminatech/downloads`（固件等）。仍被商品主图/图库/详情 Markdown、附件引用的文件不会出现在列表中。
+仅扫描 `stagevio/products`、`stagevio/downloads`（图片与固件），以及历史路径 `luminatech/products`、`luminatech/downloads`。仍被商品主图/图库/详情 Markdown、附件引用的文件不会出现在列表中。
 
 ### 5.4 前台用户相关
 
@@ -505,7 +507,8 @@ npx tsx scripts/seed-multi-variants.ts
 - [ ] 确认 GitHub Token 用完即删，勿长期放在聊天里  
 - [ ] `.env` 不要提交到 Git（已在 `.gitignore`）  
 - [ ] 正式营业前切换 Stripe/PayPal 为 Live 密钥  
-- [ ] 建议绑定自定义域名，并更新 `NEXT_PUBLIC_APP_URL`  
+- [ ] 建议绑定自定义域名（目标 `stagevio.com`，见 [BRAND.md](./BRAND.md)），并更新 `NEXT_PUBLIC_APP_URL`  
+- [ ] 品牌迁移后：联系邮箱为 `@stagevio.com`（代码默认已改；Vercel 须同步 `CONTACT_EMAIL` / `STORE_NAME`）  
 - [ ] 定期到 Neon / Cloudinary 查看用量（免费额度）  
 
 ---
@@ -523,7 +526,7 @@ npx tsx scripts/seed-multi-variants.ts
 - 「导出订单增加快递单号列」  
 
 仓库路径：`e:\项目\独立站\web`  
-线上域名：`517002650-luminatech-store.vercel.app`
+线上域名：`517002650-luminatech-store.vercel.app`（绑定 Stagevio 自定义域后改此行）
 
 ---
 
@@ -533,10 +536,11 @@ npx tsx scripts/seed-multi-variants.ts
 |------|------|
 | `README.md` | 功能介绍与本地快速开始 |
 | `DEPLOY.md` | 首次部署补充说明 |
+| `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `docs/DEPLOYMENT.md` | **部署上线防忘手册**（Vercel + Cloudinary + PostgreSQL） |
 | `docs/TECHNICAL.md` | 日常运维与技术说明 |
 | `.env.example` | 环境变量模板 |
 
 ---
 
-**维护建议**：每次重大改动（新支付方式、换域名、改数据库）后，更新本文档第 2、4、10 节中的地址与清单。
+**维护建议**：每次重大改动（新支付方式、换域名、改数据库、完成品牌迁移）后，更新本文档第 1、2、4、10 节与 [BRAND.md](./BRAND.md)。

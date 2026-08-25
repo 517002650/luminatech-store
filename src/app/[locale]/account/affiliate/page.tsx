@@ -27,7 +27,7 @@ const STATUS_KEYS = ["pending", "approved", "paid", "void"] as const;
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "account" });
-  return { title: `${t("affiliate")} | LuminaTech` };
+  return { title: `${t("affiliate")} | Stagevio` };
 }
 
 export default async function AccountAffiliatePage({ params }: Props) {

@@ -32,7 +32,7 @@ export async function generateMetadata({ params, searchParams }: Props) {
   const query = normalizeSearchQuery(q);
 
   if (query) {
-    return { title: `${tSearch("resultsFor", { query })} | LuminaTech` };
+    return { title: `${tSearch("resultsFor", { query })} | Stagevio` };
   }
   if (isValidCategoryKey(category, keys)) {
     return {

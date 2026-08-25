@@ -30,7 +30,7 @@ export const LASER_PRODUCTS: ExtraProductSeed[] = [
   {
     slug: "rgb-laser-5w-pro",
     sku: "LT-LSR-5W",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "RGB Laser Projector 5W",
     nameZh: "RGB 全彩激光灯 5W",
     shortDescEn: "5W full-color ILDA laser with DMX and SD animations.",
@@ -60,7 +60,7 @@ export const LASER_PRODUCTS: ExtraProductSeed[] = [
   {
     slug: "rgb-laser-10w-touring",
     sku: "LT-LSR-10W",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "RGB Laser 10W Touring",
     nameZh: "RGB 激光灯 10W 巡演版",
     shortDescEn: "10W high-power RGB laser for arena and outdoor shows.",
@@ -88,7 +88,7 @@ export const LASER_PRODUCTS: ExtraProductSeed[] = [
   {
     slug: "green-laser-single-3w",
     sku: "LT-LSR-G3",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "Green Laser 3W",
     nameZh: "单绿激光灯 3W",
     shortDescEn: "Single-color green laser for aerial beams and tunnels.",
@@ -116,7 +116,7 @@ export const LASER_PRODUCTS: ExtraProductSeed[] = [
   {
     slug: "animation-laser-rgb-8w",
     sku: "LT-LSR-ANI8",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "Animation Laser RGB 8W",
     nameZh: "动画激光 RGB 8W",
     shortDescEn: "Full-color animation laser with SD card and ILDA.",
@@ -144,7 +144,7 @@ export const LASER_PRODUCTS: ExtraProductSeed[] = [
   {
     slug: "laser-array-bar-rgb",
     sku: "LT-LSR-BAR",
-    brand: "LuminaTech",
+    brand: "Stagevio",
     nameEn: "RGB Laser Array Bar",
     nameZh: "RGB 激光阵列灯条",
     shortDescEn: "Multi-beam laser bar for club walls and truss.",

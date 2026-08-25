@@ -8,7 +8,7 @@ type Props = { params: Promise<{ locale: Locale }> };
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "auth" });
-  return { title: `${t("forgotPassword")} | LuminaTech` };
+  return { title: `${t("forgotPassword")} | Stagevio` };
 }
 
 export default async function ForgotPasswordPage({ params }: Props) {

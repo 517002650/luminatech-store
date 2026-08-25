@@ -35,15 +35,15 @@ export function Header({ user }: Props) {
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-2.5"
-          aria-label="LuminaTech"
+          aria-label="Stagevio"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-400/25 to-violet-500/20 ring-1 ring-white/10 transition group-hover:ring-cyan-400/40">
             <Sparkles className="h-4 w-4 text-cyan-300" />
           </span>
           <span className="hidden text-[1.05rem] font-semibold tracking-tight text-zinc-50 sm:inline">
-            Lumina
+            Stage
             <span className="bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-              Tech
+              vio
             </span>
           </span>
         </Link>

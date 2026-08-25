@@ -7,7 +7,7 @@ type Props = { params: Promise<{ locale: Locale }> };
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "pages.about" });
-  return { title: `${t("title")} | LuminaTech` };
+  return { title: `${t("title")} | Stagevio` };
 }
 
 export default async function AboutPage({ params }: Props) {

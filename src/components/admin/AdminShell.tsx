@@ -113,7 +113,7 @@ export async function AdminShell({
         <aside className="hidden w-56 shrink-0 lg:block">
           <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
             <p className="text-lg font-bold text-stone-900">
-              Lumina<span className="text-amber-600">Tech</span>
+              Stage<span className="text-amber-600">vio</span>
             </p>
             <p className="mt-1 text-xs text-stone-500">商店管理后台</p>
             {admin ? (

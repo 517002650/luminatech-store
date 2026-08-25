@@ -236,5 +236,5 @@ export function validateShippingAddress(
   return null;
 }
 
-export const SHIPPING_STORAGE_KEY = "luminatech_shipping";
-export const COUPON_STORAGE_KEY = "luminatech_coupon";
+export const SHIPPING_STORAGE_KEY = "stagevio_shipping";
+export const COUPON_STORAGE_KEY = "stagevio_coupon";

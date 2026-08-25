@@ -65,7 +65,7 @@ export function OrderInvoicePanel({ order }: Props) {
         className="mt-4 space-y-6 text-stone-900"
       >
         <header className="border-b border-stone-200 pb-4">
-          <p className="text-2xl font-bold tracking-tight">LuminaTech</p>
+          <p className="text-2xl font-bold tracking-tight">Stagevio</p>
           <p className="mt-1 text-sm text-stone-600">Packing Slip / 发货单</p>
           <div className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
             <p>

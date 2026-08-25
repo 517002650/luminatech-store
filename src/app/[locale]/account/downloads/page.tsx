@@ -24,7 +24,7 @@ type Props = { params: Promise<{ locale: Locale }> };
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "account" });
-  return { title: `${t("downloads")} | LuminaTech` };
+  return { title: `${t("downloads")} | Stagevio` };
 }
 
 export default async function AccountDownloadsPage({ params }: Props) {
