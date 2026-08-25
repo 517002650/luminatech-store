@@ -3,6 +3,10 @@
 import { useActionState } from "react";
 import { updateAffiliateAction } from "@/app/admin/actions";
 import { buildAffiliateLink } from "@/lib/affiliates";
+import {
+  AffiliateUserPicker,
+  type AffiliateUserOption,
+} from "@/components/admin/AffiliateUserPicker";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200";
@@ -17,6 +21,7 @@ type Props = {
     commissionRate: number;
     active: boolean;
     notes: string;
+    user: AffiliateUserOption | null;
   };
 };
 
@@ -46,6 +51,9 @@ export function AffiliateEditForm({ affiliate }: Props) {
       <div className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-stone-600">
         推广链接：<code className="break-all">{link}</code>
       </div>
+
+      <AffiliateUserPicker initialUser={affiliate.user} required />
+
       <div>
         <label className={labelClass}>推广码 *</label>
         <input

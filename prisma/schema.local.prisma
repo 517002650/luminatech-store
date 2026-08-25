@@ -21,6 +21,7 @@ model User {
   reviews           Review[]
   resetTokens       PasswordResetToken[]
   addresses         UserAddress[]
+  affiliate         Affiliate?
 }
 
 model PasswordResetToken {
@@ -205,6 +206,8 @@ model Affiliate {
   code           String       @unique
   name           String
   email          String       @default("")
+  userId         String?      @unique
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   commissionRate Float        @default(10)
   active         Boolean      @default(true)
   notes          String       @default("")

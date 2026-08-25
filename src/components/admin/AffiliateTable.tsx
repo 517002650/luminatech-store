@@ -11,6 +11,7 @@ type AffiliateRow = {
   email: string;
   commissionRate: number;
   active: boolean;
+  user: { id: string; email: string; name: string } | null;
   _count: { commissions: number; orders: number };
 };
 
@@ -18,7 +19,7 @@ export function AffiliateTable({ affiliates }: { affiliates: AffiliateRow[] }) {
   if (affiliates.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
-        暂无推广员。点击「新增推广员」创建，对方用专属链接带客下单即可计佣。
+        暂无推广员。点击「新增推广员」，搜索并绑定前台用户后创建。对方用普通账号登录即可查看提成。
       </p>
     );
   }
@@ -31,7 +32,7 @@ export function AffiliateTable({ affiliates }: { affiliates: AffiliateRow[] }) {
         <thead className="border-b border-stone-200 bg-stone-50 text-left text-stone-600">
           <tr>
             <th className="px-4 py-3 font-medium">推广码</th>
-            <th className="px-4 py-3 font-medium">名称</th>
+            <th className="px-4 py-3 font-medium">名称 / 用户</th>
             <th className="px-4 py-3 font-medium">佣金率</th>
             <th className="px-4 py-3 font-medium">订单 / 佣金笔数</th>
             <th className="px-4 py-3 font-medium">推广链接</th>
@@ -47,8 +48,16 @@ export function AffiliateTable({ affiliates }: { affiliates: AffiliateRow[] }) {
                 <td className="px-4 py-3 font-mono font-semibold">{row.code}</td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-stone-900">{row.name}</p>
-                  {row.email ? (
-                    <p className="text-xs text-stone-500">{row.email}</p>
+                  {row.user ? (
+                    <p className="text-xs text-stone-500">
+                      用户：{row.user.name || row.user.email}
+                      {row.user.name ? ` · ${row.user.email}` : ""}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-amber-700">未绑定前台用户</p>
+                  )}
+                  {!row.user && row.email ? (
+                    <p className="text-xs text-stone-400">{row.email}</p>
                   ) : null}
                 </td>
                 <td className="px-4 py-3">{row.commissionRate}%</td>

@@ -722,28 +722,68 @@ export async function setUserBannedFromReviewsAction(
   return { success: true as const };
 }
 
+export async function searchUsersForAffiliateAction(
+  query: string,
+  allowUserId?: string,
+) {
+  await requireAdmin();
+  const q = String(query ?? "").trim();
+  if (q.length < 1) return [];
+
+  const allowId = String(allowUserId ?? "").trim() || undefined;
+
+  return prisma.user.findMany({
+    where: {
+      AND: [
+        {
+          OR: [
+            { email: { contains: q } },
+            { name: { contains: q } },
+          ],
+        },
+        allowId
+          ? { OR: [{ affiliate: null }, { id: allowId }] }
+          : { affiliate: null },
+      ],
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: { id: true, email: true, name: true },
+  });
+}
+
 export async function createAffiliateAction(formData: FormData) {
   await requireAdmin();
   const { normalizeAffiliateCode } = await import("@/lib/affiliates");
 
+  const userId = String(formData.get("userId") ?? "").trim();
   const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
   const rate = Number(formData.get("commissionRate") ?? 10);
 
+  if (!userId) return { error: "请搜索并选择要绑定的前台用户" };
   if (!code) return { error: "推广码不能为空（仅字母数字_-）" };
   if (!name) return { error: "名称不能为空" };
   if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
     return { error: "佣金比例须在 0–100 之间" };
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { affiliate: { select: { id: true } } },
+  });
+  if (!user) return { error: "所选用户不存在" };
+  if (user.affiliate) return { error: "该用户已是推广员，请勿重复绑定" };
+
   try {
     await prisma.affiliate.create({
       data: {
+        userId: user.id,
         code,
         name,
-        email,
+        email: email || user.email,
         notes,
         commissionRate: rate,
         active: true,
@@ -761,6 +801,7 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
   await requireAdmin();
   const { normalizeAffiliateCode } = await import("@/lib/affiliates");
 
+  const userId = String(formData.get("userId") ?? "").trim();
   const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
@@ -768,16 +809,34 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
   const rate = Number(formData.get("commissionRate") ?? 10);
   const active = formData.get("active") === "on";
 
+  if (!userId) return { error: "请绑定前台用户" };
   if (!code) return { error: "推广码不能为空" };
   if (!name) return { error: "名称不能为空" };
   if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
     return { error: "佣金比例须在 0–100 之间" };
   }
 
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { affiliate: { select: { id: true } } },
+  });
+  if (!user) return { error: "所选用户不存在" };
+  if (user.affiliate && user.affiliate.id !== id) {
+    return { error: "该用户已绑定其他推广员" };
+  }
+
   try {
     await prisma.affiliate.update({
       where: { id },
-      data: { code, name, email, notes, commissionRate: rate, active },
+      data: {
+        userId: user.id,
+        code,
+        name,
+        email: email || user.email,
+        notes,
+        commissionRate: rate,
+        active,
+      },
     });
   } catch {
     return { error: "更新失败，推广码可能已被占用" };

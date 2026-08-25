@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { createAffiliateAction } from "@/app/admin/actions";
+import { AffiliateUserPicker } from "@/components/admin/AffiliateUserPicker";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200";
@@ -15,6 +16,10 @@ export function AffiliateCreateForm() {
     null,
   );
 
+  useEffect(() => {
+    // keep form controlled via native inputs
+  }, []);
+
   return (
     <form action={formAction} className="max-w-xl space-y-4 rounded-2xl border border-stone-200 bg-white p-6">
       {state?.error ? (
@@ -22,6 +27,9 @@ export function AffiliateCreateForm() {
           {state.error}
         </div>
       ) : null}
+
+      <AffiliateUserPicker required />
+
       <div>
         <label className={labelClass}>推广码 *</label>
         <input

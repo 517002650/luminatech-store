@@ -9,6 +9,7 @@ export default async function AdminAffiliatesPage() {
   const affiliates = await prisma.affiliate.findMany({
     orderBy: { createdAt: "desc" },
     include: {
+      user: { select: { id: true, email: true, name: true } },
       _count: { select: { commissions: true, orders: true } },
     },
   });
@@ -16,7 +17,7 @@ export default async function AdminAffiliatesPage() {
   return (
     <AdminShell
       title="推广员"
-      subtitle="链接推广：分享专属链接，买家 30 天内下单并付款后产生提成"
+      subtitle="绑定前台用户：对方用普通账号登录即可查看推广链接与提成结算状态"
     >
       <div className="mb-4 flex justify-end">
         <AffiliateNewLink />

@@ -20,6 +20,8 @@ model User {
   reviews            Review[]
   resetTokens        PasswordResetToken[]
   addresses          UserAddress[]
+  /** Optional promoter profile — storefront account can view commissions */
+  affiliate          Affiliate?
 }
 
 model PasswordResetToken {
@@ -203,13 +205,16 @@ model Order {
   @@index([affiliateCode])
 }
 
-/** Link-based affiliate / promoter. */
+/** Link-based affiliate / promoter (bound to a storefront User). */
 model Affiliate {
   id             String       @id @default(cuid())
   /** Public referral code used in ?ref=CODE */
   code           String       @unique
   name           String
   email          String       @default("")
+  /** Bound storefront account; one user ↔ one affiliate */
+  userId         String?      @unique
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   /** Percent of (subtotal - discount), e.g. 10 = 10% */
   commissionRate Float        @default(10)
   active         Boolean      @default(true)
