@@ -646,12 +646,25 @@ export async function setReturnRequestStatusAction(id: string, status: string) {
   ]);
   if (!allowed.has(status)) return { error: "invalid_status" as const };
 
+  const existing = await prisma.returnRequest.findUnique({ where: { id } });
+  if (!existing) return { error: "退货申请不存在" };
+
+  if (status === "refunded" && existing.status !== "refunded") {
+    const result = await refundAndCancelOrder(existing.orderId, {
+      reason: `RMA ${id}: ${existing.reason}`,
+    });
+    if (!result.ok) {
+      return { error: result.error };
+    }
+  }
+
   const row = await prisma.returnRequest.update({
     where: { id },
     data: { status },
   });
 
   revalidatePath("/admin/returns");
+  revalidatePath(`/admin/orders/${row.orderId}`);
   revalidatePath(`/en/account/orders/${row.orderId}`);
   revalidatePath(`/zh/account/orders/${row.orderId}`);
   return { success: true as const };

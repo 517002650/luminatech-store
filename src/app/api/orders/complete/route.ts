@@ -115,31 +115,41 @@ export async function POST(req: NextRequest) {
         email = user.email;
       }
 
-      const stockOk = await decrementStockForItems(trustedItems);
-      if (!stockOk) {
-        return NextResponse.json(
-          { error: "库存不足，无法完成订单" },
-          { status: 409 },
-        );
+      let order;
+      try {
+        order = await prisma.$transaction(async (tx) => {
+          const stockOk = await decrementStockForItems(trustedItems, tx);
+          if (!stockOk) {
+            throw new CartValidationError("Insufficient stock", "out_of_stock");
+          }
+          return tx.order.create({
+            data: {
+              userId: user?.id,
+              email,
+              subtotal: quote.subtotal,
+              shippingFee: quote.shippingFee,
+              taxAmount: quote.taxAmount,
+              discountAmount: quote.discountAmount,
+              couponCode: quote.couponCode ?? "",
+              total: quote.total,
+              status: "paid",
+              paymentMethod: "paypal",
+              paymentId,
+              stockApplied: true,
+              items: JSON.stringify(trustedItems),
+              shippingAddress: JSON.stringify(resolvedShipping),
+            },
+          });
+        });
+      } catch (err) {
+        if (err instanceof CartValidationError && err.code === "out_of_stock") {
+          return NextResponse.json(
+            { error: "库存不足，无法完成订单" },
+            { status: 409 },
+          );
+        }
+        throw err;
       }
-
-      const order = await prisma.order.create({
-        data: {
-          userId: user?.id,
-          email,
-          subtotal: quote.subtotal,
-          shippingFee: quote.shippingFee,
-          taxAmount: quote.taxAmount,
-          discountAmount: quote.discountAmount,
-          couponCode: quote.couponCode ?? "",
-          total: quote.total,
-          status: "paid",
-          paymentMethod: "paypal",
-          paymentId,
-          items: JSON.stringify(trustedItems),
-          shippingAddress: JSON.stringify(resolvedShipping),
-        },
-      });
 
       if (quote.couponCode) {
         await incrementCouponUsage(quote.couponCode);

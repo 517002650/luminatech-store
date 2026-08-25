@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import type { OrderItem } from "@/lib/orders";
+import type { Prisma } from "@prisma/client";
 
 export type CartRequestItem = {
   productId: string;
@@ -21,6 +22,15 @@ export class CartValidationError extends Error {
     this.name = "CartValidationError";
   }
 }
+
+export class StockDecrementError extends Error {
+  constructor(public productId: string) {
+    super(`Insufficient stock for product ${productId}`);
+    this.name = "StockDecrementError";
+  }
+}
+
+type TxClient = Prisma.TransactionClient;
 
 /**
  * Resolve cart lines from the database. Never trust client prices.
@@ -96,13 +106,17 @@ export function cartRequiresFreightQuote(items: { requiresFreight?: boolean }[])
   return items.some((item) => item.requiresFreight);
 }
 
-/** Decrement stock only when enough units remain. Returns false if any line failed. */
+/**
+ * Decrement stock only when enough units remain.
+ * Pass a transaction client for atomic checkout fulfillment.
+ */
 export async function decrementStockForItems(
   items: Pick<OrderItem, "productId" | "quantity">[],
+  db: TxClient | typeof prisma = prisma,
 ): Promise<boolean> {
   for (const item of items) {
     if (!item.productId || item.productId === "unknown") continue;
-    const result = await prisma.product.updateMany({
+    const result = await db.product.updateMany({
       where: { id: item.productId, stock: { gte: item.quantity } },
       data: { stock: { decrement: item.quantity } },
     });
@@ -111,13 +125,31 @@ export async function decrementStockForItems(
   return true;
 }
 
+/** Like decrementStockForItems but throws StockDecrementError on failure. */
+export async function decrementStockForItemsOrThrow(
+  items: Pick<OrderItem, "productId" | "quantity">[],
+  db: TxClient | typeof prisma = prisma,
+) {
+  for (const item of items) {
+    if (!item.productId || item.productId === "unknown") continue;
+    const result = await db.product.updateMany({
+      where: { id: item.productId, stock: { gte: item.quantity } },
+      data: { stock: { decrement: item.quantity } },
+    });
+    if (result.count === 0) {
+      throw new StockDecrementError(item.productId);
+    }
+  }
+}
+
 export async function restockItems(
   items: Pick<OrderItem, "productId" | "quantity">[],
+  db: TxClient | typeof prisma = prisma,
 ): Promise<void> {
   for (const item of items) {
     if (!item.productId || item.productId === "unknown") continue;
     if (item.quantity < 1) continue;
-    await prisma.product.updateMany({
+    await db.product.updateMany({
       where: { id: item.productId },
       data: { stock: { increment: item.quantity } },
     });

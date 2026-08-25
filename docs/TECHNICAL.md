@@ -358,12 +358,14 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 
 配置 `NEXT_PUBLIC_PAYPAL_CLIENT_ID` 后结算页显示 PayPal 按钮。
 
-### 正式收款前
+### Stripe Tax（推荐正式开卖前开启）
 
-1. Stripe / PayPal 完成商户认证  
-2. 把 Vercel 里的密钥换成 **Live**  
-3. 确认 `NEXT_PUBLIC_APP_URL` 为正式域名  
-4. 确认 Live 模式下 Alipay / WeChat Pay 已开启  
+1. Stripe Dashboard → **Settings → Tax** 开通税务  
+2. Vercel 环境变量设 `STRIPE_TAX_ENABLED=true` 并 Redeploy  
+3. 结账页显示「支付时由 Stripe Tax 计算」；收银台按收货地址精确计税  
+4. 未开启时仍用 `TAX_*` / 内置国别扁率估算（仅适合测试）
+
+退货后台将状态改为「已退款」时，会自动 Stripe 退款 + 回库存 + 取消订单。支付履约在同一事务内扣库存；库存不足会自动退款。  
 
 ### 邮件触发时机
 

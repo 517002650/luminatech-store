@@ -6,6 +6,7 @@ import {
   type OrderQuote,
 } from "@/lib/pricing";
 import type { ShippingAddress } from "@/lib/orders";
+import { isStripeTaxEnabled } from "@/lib/stripe-tax";
 
 type CheckoutItem = {
   productId: string;
@@ -27,6 +28,9 @@ export function buildStripeLineItems(
       ? (quote.subtotal - quote.discountAmount) / quote.subtotal
       : 1;
 
+  const taxBehavior: Stripe.Checkout.SessionCreateParams.LineItem.PriceData["tax_behavior"] =
+    isStripeTaxEnabled() ? "exclusive" : undefined;
+
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
     (item) => ({
       price_data: {
@@ -39,6 +43,7 @@ export function buildStripeLineItems(
           0,
           Math.round(item.price * 100 * discountRatio),
         ),
+        ...(taxBehavior ? { tax_behavior: taxBehavior } : {}),
       },
       quantity: item.quantity,
     }),
@@ -50,12 +55,14 @@ export function buildStripeLineItems(
         currency: "usd",
         product_data: { name: "Shipping" },
         unit_amount: Math.round(quote.shippingFee * 100),
+        ...(taxBehavior ? { tax_behavior: taxBehavior } : {}),
       },
       quantity: 1,
     });
   }
 
-  if (quote.taxAmount > 0) {
+  // Flat-rate tax as a line item only when Stripe Tax is OFF.
+  if (!isStripeTaxEnabled() && quote.taxAmount > 0) {
     lineItems.push({
       price_data: {
         currency: "usd",
@@ -93,6 +100,7 @@ export function buildCheckoutMetadata(
     taxAmount: String(pricing.taxAmount),
     discountAmount: String(pricing.discountAmount),
     couponCode: pricing.couponCode,
+    taxMode: isStripeTaxEnabled() ? "stripe" : "estimate",
   };
 }
 

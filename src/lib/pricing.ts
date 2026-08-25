@@ -5,6 +5,7 @@ import {
   normalizeCountryCode,
 } from "@/lib/countries";
 import type { ShippingAddress } from "@/lib/orders";
+import { isStripeTaxEnabled } from "@/lib/stripe-tax";
 
 export {
   COUNTRY_OPTIONS,
@@ -29,6 +30,8 @@ export type OrderQuote = {
   taxAmount: number;
   taxRate: number;
   taxLabel: string;
+  /** When true, tax is computed by Stripe Tax at payment (estimate may be 0). */
+  taxAtCheckout: boolean;
   total: number;
   countryCode: string;
 };
@@ -114,9 +117,24 @@ export async function buildOrderQuote(
     ? 0
     : roundMoney(calcShippingFee(countryCode, discountedSubtotal, shippingSettings));
 
-  const { rate, label } = getTaxInfo(countryCode);
+  const taxAtCheckout = isStripeTaxEnabled();
+  let taxAmount = 0;
+  let taxRate = 0;
+  let taxLabel = "Tax";
+
+  if (taxAtCheckout) {
+    taxLabel = "Tax (at checkout)";
+    taxRate = 0;
+    taxAmount = 0;
+  } else {
+    const info = getTaxInfo(countryCode);
+    taxRate = info.rate;
+    taxLabel = info.label;
+    const taxBase = roundMoney(discountedSubtotal + shippingFee);
+    taxAmount = roundMoney(taxBase * taxRate);
+  }
+
   const taxBase = roundMoney(discountedSubtotal + shippingFee);
-  const taxAmount = roundMoney(taxBase * rate);
   const total = roundMoney(taxBase + taxAmount);
 
   return {
@@ -127,8 +145,9 @@ export async function buildOrderQuote(
     shippingFree: !requiresFreightQuote && shippingFee === 0 && discountedSubtotal > 0,
     requiresFreightQuote,
     taxAmount,
-    taxRate: rate,
-    taxLabel: label,
+    taxRate,
+    taxLabel,
+    taxAtCheckout,
     total,
     countryCode,
   };

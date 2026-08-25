@@ -14,6 +14,10 @@ import {
   cartRequiresFreightQuote,
   resolveCartItemsFromDb,
 } from "@/lib/cart-validation";
+import {
+  isStripeTaxEnabled,
+  shippingAddressForStripeCustomer,
+} from "@/lib/stripe-tax";
 
 type CartRequestBody = {
   items: { productId: string; quantity: number }[];
@@ -99,15 +103,44 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe();
     const paymentMethodTypes = getPaymentMethodTypes();
     const lineItems = buildStripeLineItems(items, quote);
+    const useStripeTax = isStripeTaxEnabled();
 
     const baseParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
-      customer_email: address.email,
       line_items: lineItems,
       metadata: buildCheckoutMetadata(address, items, quote),
       success_url: `${appUrl}/${locale}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${locale}/cart`,
     };
+
+    if (useStripeTax) {
+      const shipping = shippingAddressForStripeCustomer(address);
+      if (!shipping) {
+        return NextResponse.json(
+          {
+            error:
+              "Stripe Tax requires a supported shipping country. Please select a country from the list (not Other).",
+            code: "tax_country_required",
+          },
+          { status: 400 },
+        );
+      }
+
+      const customer = await stripe.customers.create({
+        email: address.email,
+        name: address.name,
+        phone: address.phone || undefined,
+        shipping,
+        address: shipping.address,
+        metadata: { source: "luminatech-checkout" },
+      });
+
+      baseParams.customer = customer.id;
+      baseParams.customer_update = { address: "auto", shipping: "auto" };
+      baseParams.automatic_tax = { enabled: true };
+    } else {
+      baseParams.customer_email = address.email;
+    }
 
     if (paymentMethodTypes.includes("wechat_pay")) {
       baseParams.payment_method_options = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { setReturnRequestStatusAction } from "@/app/admin/actions";
 
 type Row = {
@@ -28,10 +28,31 @@ const STATUS_LABEL: Record<string, string> = {
 export function ReturnAdminTable({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
 
   function onStatus(id: string, status: string) {
+    if (status === "refunded") {
+      const ok = window.confirm(
+        "确认为「已退款」？将自动执行 Stripe 退款（如适用）、回库存并取消订单。",
+      );
+      if (!ok) {
+        router.refresh();
+        return;
+      }
+    }
+
+    setError("");
     startTransition(async () => {
-      await setReturnRequestStatusAction(id, status);
+      const result = await setReturnRequestStatusAction(id, status);
+      if (result && "error" in result && result.error) {
+        setError(
+          result.error === "invalid_status"
+            ? "无效状态"
+            : String(result.error),
+        );
+        router.refresh();
+        return;
+      }
       router.refresh();
     });
   }
@@ -46,6 +67,14 @@ export function ReturnAdminTable({ rows }: { rows: Row[] }) {
 
   return (
     <div className="space-y-4">
+      {error ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
+      <p className="text-sm text-stone-500">
+        将状态改为「已退款」会自动调用 Stripe 退款并恢复库存（订单变为已取消）。
+      </p>
       {rows.map((row) => (
         <article
           key={row.id}
@@ -67,9 +96,9 @@ export function ReturnAdminTable({ rows }: { rows: Row[] }) {
             </div>
             <select
               value={row.status}
-              disabled={pending}
+              disabled={pending || row.status === "refunded"}
               onChange={(e) => onStatus(row.id, e.target.value)}
-              className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500 disabled:opacity-60"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>

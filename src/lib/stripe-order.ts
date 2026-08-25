@@ -6,7 +6,12 @@ import { parsePricingMetadata } from "@/lib/pricing";
 import type { OrderItem, ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
-import { decrementStockForItems } from "@/lib/cart-validation";
+import {
+  decrementStockForItemsOrThrow,
+  StockDecrementError,
+} from "@/lib/cart-validation";
+import { refundStripeCheckoutSession } from "@/lib/order-refund";
+import { isStripeTaxEnabled } from "@/lib/stripe-tax";
 
 function parseMetadataShipping(raw: string | null | undefined): ShippingAddress | null {
   if (!raw) return null;
@@ -118,42 +123,62 @@ export async function fulfillStripeCheckoutSession(
   const total = (session.amount_total ?? 0) / 100;
   const pricing = parsePricingMetadata(session.metadata ?? undefined);
 
+  // Prefer Stripe Tax amount when automatic tax was used.
+  const stripeTaxCents = session.total_details?.amount_tax;
+  const taxAmount =
+    isStripeTaxEnabled() && typeof stripeTaxCents === "number"
+      ? stripeTaxCents / 100
+      : (pricing?.taxAmount ?? 0);
+
   let order;
   try {
-    order = await prisma.order.create({
-      data: {
-        userId: options?.userId,
-        email,
-        subtotal: pricing?.subtotal ?? total,
-        shippingFee: pricing?.shippingFee ?? 0,
-        taxAmount: pricing?.taxAmount ?? 0,
-        discountAmount: pricing?.discountAmount ?? 0,
-        couponCode: pricing?.couponCode ?? "",
-        total,
-        status: "paid",
-        paymentMethod: "stripe",
-        paymentId,
-        items: JSON.stringify(items),
-        shippingAddress: JSON.stringify(resolvedShipping),
-      },
+    order = await prisma.$transaction(async (tx) => {
+      await decrementStockForItemsOrThrow(items, tx);
+      return tx.order.create({
+        data: {
+          userId: options?.userId,
+          email,
+          subtotal: pricing?.subtotal ?? total,
+          shippingFee: pricing?.shippingFee ?? 0,
+          taxAmount,
+          discountAmount: pricing?.discountAmount ?? 0,
+          couponCode: pricing?.couponCode ?? "",
+          total,
+          status: "paid",
+          paymentMethod: "stripe",
+          paymentId,
+          stockApplied: true,
+          items: JSON.stringify(items),
+          shippingAddress: JSON.stringify(resolvedShipping),
+        },
+      });
     });
   } catch (err) {
     const existingAfterRace = await prisma.order.findUnique({ where: { paymentId } });
     if (existingAfterRace) {
       return { orderId: existingAfterRace.id, duplicate: true };
     }
+
+    if (err instanceof StockDecrementError) {
+      const refund = await refundStripeCheckoutSession(
+        sessionId,
+        `Auto-refund: insufficient stock (${err.productId})`,
+      );
+      console.error(
+        `Stock failed for session ${sessionId}; auto-refund ${refund.ok ? refund.refundId : refund.error}`,
+      );
+      throw new Error(
+        refund.ok
+          ? "库存不足，付款已自动退回。请稍后再试或联系客服。"
+          : `库存不足且自动退款失败，请联系客服并提供支付号 ${sessionId}`,
+      );
+    }
+
     throw err;
   }
 
   if (pricing?.couponCode) {
     await incrementCouponUsage(pricing.couponCode);
-  }
-
-  const stockOk = await decrementStockForItems(items);
-  if (!stockOk) {
-    console.error(
-      `Order ${order.id} created but stock decrement failed — manual restock/refund may be needed`,
-    );
   }
 
   try {

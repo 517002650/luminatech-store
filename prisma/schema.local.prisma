@@ -142,6 +142,7 @@ model Order {
   trackingNumber  String   @default("")
   paymentMethod   String
   paymentId       String?  @unique
+  stockApplied    Boolean  @default(true)
   items           String
   shippingAddress String   @default("")
   createdAt       DateTime @default(now())

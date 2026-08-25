@@ -141,6 +141,8 @@ model Order {
   trackingNumber  String   @default("")
   paymentMethod   String
   paymentId       String?  @unique
+  /** True when inventory was decremented for this order (refund should restock). */
+  stockApplied    Boolean  @default(true)
   items           String
   shippingAddress String   @default("")
   createdAt       DateTime @default(now())

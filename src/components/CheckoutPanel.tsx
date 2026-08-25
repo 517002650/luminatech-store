@@ -243,14 +243,19 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
                 : t("shippingPending")}
             </span>
           </div>
-          {quote && quote.taxAmount > 0 && (
+          {quote && quote.taxAtCheckout ? (
+            <div className="flex justify-between">
+              <span className="text-stone-600">{t("taxAtCheckout")}</span>
+              <span className="font-medium text-stone-500">{t("taxAtCheckoutValue")}</span>
+            </div>
+          ) : quote && quote.taxAmount > 0 ? (
             <div className="flex justify-between">
               <span className="text-stone-600">
                 {quote.taxLabel} ({Math.round(quote.taxRate * 100)}%)
               </span>
               <span className="font-medium">{formatPrice(quote.taxAmount)}</span>
             </div>
-          )}
+          ) : null}
           <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold">
             <span>{t("total")}</span>
             <span>{formatPrice(displayTotal)}</span>
