@@ -29,24 +29,50 @@ import {
 } from "@/lib/admin-auth";
 import { NAV_PERMISSION, type AdminPermission } from "@/lib/admin-permissions";
 
-const BASE_NAV = [
-  { href: "/admin", label: "商品列表", icon: LayoutDashboard },
-  { href: "/admin/products/new", label: "新增商品", icon: Plus },
-  { href: "/admin/categories", label: "商品分类", icon: Tags },
-  { href: "/admin/orders", label: "订单管理", icon: ShoppingCart },
-  { href: "/admin/returns", label: "退货申请", icon: RotateCcw },
-  { href: "/admin/reviews", label: "评价审核", icon: Star },
-  { href: "/admin/users", label: "用户管理", icon: Users },
-  { href: "/admin/inbox", label: "客户留言", icon: MessageSquare },
-  { href: "/admin/coupons", label: "优惠码", icon: Ticket },
-  { href: "/admin/affiliates", label: "推广员", icon: Megaphone },
-  { href: "/admin/commissions", label: "推广提成", icon: Percent },
-  { href: "/admin/finance", label: "财务", icon: Wallet },
-  { href: "/admin/shipping", label: "运费设置", icon: Truck },
-  { href: "/admin/media", label: "媒体清理", icon: Images },
-  { href: "/admin/backup", label: "数据备份", icon: Database },
-  { href: "/admin/security", label: "安全设置", icon: KeyRound },
-  { href: "/admin/team", label: "团队账号", icon: UserCog },
+/** 按使用频率分组：日常运营 → 商品营销 → 推广财务 → 店铺设置 → 系统维护 */
+const BASE_NAV_GROUPS = [
+  {
+    label: "日常运营",
+    items: [
+      { href: "/admin/orders", label: "订单管理", icon: ShoppingCart },
+      { href: "/admin", label: "商品列表", icon: LayoutDashboard },
+      { href: "/admin/products/new", label: "新增商品", icon: Plus },
+      { href: "/admin/returns", label: "退货申请", icon: RotateCcw },
+      { href: "/admin/inbox", label: "客户留言", icon: MessageSquare },
+      { href: "/admin/reviews", label: "评价审核", icon: Star },
+    ],
+  },
+  {
+    label: "商品与营销",
+    items: [
+      { href: "/admin/categories", label: "商品分类", icon: Tags },
+      { href: "/admin/coupons", label: "优惠码", icon: Ticket },
+    ],
+  },
+  {
+    label: "推广与财务",
+    items: [
+      { href: "/admin/affiliates", label: "推广员", icon: Megaphone },
+      { href: "/admin/commissions", label: "推广提成", icon: Percent },
+      { href: "/admin/finance", label: "财务", icon: Wallet },
+    ],
+  },
+  {
+    label: "店铺设置",
+    items: [
+      { href: "/admin/shipping", label: "运费设置", icon: Truck },
+      { href: "/admin/users", label: "用户管理", icon: Users },
+    ],
+  },
+  {
+    label: "系统维护",
+    items: [
+      { href: "/admin/media", label: "媒体清理", icon: Images },
+      { href: "/admin/backup", label: "数据备份", icon: Database },
+      { href: "/admin/security", label: "安全设置", icon: KeyRound },
+      { href: "/admin/team", label: "团队账号", icon: UserCog },
+    ],
+  },
 ] as const;
 
 function navAllowed(admin: AdminSession | null, href: string) {
@@ -68,7 +94,11 @@ export async function AdminShell({
   admin?: AdminSession | null;
 }) {
   const admin = adminProp ?? (await getCurrentAdmin());
-  const nav = BASE_NAV.filter((item) => navAllowed(admin, item.href));
+  const navGroups = BASE_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => navAllowed(admin, item.href)),
+  })).filter((group) => group.items.length > 0);
+  const nav = navGroups.flatMap((group) => group.items);
 
   const roleLabel =
     admin?.role === "owner"
@@ -92,16 +122,25 @@ export async function AdminShell({
                 <span className="text-stone-400"> · {roleLabel}</span>
               </p>
             ) : null}
-            <nav className="mt-6 space-y-1">
-              {nav.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Link>
+            <nav className="mt-6 space-y-4">
+              {navGroups.map((group) => (
+                <div key={group.label}>
+                  <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-stone-400">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               ))}
               <Link
                 href="/en"
