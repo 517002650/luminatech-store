@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Upload, Video } from "lucide-react";
+import { ImagePlus, Link2, Upload, Video } from "lucide-react";
 import { ProductMarkdown } from "@/components/ProductMarkdown";
 import { isVideoEmbedUrl } from "@/lib/video-embed";
 
@@ -37,7 +37,7 @@ export function MarkdownEditor({ label, name, value, onChange, placeholder }: Pr
     }
   }
 
-  function insertAtCursor(text: string) {
+  function insertAtCursor(text: string, selectInner?: { start: number; end: number }) {
     const el = textareaRef.current;
     if (!el) {
       onChange(value + text);
@@ -49,15 +49,19 @@ export function MarkdownEditor({ label, name, value, onChange, placeholder }: Pr
     onChange(next);
     requestAnimationFrame(() => {
       el.focus();
-      const pos = start + text.length;
-      el.setSelectionRange(pos, pos);
+      if (selectInner) {
+        el.setSelectionRange(start + selectInner.start, start + selectInner.end);
+      } else {
+        const pos = start + text.length;
+        el.setSelectionRange(pos, pos);
+      }
     });
   }
 
   function insertVideo() {
     setError("");
     const url = window.prompt(
-      "粘贴视频链接（YouTube / Bilibili / Vimeo / 直链 mp4）",
+      "粘贴视频链接（YouTube / Bilibili / Vimeo / 直链 mp4）——将内嵌播放",
       "https://www.youtube.com/watch?v=",
     );
     if (!url) return;
@@ -67,6 +71,24 @@ export function MarkdownEditor({ label, name, value, onChange, placeholder }: Pr
       return;
     }
     insertAtCursor(`\n\n![介绍视频](${trimmed})\n\n`);
+  }
+
+  function insertLink() {
+    setError("");
+    const el = textareaRef.current;
+    const selected =
+      el && el.selectionStart !== el.selectionEnd
+        ? value.slice(el.selectionStart, el.selectionEnd)
+        : "";
+    const label =
+      window.prompt("链接显示文字", selected || "点击查看")?.trim() || "点击查看";
+    const url = window.prompt("粘贴链接地址（点击后在新窗口打开）", "https://")?.trim();
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) {
+      setError("链接需以 http:// 或 https:// 开头");
+      return;
+    }
+    insertAtCursor(`[${label}](${url})`);
   }
 
   return (
@@ -122,6 +144,14 @@ export function MarkdownEditor({ label, name, value, onChange, placeholder }: Pr
         </label>
         <button
           type="button"
+          onClick={insertLink}
+          className="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
+        >
+          <Link2 className="h-4 w-4" />
+          插入链接
+        </button>
+        <button
+          type="button"
           onClick={insertVideo}
           className="inline-flex items-center gap-1 rounded-lg border border-stone-300 px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50"
         >
@@ -137,8 +167,8 @@ export function MarkdownEditor({ label, name, value, onChange, placeholder }: Pr
           插入标题
         </button>
         <span className="text-xs text-stone-500">
-          图片 <code>![](url)</code> · 视频{" "}
-          <code>![介绍视频](YouTube/Bilibili/mp4链接)</code>
+          链接 <code>[文字](url)</code> 点击打开 · 视频内嵌{" "}
+          <code>![介绍视频](url)</code>
         </span>
       </div>
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}

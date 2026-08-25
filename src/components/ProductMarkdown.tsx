@@ -13,6 +13,8 @@ export function ProductMarkdown({ content }: Props) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          // Image syntax with a video URL → inline player
+          // ![介绍视频](https://youtube.com/...)
           img: ({ src, alt }) => {
             const srcStr = typeof src === "string" ? src : "";
             if (isVideoEmbedUrl(srcStr)) {
@@ -28,20 +30,11 @@ export function ProductMarkdown({ content }: Props) {
               />
             );
           },
+          // Link syntax always opens in a new tab (including video URLs)
+          // [观看介绍](https://youtube.com/...) or [官网](https://example.com)
           a: ({ href, children }) => {
             const hrefStr = typeof href === "string" ? href : "";
-            if (isVideoEmbedUrl(hrefStr)) {
-              const label =
-                typeof children === "string" && children.trim()
-                  ? children
-                  : "介绍视频";
-              return (
-                <ProductVideoEmbed
-                  url={hrefStr}
-                  title={typeof label === "string" ? label : "介绍视频"}
-                />
-              );
-            }
+            if (!hrefStr) return <>{children}</>;
             return (
               <a
                 href={hrefStr}
