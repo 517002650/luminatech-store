@@ -23,6 +23,9 @@ export function Footer() {
             <Link href="/terms" className="transition hover:text-zinc-300">
               {t("terms")}
             </Link>
+            <Link href="/returns" className="transition hover:text-zinc-300">
+              {t("returns")}
+            </Link>
             <Link href="/contact" className="transition hover:text-zinc-300">
               {t("contact")}
             </Link>

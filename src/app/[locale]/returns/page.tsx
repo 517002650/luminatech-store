@@ -6,14 +6,14 @@ type Props = { params: Promise<{ locale: Locale }> };
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "pages.privacy" });
+  const t = await getTranslations({ locale, namespace: "pages.returns" });
   return { title: `${t("title")} | LuminaTech` };
 }
 
-export default async function PrivacyPage({ params }: Props) {
+export default async function ReturnsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("pages.privacy");
+  const t = await getTranslations("pages.returns");
 
   const sections = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({
     title: t(`section${i}Title`),

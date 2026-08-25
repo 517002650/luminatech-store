@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   clearAdminSession,
+  getAdminPasswordConfigError,
   isAdminAuthenticated,
   setAdminSession,
   verifyAdminPassword,
@@ -33,6 +34,11 @@ async function requireAdmin() {
 
 export async function loginAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
+
+  const configError = getAdminPasswordConfigError();
+  if (configError) {
+    return { error: configError };
+  }
 
   if (!verifyAdminPassword(password)) {
     return { error: "密码错误" };

@@ -155,9 +155,17 @@ export async function requestPasswordResetAction(formData: FormData) {
     const resetUrl = `${appUrl}/${locale}/reset-password?token=${token}`;
 
     try {
-      await sendPasswordResetEmail(email, resetUrl);
+      const result = await sendPasswordResetEmail(email, resetUrl);
+      if (!result.sent) {
+        if (result.reason === "smtp_not_configured") {
+          console.error("Password reset blocked: SMTP is not configured");
+          return { error: "smtp_unavailable" as const };
+        }
+        return { error: "smtp_failed" as const };
+      }
     } catch (err) {
       console.error("Password reset email failed:", err);
+      return { error: "smtp_failed" as const };
     }
   }
 

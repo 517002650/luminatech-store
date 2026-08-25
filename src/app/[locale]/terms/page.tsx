@@ -15,7 +15,7 @@ export default async function TermsPage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("pages.terms");
 
-  const sections = [1, 2, 3, 4, 5, 6].map((i) => ({
+  const sections = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({
     title: t(`section${i}Title`),
     body: t(`section${i}Body`),
   }));
