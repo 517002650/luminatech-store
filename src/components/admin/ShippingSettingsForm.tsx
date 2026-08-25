@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { updateShippingSettingsAction } from "@/app/admin/actions";
+import { lightInputClass } from "@/lib/form-styles";
 import { COUNTRY_OPTIONS } from "@/lib/pricing";
 import type { ShippingSettingsData } from "@/lib/shipping-settings";
 
@@ -42,7 +43,7 @@ export function ShippingSettingsForm({ settings }: Props) {
               min="0"
               required
               defaultValue={settings.freeShippingThreshold}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+              className={lightInputClass}
             />
           </div>
           <div>
@@ -54,7 +55,7 @@ export function ShippingSettingsForm({ settings }: Props) {
               min="0"
               required
               defaultValue={settings.flatRate}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+              className={lightInputClass}
             />
           </div>
           <div>
@@ -66,7 +67,7 @@ export function ShippingSettingsForm({ settings }: Props) {
               min="0"
               required
               defaultValue={settings.euRate}
-              className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+              className={lightInputClass}
             />
             <p className="mt-1 text-xs text-stone-400">未单独设价的欧盟国家用此运费</p>
           </div>
@@ -92,7 +93,7 @@ export function ShippingSettingsForm({ settings }: Props) {
                 min="0"
                 defaultValue={settings.countryRates[country.code] ?? ""}
                 placeholder="留空用默认"
-                className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+                className={lightInputClass}
               />
             </div>
           ))}

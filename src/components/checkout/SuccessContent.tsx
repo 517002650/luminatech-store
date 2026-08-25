@@ -80,7 +80,7 @@ export function SuccessContent({ isLoggedIn }: Props) {
   if (processing) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center sm:px-6">
-        <p className="text-stone-600">{t("processing")}</p>
+        <p className="text-zinc-400">{t("processing")}</p>
       </div>
     );
   }
@@ -90,11 +90,11 @@ export function SuccessContent({ isLoggedIn }: Props) {
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-3xl">
         ✓
       </div>
-      <h1 className="mt-6 text-3xl font-bold text-stone-900">{t("title")}</h1>
-      <p className="mt-4 text-stone-600">
+      <h1 className="mt-6 text-3xl font-bold text-zinc-50">{t("title")}</h1>
+      <p className="mt-4 text-zinc-300">
         {t("message", { provider: providerName })}
       </p>
-      <p className="mt-2 text-sm text-stone-500">{t("emailNote")}</p>
+      <p className="mt-2 text-sm text-zinc-500">{t("emailNote")}</p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         {isLoggedIn && (
           <Link

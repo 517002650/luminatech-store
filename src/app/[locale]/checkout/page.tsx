@@ -21,8 +21,8 @@ export default async function CheckoutPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-bold text-stone-900">{t("title")}</h1>
-      <p className="mt-2 text-stone-500">{t("subtitle")}</p>
+      <h1 className="text-3xl font-bold text-zinc-50">{t("title")}</h1>
+      <p className="mt-2 text-zinc-400">{t("subtitle")}</p>
       <div className="mt-8">
         <CheckoutPanel initialEmail={user?.email} initialName={user?.name} />
       </div>

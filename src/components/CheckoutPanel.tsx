@@ -173,7 +173,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   }
 
   if (items.length === 0) {
-    return <p className="text-stone-500">{t("empty")}</p>;
+    return <p className="text-zinc-400">{t("empty")}</p>;
   }
 
   const displayTotal = quote?.total ?? subtotal;
@@ -186,7 +186,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         errors={fieldErrors}
       />
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-stone-900">
         <h2 className="text-lg font-semibold text-stone-900">{t("couponTitle")}</h2>
         <div className="mt-3 flex gap-2">
           <input
@@ -210,11 +210,11 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         {couponError && <p className="mt-2 text-sm text-red-600">{couponError}</p>}
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6">
+      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6 text-stone-900">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-stone-600">{t("subtotal")}</span>
-            <span>{formatPrice(quote?.subtotal ?? subtotal)}</span>
+            <span className="font-medium">{formatPrice(quote?.subtotal ?? subtotal)}</span>
           </div>
           {quote && quote.discountAmount > 0 && (
             <div className="flex justify-between text-green-700">
@@ -224,7 +224,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           )}
           <div className="flex justify-between">
             <span className="text-stone-600">{t("shipping")}</span>
-            <span>
+            <span className="font-medium">
               {quote
                 ? quote.shippingFree
                   ? t("shippingFree")
@@ -237,10 +237,10 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
               <span className="text-stone-600">
                 {quote.taxLabel} ({Math.round(quote.taxRate * 100)}%)
               </span>
-              <span>{formatPrice(quote.taxAmount)}</span>
+              <span className="font-medium">{formatPrice(quote.taxAmount)}</span>
             </div>
           )}
-          <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold">
+          <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold text-stone-900">
             <span>{t("total")}</span>
             <span>{formatPrice(displayTotal)}</span>
           </div>
@@ -255,7 +255,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
       )}
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-stone-900">{t("paymentTitle")}</h2>
+        <h2 className="text-lg font-semibold text-zinc-100">{t("paymentTitle")}</h2>
 
         <button
           type="button"
@@ -265,7 +265,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         >
           {loading ? t("redirecting") : t("payStripe")}
         </button>
-        <p className="text-center text-xs text-stone-500">{t("stripeMethodsHint")}</p>
+        <p className="text-center text-xs text-zinc-500">{t("stripeMethodsHint")}</p>
 
         {paypalClientId && quote ? (
           <PayPalScriptProvider
@@ -333,7 +333,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
             />
           </PayPalScriptProvider>
         ) : paypalClientId ? null : (
-          <p className="rounded-xl border border-dashed border-stone-300 px-4 py-3 text-sm text-stone-500">
+          <p className="rounded-xl border border-dashed border-zinc-700 px-4 py-3 text-sm text-zinc-500">
             {t("paypalHint")}
           </p>
         )}
