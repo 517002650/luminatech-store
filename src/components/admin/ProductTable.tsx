@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import { SafeImage } from "@/components/SafeImage";
-import { deleteProductAction } from "@/app/admin/actions";
+import { deleteProductAction, setProductActiveAction } from "@/app/admin/actions";
 import {
   findCategoryInList,
   PRODUCT_CATEGORIES,
@@ -22,6 +22,7 @@ type ProductRow = {
   price: number;
   stock: number;
   featured: boolean;
+  active: boolean;
   image: string;
   categoryKey?: string | null;
   categoryEn: string;
@@ -90,6 +91,13 @@ export function ProductTable({
     });
   }
 
+  function handleToggleActive(id: string, nextActive: boolean) {
+    startTransition(async () => {
+      await setProductActiveAction(id, nextActive);
+      router.refresh();
+    });
+  }
+
   if (products.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-12 text-center">
@@ -143,6 +151,7 @@ export function ProductTable({
                 <th className="px-4 py-3 font-medium">分类</th>
                 <th className="px-4 py-3 font-medium">价格</th>
                 <th className="px-4 py-3 font-medium">库存</th>
+                <th className="px-4 py-3 font-medium">状态</th>
                 <th className="px-4 py-3 font-medium">精选</th>
                 <th className="px-4 py-3 font-medium">操作</th>
               </tr>
@@ -150,13 +159,18 @@ export function ProductTable({
             <tbody>
               {visible.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-stone-500">
+                  <td colSpan={7} className="px-4 py-10 text-center text-stone-500">
                     该分类下暂无商品
                   </td>
                 </tr>
               ) : (
                 visible.map((product) => (
-                  <tr key={product.id} className="border-b border-stone-100 last:border-0">
+                  <tr
+                    key={product.id}
+                    className={`border-b border-stone-100 last:border-0 ${
+                      product.active ? "" : "bg-stone-50/80"
+                    }`}
+                  >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="relative h-12 w-12 overflow-hidden rounded-lg bg-stone-100">
@@ -182,6 +196,17 @@ export function ProductTable({
                     <td className="px-4 py-4 font-medium">{formatPrice(product.price)}</td>
                     <td className="px-4 py-4">{product.stock}</td>
                     <td className="px-4 py-4">
+                      {product.active ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                          上架中
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-stone-200 px-2 py-0.5 text-xs font-medium text-stone-600">
+                          已下架
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4">
                       {product.featured ? (
                         <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                           是
@@ -191,7 +216,19 @@ export function ProductTable({
                       )}
                     </td>
                     <td className="px-4 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={pending}
+                          onClick={() => handleToggleActive(product.id, !product.active)}
+                          className={`inline-flex items-center rounded-lg border px-3 py-1.5 text-sm disabled:opacity-50 ${
+                            product.active
+                              ? "border-stone-200 text-stone-700 hover:bg-stone-50"
+                              : "border-green-200 text-green-700 hover:bg-green-50"
+                          }`}
+                        >
+                          {product.active ? "下架" : "上架"}
+                        </button>
                         <Link
                           href={`/admin/products/${product.id}/edit`}
                           className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-stone-700 hover:bg-stone-50"

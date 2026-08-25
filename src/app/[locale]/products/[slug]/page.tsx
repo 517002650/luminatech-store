@@ -27,7 +27,7 @@ type Props = {
 export async function generateMetadata({ params }: Props) {
   const { locale, slug } = await params;
   const product = await prisma.product.findUnique({ where: { slug } });
-  if (!product) {
+  if (!product || !product.active) {
     const t = await getTranslations({ locale, namespace: "products" });
     return { title: t("notFound") };
   }
@@ -75,7 +75,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const tReviews = await getTranslations("reviews");
 
   const product = await prisma.product.findUnique({ where: { slug } });
-  if (!product) notFound();
+  if (!product || !product.active) notFound();
 
   const p = localizeProduct(product, locale);
   const user = await getCurrentUser();

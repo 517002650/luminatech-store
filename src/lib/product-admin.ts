@@ -24,6 +24,7 @@ export type ProductFormInput = {
   stock: number;
   featured: boolean;
   requiresFreight: boolean;
+  active: boolean;
   warranty: string;
 };
 
@@ -95,6 +96,7 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     stock: Number(formData.get("stock") ?? 0),
     featured: formData.get("featured") === "on",
     requiresFreight: formData.get("requiresFreight") === "on",
+    active: formData.get("active") === "on",
     warranty: String(formData.get("warranty") ?? "").trim(),
   };
 }
@@ -141,6 +143,7 @@ export function productInputToDbData(input: ProductFormInput) {
     stock: input.stock,
     featured: input.featured,
     requiresFreight: input.requiresFreight,
+    active: input.active,
     warranty: input.warranty,
   };
 }

@@ -67,6 +67,14 @@ export async function resolveCartItemsFromDb(
       );
     }
 
+    if (!product.active) {
+      const name = locale === "zh" ? product.nameZh : product.nameEn;
+      throw new CartValidationError(
+        `“${name}” is no longer available`,
+        "not_found",
+      );
+    }
+
     resolved.push({
       productId: product.id,
       slug: product.slug,

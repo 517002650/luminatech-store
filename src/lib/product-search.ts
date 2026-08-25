@@ -4,11 +4,12 @@ export function normalizeSearchQuery(q: string | undefined | null) {
   return (q ?? "").trim().slice(0, 100);
 }
 
+/** Storefront catalog always excludes unpublished products. */
 export function buildProductSearchWhere(
   query: string,
   categoryKey?: string | null,
 ): Prisma.ProductWhereInput {
-  const where: Prisma.ProductWhereInput = {};
+  const where: Prisma.ProductWhereInput = { active: true };
   if (categoryKey) where.categoryKey = categoryKey;
 
   const q = normalizeSearchQuery(query);

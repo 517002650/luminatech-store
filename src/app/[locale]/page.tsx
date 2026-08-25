@@ -34,7 +34,7 @@ export default async function HomePage({ params }: Props) {
   try {
     const [products, categories] = await Promise.all([
       prisma.product.findMany({
-        where: { featured: true },
+        where: { featured: true, active: true },
         take: 3,
       }),
       listCategories({ activeOnly: true }),

@@ -79,6 +79,7 @@ export default async function EditProductPage({ params }: Props) {
             stock: product.stock,
             featured: product.featured,
             requiresFreight: product.requiresFreight,
+            active: product.active,
             warranty: product.warranty,
           }}
         />

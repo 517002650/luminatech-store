@@ -30,6 +30,7 @@ type ProductFormValues = {
   stock?: number;
   featured?: boolean;
   requiresFreight?: boolean;
+  active?: boolean;
   warranty?: string;
 };
 
@@ -147,6 +148,19 @@ export function ProductForm({
               defaultValue={initialValues.stock ?? 100}
               className={inputClass}
             />
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <input
+              id="active"
+              name="active"
+              type="checkbox"
+              value="on"
+              defaultChecked={initialValues.active !== false}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            <label htmlFor="active" className="text-sm text-stone-700">
+              上架销售（取消勾选即下架，前台不可见、不可购买）
+            </label>
           </div>
           <div className="flex items-center gap-2 sm:col-span-2">
             <input

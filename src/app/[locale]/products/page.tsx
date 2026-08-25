@@ -61,6 +61,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     }),
     prisma.product.groupBy({
       by: ["categoryKey"],
+      where: { active: true },
       _count: { _all: true },
     }),
   ]);

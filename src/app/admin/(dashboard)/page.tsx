@@ -24,6 +24,7 @@ export default async function AdminDashboardPage() {
           price: true,
           stock: true,
           featured: true,
+          active: true,
           image: true,
           categoryEn: true,
           categoryZh: true,

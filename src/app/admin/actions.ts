@@ -122,6 +122,31 @@ export async function deleteProductAction(id: string) {
   revalidatePath("/zh/products");
 }
 
+export async function setProductActiveAction(id: string, active: boolean) {
+  await requireAdmin();
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { id: true, slug: true },
+  });
+  if (!product) return { error: "商品不存在" };
+
+  await prisma.product.update({
+    where: { id },
+    data: { active },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath(`/admin/products/${id}/edit`);
+  revalidatePath("/en");
+  revalidatePath("/zh");
+  revalidatePath("/en/products");
+  revalidatePath("/zh/products");
+  revalidatePath(`/en/products/${product.slug}`);
+  revalidatePath(`/zh/products/${product.slug}`);
+  return { success: true as const };
+}
+
 export async function createProductDownloadAction(productId: string, formData: FormData) {
   await requireAdmin();
 
