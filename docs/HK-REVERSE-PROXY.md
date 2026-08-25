@@ -442,7 +442,7 @@ x-powered-by: Next.js
 
 | 文件 | 改动 | 作用 |
 |------|------|------|
-| `next.config.ts` | 读取 `SERVER_ACTIONS_ALLOWED_ORIGINS`，写入 `serverActions.allowedOrigins` | 允许经香港 IP 发起的 Server Actions |
+| `next.config.ts` | 读取 `SERVER_ACTIONS_ALLOWED_ORIGINS`，写入 `experimental.serverActions.allowedOrigins` | 允许经香港 IP 发起的 Server Actions |
 | `src/lib/admin-auth.ts` | 读取 `ADMIN_COOKIE_SECURE`（默认生产为 `true`） | HTTP 代理下可设为 `false` 以写入会话 Cookie |
 | `.env.example` | 注释示例 | 本地/文档参考 |
 

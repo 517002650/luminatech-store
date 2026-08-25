@@ -17,7 +17,7 @@ const serverActionOrigins = parseServerActionsAllowedOrigins();
 
 const nextConfig: NextConfig = {
   ...(serverActionOrigins.length > 0
-    ? { serverActions: { allowedOrigins: serverActionOrigins } }
+    ? { experimental: { serverActions: { allowedOrigins: serverActionOrigins } } }
     : {}),
   images: {
     remotePatterns: [
