@@ -175,6 +175,9 @@ model Order {
   taxAmount       Float    @default(0)
   discountAmount  Float    @default(0)
   couponCode      String   @default("")
+  affiliateCode   String   @default("")
+  affiliateId     String?
+  affiliate       Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
   total           Float
   status          String   @default("paid")
   shippingCarrier String   @default("")
@@ -187,6 +190,42 @@ model Order {
   shippingAddress String   @default("")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  commission      Commission?
+
+  @@index([affiliateId])
+  @@index([affiliateCode])
+}
+
+model Affiliate {
+  id             String       @id @default(cuid())
+  code           String       @unique
+  name           String
+  email          String       @default("")
+  commissionRate Float        @default(10)
+  active         Boolean      @default(true)
+  notes          String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  orders         Order[]
+  commissions    Commission[]
+}
+
+model Commission {
+  id          String    @id @default(cuid())
+  orderId     String    @unique
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  baseAmount  Float
+  rate        Float
+  amount      Float
+  status      String    @default("pending")
+  note        String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([status, createdAt])
 }
 
 model UserAddress {

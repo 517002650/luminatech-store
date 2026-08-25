@@ -176,11 +176,13 @@ prisma generate && prisma db push && npm run db:seed && next build
 含义：
 
 1. **generate** — 生成数据库客户端  
-2. **db push** — 在 Neon 上自动建表  
-3. **db:seed** — 若商品表为空，导入 6 个示例商品；**已有商品则跳过**（不会覆盖你后台改的数据）  
+2. **db push** — 在 Neon 上自动建表（含 `ProductVariant` 多规格表）  
+3. **db:seed** — 若商品表为空，导入示例商品；**已有商品则跳过创建**；并为尚无规格的老商品**补 1 个默认规格**  
 4. **next build** — 编译网站  
 
-所以：**第一次部署成功后，一般不用再手动跑 seed**（只要 Build 日志里没有报错）。
+所以：**第一次部署成功后，一般不用再手动跑 seed**（只要 Build 日志里没有报错）。  
+
+多规格部署后：请到后台编辑商品 → **规格与价格**，为需要分档销售的商品添加多个规格（独立售价与库存）。仅 1 个规格时前台不显示选择器。
 
 ---
 
@@ -192,6 +194,9 @@ prisma generate && prisma db push && npm run db:seed && next build
 - [ ] /zh/products 商品列表正常  
 - [ ] /admin 能登录（密码 = `ADMIN_PASSWORD`）  
 - [ ] 后台能看到商品列表  
+- [ ] 后台编辑商品可见「规格与价格」，可添加第二规格并保存  
+- [ ] 前台详情（≥2 规格时）出现「选择规格」，价格随选项变化  
+- [ ] 后台可新增推广员，复制 `?ref=` 链接；付款后「推广提成」出现待结算记录  
 - [ ] 后台上传一张图，地址应含 `res.cloudinary.com`  
 - [ ] （可选）注册用户、加购、结算页能打开  
 
@@ -222,9 +227,13 @@ prisma generate && prisma db push && npm run db:seed && next build
 | 线上 | https://517002650-luminatech-store.vercel.app/admin | Vercel 中的 `ADMIN_PASSWORD`（[环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables)） |
 | 本地 | http://localhost:3000/admin | `.env` 的 `ADMIN_PASSWORD`；未设时临时可用 `admin123` |
 
-登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、**用户管理**、留言、优惠码、运费、媒体清理、备份。
+登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、**用户管理**、留言、优惠码、**推广员**、**推广提成**、运费、媒体清理、备份。
 
 商品 **上架/下架**：商品列表点「下架/上架」，或编辑页勾选「上架销售」。下架商品前台不可见。
+
+商品 **多规格**：编辑页「规格与价格」可为同一商品设置多档 SKU / 价格 / 库存。操作细节见 [TECHNICAL.md §5.1](./TECHNICAL.md)。
+
+**链接推广提成**：后台创建推广员 → 发给对方 `?ref=CODE` 链接 → 买家 30 天内下单付款后产生提成。详见 [TECHNICAL.md §5.6](./TECHNICAL.md)。
 
 日常操作细节见 [TECHNICAL.md §2.1 / §5](./TECHNICAL.md)。
 

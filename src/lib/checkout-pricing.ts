@@ -92,6 +92,7 @@ export function buildCheckoutMetadata(
   address: ShippingAddress,
   items: CheckoutItem[],
   quote: OrderQuote,
+  affiliate?: { affiliateCode?: string; affiliateId?: string } | null,
 ) {
   const pricing = quoteToMetadata(quote);
   return {
@@ -117,6 +118,8 @@ export function buildCheckoutMetadata(
     discountAmount: String(pricing.discountAmount),
     couponCode: pricing.couponCode,
     taxMode: isStripeTaxEnabled() ? "stripe" : "estimate",
+    affiliateCode: affiliate?.affiliateCode ?? "",
+    affiliateId: affiliate?.affiliateId ?? "",
   };
 }
 

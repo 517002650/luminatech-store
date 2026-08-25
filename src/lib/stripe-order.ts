@@ -12,6 +12,7 @@ import {
 } from "@/lib/cart-validation";
 import { refundStripeCheckoutSession } from "@/lib/order-refund";
 import { isStripeTaxEnabled } from "@/lib/stripe-tax";
+import { createCommissionForOrder } from "@/lib/affiliates";
 
 function parseMetadataShipping(raw: string | null | undefined): ShippingAddress | null {
   if (!raw) return null;
@@ -122,6 +123,8 @@ export async function fulfillStripeCheckoutSession(
 
   const total = (session.amount_total ?? 0) / 100;
   const pricing = parsePricingMetadata(session.metadata ?? undefined);
+  const affiliateId = session.metadata?.affiliateId?.trim() || null;
+  const affiliateCode = session.metadata?.affiliateCode?.trim() || "";
 
   // Prefer Stripe Tax amount when automatic tax was used.
   const stripeTaxCents = session.total_details?.amount_tax;
@@ -143,6 +146,8 @@ export async function fulfillStripeCheckoutSession(
           taxAmount,
           discountAmount: pricing?.discountAmount ?? 0,
           couponCode: pricing?.couponCode ?? "",
+          affiliateCode,
+          affiliateId: affiliateId || undefined,
           total,
           status: "paid",
           paymentMethod: "stripe",
@@ -179,6 +184,12 @@ export async function fulfillStripeCheckoutSession(
 
   if (pricing?.couponCode) {
     await incrementCouponUsage(pricing.couponCode);
+  }
+
+  try {
+    await createCommissionForOrder(order);
+  } catch (err) {
+    console.error("Commission create failed:", err);
   }
 
   try {

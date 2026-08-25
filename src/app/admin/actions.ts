@@ -303,6 +303,19 @@ export async function updateOrderStatusAction(id: string, status: string) {
     const { restockItems } = await import("@/lib/cart-validation");
     const { parseOrderItems } = await import("@/lib/orders");
     await restockItems(parseOrderItems(order.items));
+    const { adjustCommissionOnRefund } = await import("@/lib/affiliates");
+    await adjustCommissionOnRefund(id, {
+      full: true,
+      orderTotal: order.total,
+      refundedTotal: order.total,
+    });
+  }
+
+  if (status === "completed" && order.status !== "completed") {
+    const { approveCommissionForCompletedOrder } = await import(
+      "@/lib/affiliates"
+    );
+    await approveCommissionForCompletedOrder(id);
   }
 
   if (status === "shipped" && order.status !== "shipped") {
@@ -694,6 +707,93 @@ export async function setUserBannedFromReviewsAction(
   });
 
   revalidatePath("/admin/users");
+  return { success: true as const };
+}
+
+export async function createAffiliateAction(formData: FormData) {
+  await requireAdmin();
+  const { normalizeAffiliateCode } = await import("@/lib/affiliates");
+
+  const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const rate = Number(formData.get("commissionRate") ?? 10);
+
+  if (!code) return { error: "推广码不能为空（仅字母数字_-）" };
+  if (!name) return { error: "名称不能为空" };
+  if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+    return { error: "佣金比例须在 0–100 之间" };
+  }
+
+  try {
+    await prisma.affiliate.create({
+      data: {
+        code,
+        name,
+        email,
+        notes,
+        commissionRate: rate,
+        active: true,
+      },
+    });
+  } catch {
+    return { error: "创建失败，推广码可能已存在" };
+  }
+
+  revalidatePath("/admin/affiliates");
+  redirect("/admin/affiliates");
+}
+
+export async function updateAffiliateAction(id: string, formData: FormData) {
+  await requireAdmin();
+  const { normalizeAffiliateCode } = await import("@/lib/affiliates");
+
+  const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const rate = Number(formData.get("commissionRate") ?? 10);
+  const active = formData.get("active") === "on";
+
+  if (!code) return { error: "推广码不能为空" };
+  if (!name) return { error: "名称不能为空" };
+  if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+    return { error: "佣金比例须在 0–100 之间" };
+  }
+
+  try {
+    await prisma.affiliate.update({
+      where: { id },
+      data: { code, name, email, notes, commissionRate: rate, active },
+    });
+  } catch {
+    return { error: "更新失败，推广码可能已被占用" };
+  }
+
+  revalidatePath("/admin/affiliates");
+  revalidatePath(`/admin/affiliates/${id}`);
+  return { success: true as const };
+}
+
+export async function setAffiliateActiveAction(id: string, active: boolean) {
+  await requireAdmin();
+  await prisma.affiliate.update({ where: { id }, data: { active } });
+  revalidatePath("/admin/affiliates");
+  return { success: true as const };
+}
+
+export async function setCommissionStatusAction(
+  id: string,
+  status: "pending" | "approved" | "paid" | "void",
+) {
+  await requireAdmin();
+  const { COMMISSION_STATUSES } = await import("@/lib/affiliates");
+  if (!(COMMISSION_STATUSES as readonly string[]).includes(status)) {
+    return { error: "无效状态" };
+  }
+  await prisma.commission.update({ where: { id }, data: { status } });
+  revalidatePath("/admin/commissions");
   return { success: true as const };
 }
 

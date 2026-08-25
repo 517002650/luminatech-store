@@ -174,6 +174,10 @@ model Order {
   taxAmount       Float    @default(0)
   discountAmount  Float    @default(0)
   couponCode      String   @default("")
+  /** Locked affiliate code at checkout (link attribution). */
+  affiliateCode   String   @default("")
+  affiliateId     String?
+  affiliate       Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
   total           Float
   status          String   @default("paid")
   shippingCarrier String   @default("")
@@ -188,6 +192,48 @@ model Order {
   shippingAddress String   @default("")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  commission      Commission?
+
+  @@index([affiliateId])
+  @@index([affiliateCode])
+}
+
+/** Link-based affiliate / promoter. */
+model Affiliate {
+  id             String       @id @default(cuid())
+  /** Public referral code used in ?ref=CODE */
+  code           String       @unique
+  name           String
+  email          String       @default("")
+  /** Percent of (subtotal - discount), e.g. 10 = 10% */
+  commissionRate Float        @default(10)
+  active         Boolean      @default(true)
+  notes          String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  orders         Order[]
+  commissions    Commission[]
+}
+
+/** One commission row per attributed order. */
+model Commission {
+  id         String    @id @default(cuid())
+  orderId    String    @unique
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  affiliateId String
+  affiliate  Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  /** Commissionable base = subtotal - discount at order time */
+  baseAmount Float
+  rate       Float
+  amount     Float
+  /** pending | approved | paid | void */
+  status     String    @default("pending")
+  note       String    @default("")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([affiliateId, status])
+  @@index([status, createdAt])
 }
 
 model UserAddress {

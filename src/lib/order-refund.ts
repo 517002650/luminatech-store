@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { restockItems } from "@/lib/cart-validation";
 import { parseOrderItems } from "@/lib/orders";
 import { roundMoney } from "@/lib/pricing";
+import { adjustCommissionOnRefund } from "@/lib/affiliates";
 
 const REFUNDABLE = new Set(["paid", "processing", "shipped", "completed"]);
 
@@ -125,13 +126,25 @@ export async function refundAndCancelOrder(
           refundedAmount: newRefunded,
         },
       });
+      await adjustCommissionOnRefund(
+        order.id,
+        { full: true, orderTotal: order.total, refundedTotal: newRefunded },
+        tx,
+      );
     });
     return { ok: true, stripeRefundId, refundedAmount: newRefunded };
   }
 
-  await prisma.order.update({
-    where: { id: order.id },
-    data: { refundedAmount: newRefunded },
+  await prisma.$transaction(async (tx) => {
+    await tx.order.update({
+      where: { id: order.id },
+      data: { refundedAmount: newRefunded },
+    });
+    await adjustCommissionOnRefund(
+      order.id,
+      { full: false, orderTotal: order.total, refundedTotal: newRefunded },
+      tx,
+    );
   });
 
   return {

@@ -18,12 +18,17 @@ import {
   isStripeTaxEnabled,
   shippingAddressForStripeCustomer,
 } from "@/lib/stripe-tax";
+import {
+  AFFILIATE_COOKIE,
+  resolveAffiliateAttribution,
+} from "@/lib/affiliates";
 
 type CartRequestBody = {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; quantity: number; variantId?: string }[];
   locale?: string;
   shippingAddress?: ShippingAddress;
   couponCode?: string;
+  affiliateCode?: string;
 };
 
 /** Default: card + Alipay + WeChat Pay via Stripe Checkout */
@@ -53,6 +58,11 @@ export async function POST(req: NextRequest) {
 
     const body = (await req.json()) as CartRequestBody;
     const { locale = "en", shippingAddress, couponCode } = body;
+
+    const attribution = await resolveAffiliateAttribution(
+      req.cookies.get(AFFILIATE_COOKIE)?.value,
+      body.affiliateCode,
+    );
 
     const validationError = validateShippingAddress(shippingAddress ?? {});
     if (validationError) {
@@ -108,7 +118,7 @@ export async function POST(req: NextRequest) {
     const baseParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
       line_items: lineItems,
-      metadata: buildCheckoutMetadata(address, items, quote),
+      metadata: buildCheckoutMetadata(address, items, quote, attribution),
       success_url: `${appUrl}/${locale}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${locale}/cart`,
     };

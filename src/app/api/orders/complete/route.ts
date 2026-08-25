@@ -13,14 +13,20 @@ import {
   decrementStockForItems,
   resolveCartItemsFromDb,
 } from "@/lib/cart-validation";
+import {
+  AFFILIATE_COOKIE,
+  createCommissionForOrder,
+  resolveAffiliateAttribution,
+} from "@/lib/affiliates";
 
 type CompleteOrderBody = {
   provider: "stripe" | "paypal";
   sessionId?: string;
   paypalOrderId?: string;
-  items?: { productId: string; quantity: number }[];
+  items?: { productId: string; quantity: number; variantId?: string }[];
   shippingAddress?: ShippingAddress;
   couponCode?: string;
+  affiliateCode?: string;
 };
 
 function paypalOrdersAccepted() {
@@ -125,6 +131,11 @@ export async function POST(req: NextRequest) {
         email = user.email;
       }
 
+      const attribution = await resolveAffiliateAttribution(
+        req.cookies.get(AFFILIATE_COOKIE)?.value,
+        body.affiliateCode,
+      );
+
       let order;
       try {
         order = await prisma.$transaction(async (tx) => {
@@ -141,6 +152,8 @@ export async function POST(req: NextRequest) {
               taxAmount: quote.taxAmount,
               discountAmount: quote.discountAmount,
               couponCode: quote.couponCode ?? "",
+              affiliateCode: attribution?.affiliateCode ?? "",
+              affiliateId: attribution?.affiliateId,
               total: quote.total,
               status: "paid",
               paymentMethod: "paypal",
@@ -163,6 +176,12 @@ export async function POST(req: NextRequest) {
 
       if (quote.couponCode) {
         await incrementCouponUsage(quote.couponCode);
+      }
+
+      try {
+        await createCommissionForOrder(order);
+      } catch (err) {
+        console.error("Commission create failed:", err);
       }
 
       try {

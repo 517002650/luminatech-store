@@ -22,12 +22,23 @@ import {
   type SavedAddress,
 } from "@/lib/user-addresses";
 import { lightCardClass, lightCardMutedClass, lightInputInlineClass } from "@/lib/form-styles";
+import { AFFILIATE_COOKIE } from "@/lib/affiliates";
 
 type Props = {
   initialEmail?: string;
   initialName?: string;
   savedAddresses?: SavedAddress[];
 };
+
+function readAffiliateCookie() {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${AFFILIATE_COOKIE}=`));
+  if (!match) return "";
+  return decodeURIComponent(match.split("=").slice(1).join("="));
+}
 
 export function CheckoutPanel({
   initialEmail = "",
@@ -196,6 +207,7 @@ export function CheckoutPanel({
           locale,
           shippingAddress: shipping,
           couponCode: appliedCoupon || undefined,
+          affiliateCode: readAffiliateCookie() || undefined,
           items: mapCartItems(),
         }),
       });

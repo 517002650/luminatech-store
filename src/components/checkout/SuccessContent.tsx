@@ -15,10 +15,21 @@ import {
   trackGa4Purchase,
   type Ga4PurchasePayload,
 } from "@/lib/analytics";
+import { AFFILIATE_COOKIE } from "@/lib/affiliates";
 
 type Props = {
   isLoggedIn: boolean;
 };
+
+function readAffiliateCookie() {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${AFFILIATE_COOKIE}=`));
+  if (!match) return "";
+  return decodeURIComponent(match.split("=").slice(1).join("="));
+}
 
 export function SuccessContent({ isLoggedIn }: Props) {
   const t = useTranslations("success");
@@ -64,10 +75,12 @@ export function SuccessContent({ isLoggedIn }: Props) {
               paypalOrderId: paypalOrderId ?? undefined,
               items: items.map((i) => ({
                 productId: i.productId,
+                variantId: i.variantId,
                 quantity: i.quantity,
               })),
               shippingAddress: shippingAddress ?? undefined,
               couponCode: couponCode || undefined,
+              affiliateCode: readAffiliateCookie() || undefined,
             }),
           });
           if (res.ok) {
