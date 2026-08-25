@@ -170,7 +170,7 @@ postgresql://用户名:密码@ep-xxxx-pooler.区域.aws.neon.tech/neondb?sslmode
 当前项目构建命令（见 `package.json` / `vercel.json`）：
 
 ```text
-prisma generate && prisma db push && npm run db:seed && next build
+prisma generate && prisma db push --accept-data-loss && npm run db:seed && next build
 ```
 
 含义：
