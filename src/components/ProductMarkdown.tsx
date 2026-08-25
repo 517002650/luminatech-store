@@ -7,7 +7,7 @@ type Props = {
 
 export function ProductMarkdown({ content }: Props) {
   return (
-    <div className="markdown-content text-stone-600">
+    <div className="markdown-content">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

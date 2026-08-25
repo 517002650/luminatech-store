@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { submitReviewAction } from "@/app/actions/user";
 import { Star } from "lucide-react";
-import { lightInputClass } from "@/lib/form-styles";
+import { lightInputClass, lightPanelClass, lightPanelDashedClass } from "@/lib/form-styles";
 
 type Props = {
   productId: string;
@@ -30,7 +30,7 @@ export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
 
   if (!isLoggedIn) {
     return (
-      <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-sm text-stone-600">
+      <div className={`${lightPanelDashedClass} text-center text-sm text-stone-600`}>
         {t("loginToReview")}{" "}
         <Link href={`/login?redirect=/products/${slug}`} className="text-amber-600 hover:underline">
           {t("login")}
@@ -40,8 +40,8 @@ export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
   }
 
   return (
-    <form action={formAction} className="rounded-xl border border-stone-200 bg-stone-50 p-6 space-y-4">
-      <h3 className="font-semibold text-stone-900">
+    <form action={formAction} className={`${lightPanelClass} space-y-4`}>
+      <h3 className="font-semibold">
         {userReview ? t("editReview") : t("writeReview")}
       </h3>
       {state?.error && state.error !== "login_required" && (

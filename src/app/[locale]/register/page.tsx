@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { getCurrentUser } from "@/lib/user-auth";
+import { lightAuthCardClass } from "@/lib/form-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
@@ -27,8 +28,8 @@ export default async function RegisterPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md items-center px-4 py-12">
-      <div className="w-full rounded-2xl border border-stone-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-stone-900">{t("register")}</h1>
+      <div className={lightAuthCardClass}>
+        <h1 className="text-2xl font-bold">{t("register")}</h1>
         <p className="mt-2 text-sm text-stone-500">{t("registerSubtitle")}</p>
         <div className="mt-8">
           <RegisterForm redirect={redirectTo ?? "/account/orders"} />

@@ -42,7 +42,7 @@ export function WishlistButton({
         onClick={handleClick}
         disabled={pending}
         aria-label={wishlisted ? t("remove") : t("add")}
-        className="rounded-full border border-stone-200 bg-white p-2.5 text-stone-600 shadow-sm transition hover:border-amber-300 hover:text-red-500 disabled:opacity-60"
+        className="rounded-full border border-zinc-700 bg-zinc-900 p-2.5 text-zinc-300 shadow-sm transition hover:border-amber-300 hover:text-red-500 disabled:opacity-60"
       >
         <Heart className={`h-5 w-5 ${wishlisted ? "fill-red-500 text-red-500" : ""}`} />
       </button>
@@ -54,7 +54,7 @@ export function WishlistButton({
       type="button"
       onClick={handleClick}
       disabled={pending}
-      className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-300 px-6 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-50 disabled:opacity-60"
+      className="flex w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 px-6 py-3 text-sm font-semibold text-zinc-200 transition hover:bg-zinc-800 disabled:opacity-60"
     >
       <Heart className={`h-4 w-4 ${wishlisted ? "fill-red-500 text-red-500" : ""}`} />
       {wishlisted ? t("remove") : t("add")}

@@ -1,6 +1,7 @@
 import { Mail, Clock, MapPin } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ContentPage } from "@/components/ContentPage";
+import { lightSurfaceClass } from "@/lib/form-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -26,9 +27,9 @@ export default async function ContactPage({ params }: Props) {
   return (
     <ContentPage title={t("title")} subtitle={t("subtitle")} sections={sections}>
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
+        <div className={`rounded-2xl border border-stone-200 p-5 ${lightSurfaceClass}`}>
           <Mail className="h-5 w-5 text-amber-600" />
-          <p className="mt-3 text-sm font-medium text-stone-900">{t("emailLabel")}</p>
+          <p className="mt-3 text-sm font-medium">{t("emailLabel")}</p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="mt-1 block text-sm text-amber-600 hover:underline"
@@ -36,14 +37,14 @@ export default async function ContactPage({ params }: Props) {
             {CONTACT_EMAIL}
           </a>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
+        <div className={`rounded-2xl border border-stone-200 p-5 ${lightSurfaceClass}`}>
           <Clock className="h-5 w-5 text-amber-600" />
-          <p className="mt-3 text-sm font-medium text-stone-900">{t("hoursLabel")}</p>
+          <p className="mt-3 text-sm font-medium">{t("hoursLabel")}</p>
           <p className="mt-1 text-sm text-stone-600">{t("hoursValue")}</p>
         </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-5">
+        <div className={`rounded-2xl border border-stone-200 p-5 ${lightSurfaceClass}`}>
           <MapPin className="h-5 w-5 text-amber-600" />
-          <p className="mt-3 text-sm font-medium text-stone-900">{t("regionLabel")}</p>
+          <p className="mt-3 text-sm font-medium">{t("regionLabel")}</p>
           <p className="mt-1 text-sm text-stone-600">{t("regionValue")}</p>
         </div>
       </div>

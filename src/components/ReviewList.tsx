@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { lightReviewCardClass } from "@/lib/form-styles";
 import { ProductRating } from "@/components/ProductRating";
 
 type ReviewItem = {
@@ -30,7 +31,7 @@ export function ReviewList({ reviews, avg, count }: Props) {
         {reviews.map((review) => (
           <article
             key={review.id}
-            className="rounded-xl border border-stone-200 bg-white p-5"
+            className={lightReviewCardClass}
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
@@ -42,13 +43,13 @@ export function ReviewList({ reviews, avg, count }: Props) {
                     />
                   ))}
                 </div>
-                <span className="font-medium text-stone-900">{review.authorName}</span>
+                <span className="font-medium">{review.authorName}</span>
               </div>
               <time className="text-xs text-stone-400">
                 {new Date(review.createdAt).toLocaleDateString()}
               </time>
             </div>
-            <h4 className="mt-2 font-semibold text-stone-800">{review.title}</h4>
+            <h4 className="mt-2 font-semibold">{review.title}</h4>
             <p className="mt-1 text-sm leading-relaxed text-stone-600">{review.content}</p>
           </article>
         ))}

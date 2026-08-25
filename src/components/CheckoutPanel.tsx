@@ -17,6 +17,7 @@ import {
 } from "@/components/ShippingAddressForm";
 import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
+import { lightCardClass, lightCardMutedClass, lightInputInlineClass } from "@/lib/form-styles";
 
 type Props = {
   initialEmail?: string;
@@ -186,15 +187,15 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         errors={fieldErrors}
       />
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-stone-900">
-        <h2 className="text-lg font-semibold text-stone-900">{t("couponTitle")}</h2>
+      <div className={lightCardClass}>
+        <h2 className="text-lg font-semibold">{t("couponTitle")}</h2>
         <div className="mt-3 flex gap-2">
           <input
             type="text"
             value={couponInput}
             onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
             placeholder={t("couponPlaceholder")}
-            className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm uppercase text-stone-900 outline-none placeholder:text-stone-400 focus:border-amber-500"
+            className={`flex-1 ${lightInputInlineClass} uppercase`}
           />
           <button
             type="button"
@@ -210,7 +211,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         {couponError && <p className="mt-2 text-sm text-red-600">{couponError}</p>}
       </div>
 
-      <div className="rounded-2xl border border-stone-200 bg-stone-50 p-6 text-stone-900">
+      <div className={lightCardMutedClass}>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-stone-600">{t("subtotal")}</span>
@@ -240,7 +241,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
               <span className="font-medium">{formatPrice(quote.taxAmount)}</span>
             </div>
           )}
-          <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold text-stone-900">
+          <div className="flex justify-between border-t border-stone-200 pt-3 text-lg font-bold">
             <span>{t("total")}</span>
             <span>{formatPrice(displayTotal)}</span>
           </div>

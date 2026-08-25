@@ -5,7 +5,7 @@ import type { ShippingAddress } from "@/lib/orders";
 import { COUPON_STORAGE_KEY, SHIPPING_STORAGE_KEY } from "@/lib/orders";
 import { COUNTRY_OPTIONS } from "@/lib/pricing";
 import type { Locale } from "@/i18n/routing";
-import { lightInputClass } from "@/lib/form-styles";
+import { lightCardClass, lightInputClass } from "@/lib/form-styles";
 
 type Props = {
   value: ShippingAddress;
@@ -24,8 +24,8 @@ export function ShippingAddressForm({ value, onChange, errors }: Props) {
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 text-stone-900">
-      <h2 className="text-lg font-semibold text-stone-900">{t("shippingTitle")}</h2>
+    <div className={`space-y-4 ${lightCardClass}`}>
+      <h2 className="text-lg font-semibold">{t("shippingTitle")}</h2>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
