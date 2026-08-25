@@ -25,7 +25,7 @@ import {
   darkMetaClass,
   darkThumbStackClass,
 } from "@/lib/dark-surface-styles";
-import { hasTrackingInfo } from "@/lib/shipping-tracking";
+import { hasTrackingInfo, getTrackingUrl } from "@/lib/shipping-tracking";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -101,83 +101,101 @@ export default async function AccountOrdersPage({ params }: Props) {
               : 0;
 
             return (
-              <Link
+              <article
                 key={order.id}
-                href={`/account/orders/${order.id}`}
-                className={`block p-5 sm:p-6 ${darkCardClass} ${darkCardHoverClass}`}
+                className={`p-5 sm:p-6 ${darkCardClass} ${darkCardHoverClass}`}
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-mono text-base font-semibold tracking-wide text-zinc-50">
-                        #{formatOrderId(order.id)}
+                <Link href={`/account/orders/${order.id}`} className="block">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-mono text-base font-semibold tracking-wide text-zinc-50">
+                          #{formatOrderId(order.id)}
+                        </p>
+                        {downloadFileCount > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-cyan-400/40">
+                            <Download className="h-3.5 w-3.5" />
+                            {t("hasDownloads", { count: downloadFileCount })}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className={`mt-1.5 text-sm font-medium ${darkMetaClass}`}>
+                        {new Date(order.createdAt).toLocaleString(
+                          locale === "zh" ? "zh-CN" : "en-US",
+                        )}
+                        {" · "}
+                        {itemCount} {t("items")}
                       </p>
-                      {downloadFileCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-cyan-400/40">
-                          <Download className="h-3.5 w-3.5" />
-                          {t("hasDownloads", { count: downloadFileCount })}
-                        </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <p className="text-xl font-bold text-zinc-50">
+                        {formatPrice(order.total)}
+                      </p>
+                      <OrderStatusBadge
+                        status={order.status}
+                        label={t(`statuses.${order.status as OrderStatus}`)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-zinc-700/80 pt-5">
+                    <div className="flex -space-x-2.5">
+                      {preview.map((item) => (
+                        <div
+                          key={`${item.productId}-${item.variantId ?? "base"}`}
+                          className={`h-14 w-14 ${darkThumbStackClass}`}
+                        >
+                          <SafeImage
+                            src={item.image}
+                            alt={locale === "zh" ? item.nameZh : item.nameEn}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ))}
+                      {extra > 0 ? (
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center text-sm font-semibold text-zinc-700 ${darkThumbStackClass}`}
+                        >
+                          +{extra}
+                        </div>
                       ) : null}
                     </div>
-                    <p className={`mt-1.5 text-sm font-medium ${darkMetaClass}`}>
-                      {new Date(order.createdAt).toLocaleString(
-                        locale === "zh" ? "zh-CN" : "en-US",
-                      )}
-                      {" · "}
-                      {itemCount} {t("items")}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <p className="text-xl font-bold text-zinc-50">
-                      {formatPrice(order.total)}
-                    </p>
-                    <OrderStatusBadge
-                      status={order.status}
-                      label={t(`statuses.${order.status as OrderStatus}`)}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-zinc-700/80 pt-5">
-                  <div className="flex -space-x-2.5">
-                    {preview.map((item) => (
-                      <div
-                        key={`${item.productId}-${item.variantId ?? "base"}`}
-                        className={`h-14 w-14 ${darkThumbStackClass}`}
-                      >
-                        <SafeImage
-                          src={item.image}
-                          alt={locale === "zh" ? item.nameZh : item.nameEn}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ))}
-                    {extra > 0 ? (
-                      <div
-                        className={`flex h-14 w-14 items-center justify-center text-sm font-semibold text-zinc-700 ${darkThumbStackClass}`}
-                      >
-                        +{extra}
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-medium text-zinc-50">
-                      {names}
-                      {moreNames}
-                    </p>
-                    <p className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300 underline-offset-2 hover:underline">
-                      {downloadFileCount > 0 ? t("viewOrderDownloads") : t("viewDetails")}
-                      <ChevronRight className="h-4 w-4" />
-                    </p>
-                    {hasTrackingInfo(order) ? (
-                      <p className="mt-1 text-xs font-medium text-violet-300">
-                        {t("hasTracking")} · {order.trackingNumber}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-base font-medium text-zinc-50">
+                        {names}
+                        {moreNames}
                       </p>
-                    ) : null}
+                      <p className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300 underline-offset-2 hover:underline">
+                        {downloadFileCount > 0
+                          ? t("viewOrderDownloads")
+                          : t("viewDetails")}
+                        <ChevronRight className="h-4 w-4" />
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+                {hasTrackingInfo(order)
+                  ? (() => {
+                      const url = getTrackingUrl(
+                        order.shippingCarrier,
+                        order.trackingNumber,
+                        locale === "zh" ? "zh" : "en",
+                      );
+                      if (!url) return null;
+                      return (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-violet-300 underline-offset-2 hover:underline"
+                        >
+                          {t("hasTracking")} · {order.trackingNumber}
+                        </a>
+                      );
+                    })()
+                  : null}
+              </article>
             );
           })}
         </div>
