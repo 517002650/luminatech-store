@@ -2,13 +2,14 @@
 
 import { SafeImage } from "@/components/SafeImage";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { updateOrderStatusAction } from "@/app/admin/actions";
 import { formatPrice } from "@/lib/format";
 import {
-  ORDER_STATUSES,
   ORDER_STATUS_LABELS,
+  ORDER_STATUSES,
   formatOrderId,
+  getAllowedNextStatuses,
   parseOrderItems,
   parseShippingAddress,
   type OrderStatus,
@@ -39,17 +40,55 @@ type Props = {
     createdAt: Date;
     updatedAt: Date;
   };
+  canRefundOffline?: boolean;
+  canRefundStripe?: boolean;
+  canForceStatus?: boolean;
 };
 
-export function OrderDetailPanel({ order }: Props) {
+export function OrderDetailPanel({
+  order,
+  canRefundOffline = false,
+  canRefundStripe = false,
+  canForceStatus = false,
+}: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
+  const [force, setForce] = useState(false);
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress);
 
+  const nextStatuses = useMemo(
+    () => getAllowedNextStatuses(order.status),
+    [order.status],
+  );
+
+  const selectOptions = useMemo(() => {
+    if (force && canForceStatus) {
+      return ORDER_STATUSES.filter((s) => s !== "cancelled");
+    }
+    const set = new Set<OrderStatus>([
+      ...(ORDER_STATUSES.includes(order.status as OrderStatus)
+        ? [order.status as OrderStatus]
+        : []),
+      ...nextStatuses,
+    ]);
+    return Array.from(set);
+  }, [force, canForceStatus, order.status, nextStatuses]);
+
   function handleStatusChange(status: OrderStatus) {
+    if (status === order.status) return;
+    setError("");
     startTransition(async () => {
-      await updateOrderStatusAction(order.id, status);
+      const result = await updateOrderStatusAction(order.id, status, {
+        force: force && canForceStatus,
+      });
+      if (result && "error" in result && result.error) {
+        setError(String(result.error));
+        router.refresh();
+        return;
+      }
+      setForce(false);
       router.refresh();
     });
   }
@@ -93,20 +132,40 @@ export function OrderDetailPanel({ order }: Props) {
 
       <div className="rounded-2xl border border-stone-200 bg-white p-6 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-stone-900">订单状态</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-stone-900">订单状态</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              正常路径：已付款 → 处理中 → 已发货 → 已完成。取消 / 退款请用下方退款面板。
+            </p>
+          </div>
           <select
             value={order.status}
-            disabled={pending}
+            disabled={pending || (selectOptions.length <= 1 && !canForceStatus)}
             onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
             className="rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
           >
-            {ORDER_STATUSES.map((status) => (
+            {selectOptions.map((status) => (
               <option key={status} value={status}>
                 {ORDER_STATUS_LABELS[status]}
+                {status === order.status ? "（当前）" : ""}
               </option>
             ))}
           </select>
         </div>
+        {canForceStatus ? (
+          <label className="mt-4 flex cursor-pointer items-center gap-2 text-sm text-stone-600">
+            <input
+              type="checkbox"
+              checked={force}
+              onChange={(e) => setForce(e.target.checked)}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            Owner 强制跳转（跳过状态机；仍不可直接改为「已取消」）
+          </label>
+        ) : null}
+        {error ? (
+          <p className="mt-3 text-sm text-red-700">{error}</p>
+        ) : null}
       </div>
 
       <div className="print:hidden">
@@ -125,6 +184,8 @@ export function OrderDetailPanel({ order }: Props) {
           paymentMethod={order.paymentMethod}
           total={order.total}
           refundedAmount={order.refundedAmount ?? 0}
+          canRefundOffline={canRefundOffline}
+          canRefundStripe={canRefundStripe}
         />
       </div>
 

@@ -211,6 +211,7 @@ model Order {
   status          String   @default("paid")
   shippingCarrier String   @default("")
   trackingNumber  String   @default("")
+  shippedAt       DateTime?
   paymentMethod   String
   paymentId       String?  @unique
   refundedAmount  Float    @default(0)
@@ -329,6 +330,7 @@ model ReturnRequest {
   email     String
   reason    String
   details   String   @default("")
+  itemsJson String   @default("[]")
   status    String   @default("requested")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

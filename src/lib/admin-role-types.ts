@@ -41,9 +41,12 @@ export async function ensureAdminRoleTypes() {
           permissions: (() => {
             const current = parsePermissionsJson(existingAdmin.permissions);
             if (current.length === 0) return adminPerms;
-            // Soft-add new default modules (e.g. finance) without wiping customizations
-            if (!current.includes("finance")) {
-              return serializePermissions([...current, "finance"]);
+            // Soft-add new default modules without wiping customizations
+            const extras: AdminPermission[] = [];
+            if (!current.includes("finance")) extras.push("finance");
+            if (!current.includes("refunds")) extras.push("refunds");
+            if (extras.length > 0) {
+              return serializePermissions([...current, ...extras]);
             }
             return existingAdmin.permissions;
           })(),

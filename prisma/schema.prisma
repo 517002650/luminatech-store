@@ -215,6 +215,8 @@ model Order {
   status          String   @default("paid")
   shippingCarrier String   @default("")
   trackingNumber  String   @default("")
+  /** Set once when status first becomes shipped (RMA window). */
+  shippedAt       DateTime?
   paymentMethod   String
   paymentId       String?  @unique
   /** True when inventory was decremented for this order (refund should restock). */
@@ -342,6 +344,8 @@ model ReturnRequest {
   email     String
   reason    String
   details   String   @default("")
+  /** JSON ReturnLineSelection[] — empty = whole order (legacy). */
+  itemsJson String   @default("[]")
   status    String   @default("requested")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

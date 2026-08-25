@@ -102,6 +102,12 @@ function PermissionChecklist({
               className="h-4 w-4 rounded border-stone-300"
             />
             <span>{ADMIN_PERMISSION_LABELS[key]}</span>
+            {key === "refund_stripe" ? (
+              <span className="text-[10px] text-amber-700">资金流出</span>
+            ) : null}
+            {key === "refunds" ? (
+              <span className="text-[10px] text-stone-400">线下/记账</span>
+            ) : null}
             {key === "security" ? (
               <span className="text-[10px] text-stone-400">必选</span>
             ) : null}

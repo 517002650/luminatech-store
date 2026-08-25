@@ -29,6 +29,14 @@ export async function refundAndCancelOrder(
     reason?: string;
     /** USD amount for partial refund. Omit or >= remaining → full refund + cancel. */
     amount?: number;
+    /**
+     * When partial: restock these lines (line-level RMA).
+     * Full cancel always restocks the whole order when stockApplied.
+     */
+    restockLines?: Pick<
+      import("@/lib/orders").OrderItem,
+      "productId" | "variantId" | "quantity"
+    >[];
   },
 ): Promise<RefundOrderResult> {
   const order = await prisma.order.findUnique({ where: { id: orderId } });
@@ -146,6 +154,9 @@ export async function refundAndCancelOrder(
   }
 
   await prisma.$transaction(async (tx) => {
+    if (order.stockApplied && options?.restockLines?.length) {
+      await restockItems(options.restockLines, tx);
+    }
     await tx.order.update({
       where: { id: order.id },
       data: { refundedAmount: newRefunded },

@@ -168,7 +168,7 @@
     "payStripe": "Pay with Card / Alipay / WeChat",
     "stripeMethodsHint": "Opens Stripe Checkout: credit card, Alipay, or WeChat Pay (enable Alipay & WeChat in Stripe Dashboard).",
     "redirecting": "Redirecting to Stripe...",
-    "paypalHint": "PayPal is paused until server-side capture is ready. Use Stripe for now, or set NEXT_PUBLIC_PAYPAL_ENABLED=true and PAYPAL_ENABLED=true after hardening.",
+    "paypalHint": "PayPal needs server capture verification. Set NEXT_PUBLIC_PAYPAL_ENABLED=true, PAYPAL_ENABLED=true, and PAYPAL_CLIENT_SECRET (plus Client ID).",
     "paypalError": "PayPal payment failed. Please try again.",
     "errors": {
       "form": "Please complete all required shipping fields.",
@@ -436,7 +436,10 @@
     },
     "returns": {
       "title": "Request a return",
-      "subtitle": "Unused items in original packaging may be returned within 30 days of delivery.",
+      "subtitle": "Unused items in original packaging may be returned within 30 days. You can return selected lines only.",
+      "items": "Items to return",
+      "qty": "Qty",
+      "maxQty": "Max {qty}",
       "reason": "Reason",
       "details": "Details (optional)",
       "detailsPlaceholder": "Serial number, photos description, etc.",
@@ -464,7 +467,9 @@
         "not_found": "Order not found.",
         "not_eligible": "This order is not eligible for return yet.",
         "window_expired": "The 30-day return window has expired.",
-        "already_open": "A return request is already open for this order."
+        "already_open": "A return request is already open for this order.",
+        "no_items": "Please select at least one item.",
+        "invalid_items": "Invalid return item or quantity."
       }
     }
   },

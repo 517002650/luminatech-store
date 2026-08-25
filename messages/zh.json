@@ -168,7 +168,7 @@
     "payStripe": "信用卡 / 支付宝 / 微信支付",
     "stripeMethodsHint": "将跳转 Stripe 收银台，可选信用卡、支付宝或微信支付（需在 Stripe 后台开通）。",
     "redirecting": "正在跳转 Stripe...",
-    "paypalHint": "PayPal 已暂停（需服务端核验后才能安全收款）。请使用 Stripe；完成加固后可设置 NEXT_PUBLIC_PAYPAL_ENABLED=true 与 PAYPAL_ENABLED=true。",
+    "paypalHint": "PayPal 需服务端核验。启用时请设置 NEXT_PUBLIC_PAYPAL_ENABLED=true、PAYPAL_ENABLED=true，以及 PAYPAL_CLIENT_SECRET（和 Client ID）。",
     "paypalError": "PayPal 支付失败，请重试。",
     "errors": {
       "form": "请完整填写收货地址。",
@@ -436,7 +436,10 @@
     },
     "returns": {
       "title": "申请退货",
-      "subtitle": "未使用且原包装完整的商品，可在收货后 30 天内申请退货。",
+      "subtitle": "未使用且原包装完整的商品，可在收货后 30 天内申请退货。可只退部分商品。",
+      "items": "选择退货商品",
+      "qty": "数量",
+      "maxQty": "最多 {qty} 件",
       "reason": "退货原因",
       "details": "补充说明（可选）",
       "detailsPlaceholder": "序列号、问题描述等",
@@ -464,7 +467,9 @@
         "not_found": "订单不存在。",
         "not_eligible": "当前订单状态暂不可退货。",
         "window_expired": "已超过 30 天退货期限。",
-        "already_open": "该订单已有进行中的退货申请。"
+        "already_open": "该订单已有进行中的退货申请。",
+        "no_items": "请至少选择一件要退的商品。",
+        "invalid_items": "退货商品或数量无效。"
       }
     }
   },

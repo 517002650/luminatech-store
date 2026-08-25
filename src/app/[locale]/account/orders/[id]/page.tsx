@@ -76,7 +76,9 @@ export default async function AccountOrderDetailPage({ params }: Props) {
   });
   const canRequestReturn =
     ["shipped", "completed"].includes(order.status) &&
-    (Date.now() - new Date(order.updatedAt).getTime()) / (1000 * 60 * 60 * 24) <=
+    (Date.now() -
+      new Date(order.shippedAt ?? order.updatedAt).getTime()) /
+      (1000 * 60 * 60 * 24) <=
       30;
   const productNameById = new Map(
     localizedItems.map((item) => [item.productId, item.name]),
@@ -174,6 +176,18 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           <ReturnRequestForm
             orderId={order.id}
             existingStatus={returnRequest?.status}
+            items={items.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              nameEn: item.nameEn,
+              nameZh: item.nameZh,
+              price: item.price,
+              quantity: item.quantity,
+              variantLabel:
+                locale === "zh"
+                  ? item.variantNameZh || item.variantNameEn || item.variantSku
+                  : item.variantNameEn || item.variantNameZh || item.variantSku,
+            }))}
           />
         </div>
       )}

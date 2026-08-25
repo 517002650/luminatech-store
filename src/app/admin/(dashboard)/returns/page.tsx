@@ -23,16 +23,35 @@ export default async function AdminReturnsPage() {
       }
     >
       <ReturnAdminTable
-        rows={rows.map((r) => ({
-          id: r.id,
-          orderId: r.orderId,
-          orderLabel: formatOrderId(r.orderId),
-          email: r.email,
-          reason: r.reason,
-          details: r.details,
-          status: r.status,
-          createdAt: r.createdAt,
-        }))}
+        rows={rows.map((r) => {
+          let lines: {
+            productId: string;
+            variantId?: string;
+            quantity: number;
+            price: number;
+            nameZh?: string;
+            nameEn?: string;
+          }[] = [];
+          try {
+            const parsed = JSON.parse(r.itemsJson || "[]") as unknown;
+            if (Array.isArray(parsed)) {
+              lines = parsed as typeof lines;
+            }
+          } catch {
+            lines = [];
+          }
+          return {
+            id: r.id,
+            orderId: r.orderId,
+            orderLabel: formatOrderId(r.orderId),
+            email: r.email,
+            reason: r.reason,
+            details: r.details,
+            status: r.status,
+            createdAt: r.createdAt,
+            lines,
+          };
+        })}
       />
     </AdminShell>
   );

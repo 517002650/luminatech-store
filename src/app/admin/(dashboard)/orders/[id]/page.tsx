@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { OrderDetailPanel } from "@/components/admin/OrderDetailPanel";
 import { prisma } from "@/lib/db";
 import { formatOrderId } from "@/lib/orders";
+import { getCurrentAdmin, hasPermission, isOwnerSession } from "@/lib/admin-auth";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -14,6 +15,11 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   const order = await prisma.order.findUnique({ where: { id } });
 
   if (!order) notFound();
+
+  const admin = await getCurrentAdmin();
+  const canRefundOffline = admin ? hasPermission(admin, "refunds") : false;
+  const canRefundStripe = admin ? hasPermission(admin, "refund_stripe") : false;
+  const canForceStatus = admin ? isOwnerSession(admin) : false;
 
   return (
     <AdminShell
@@ -26,7 +32,12 @@ export default async function AdminOrderDetailPage({ params }: Props) {
       >
         ← 返回订单列表
       </Link>
-      <OrderDetailPanel order={order} />
+      <OrderDetailPanel
+        order={order}
+        canRefundOffline={canRefundOffline}
+        canRefundStripe={canRefundStripe}
+        canForceStatus={canForceStatus}
+      />
     </AdminShell>
   );
 }

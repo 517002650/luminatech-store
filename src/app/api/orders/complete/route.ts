@@ -125,6 +125,15 @@ export async function POST(req: NextRequest) {
         couponResult.couponCode,
       );
 
+      const { verifyPaypalCapturedOrder } = await import("@/lib/paypal");
+      const verified = await verifyPaypalCapturedOrder({
+        paypalOrderId,
+        expectedTotalUsd: quote.total,
+      });
+      if (!verified.ok) {
+        return NextResponse.json({ error: verified.error }, { status: 400 });
+      }
+
       const user = await getCurrentUser();
       let email = resolvedShipping.email;
       if (user && !email) {

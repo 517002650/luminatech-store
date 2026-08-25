@@ -12,6 +12,8 @@ export const ADMIN_PERMISSION_KEYS = [
   "affiliates",
   "commissions",
   "finance",
+  "refunds",
+  "refund_stripe",
   "shipping",
   "media",
   "backup",
@@ -33,6 +35,8 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   affiliates: "推广员",
   commissions: "推广提成",
   finance: "财务账本",
+  refunds: "退款记账（线下退款 / 仅改订单，不调用 Stripe）",
+  refund_stripe: "Stripe 在线退款（从买家卡自动退钱）",
   shipping: "运费设置",
   media: "媒体清理",
   backup: "数据备份",
@@ -44,8 +48,8 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
 export const OWNER_PERMISSIONS: AdminPermission[] = [...ADMIN_PERMISSION_KEYS];
 
 /**
- * Default Admin: daily ops without shipping / media / backup / team.
- * Owner may customize this list on the Admin role type.
+ * Default Admin: daily ops without shipping / media / backup / team / Stripe refund.
+ * Can mark offline refunds; Stripe money-out requires refund_stripe (Owner or custom).
  */
 export const DEFAULT_ADMIN_PERMISSIONS: AdminPermission[] =
   ADMIN_PERMISSION_KEYS.filter(
@@ -53,7 +57,8 @@ export const DEFAULT_ADMIN_PERMISSIONS: AdminPermission[] =
       k !== "shipping" &&
       k !== "media" &&
       k !== "backup" &&
-      k !== "team",
+      k !== "team" &&
+      k !== "refund_stripe",
   );
 
 /** Permissions that must never appear on non-Owner role types (Owner key only). */

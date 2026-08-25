@@ -288,34 +288,35 @@ export async function setLatestProductDownloadAction(id: string) {
   return { success: true as const };
 }
 
-export async function updateOrderStatusAction(id: string, status: string) {
-  await requireAdmin();
+export async function updateOrderStatusAction(
+  id: string,
+  status: string,
+  options?: { force?: boolean },
+) {
+  const admin = await requirePermission("orders");
+  const { isOwnerSession } = await import("@/lib/admin-auth");
+  const { canTransitionOrderStatus } = await import("@/lib/orders");
 
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order) return { error: "订单不存在" };
 
+  const force = Boolean(options?.force) && isOwnerSession(admin);
+  if (options?.force && !isOwnerSession(admin)) {
+    return { error: "仅 Owner 可强制跳转订单状态" };
+  }
+
+  const gate = canTransitionOrderStatus(order.status, status, { force });
+  if (!gate.ok) return { error: gate.error };
+
+  const data: { status: string; shippedAt?: Date } = { status };
+  if (status === "shipped" && order.status !== "shipped" && !order.shippedAt) {
+    data.shippedAt = new Date();
+  }
+
   await prisma.order.update({
     where: { id },
-    data: { status },
+    data,
   });
-
-  if (status === "cancelled" && order.status !== "cancelled") {
-    const { restockItems } = await import("@/lib/cart-validation");
-    const { parseOrderItems } = await import("@/lib/orders");
-    await restockItems(parseOrderItems(order.items));
-    const { adjustCommissionOnRefund } = await import("@/lib/affiliates");
-    await adjustCommissionOnRefund(id, {
-      full: true,
-      orderTotal: order.total,
-      refundedTotal: order.total,
-      merchandiseBase: Math.max(
-        0,
-        order.subtotal - (order.discountAmount ?? 0),
-      ),
-      shippingFee: order.shippingFee ?? 0,
-      taxAmount: order.taxAmount ?? 0,
-    });
-  }
 
   if (status === "completed" && order.status !== "completed") {
     const { approveCommissionForCompletedOrder } = await import(
@@ -339,15 +340,43 @@ export async function updateOrderStatusAction(id: string, status: string) {
   revalidatePath("/en/account/orders");
   revalidatePath(`/zh/account/orders/${id}`);
   revalidatePath(`/en/account/orders/${id}`);
+  return { success: true as const };
 }
 
 export async function refundOrderAction(id: string, formData: FormData) {
-  await requireAdmin();
+  const admin = await requirePermission("orders");
+  const { hasPermission } = await import("@/lib/admin-auth");
+
+  if (!hasPermission(admin, "refunds") && !hasPermission(admin, "refund_stripe")) {
+    return { error: "无退款权限，请联系 Owner 在「团队账号」中开通「退款记账」或「Stripe 在线退款」" };
+  }
 
   const reason = String(formData.get("reason") ?? "").trim();
-  const skipStripe = formData.get("skipStripe") === "on";
+  let skipStripe = formData.get("skipStripe") === "on";
   const amountRaw = String(formData.get("amount") ?? "").trim();
   const amount = amountRaw ? Number(amountRaw) : undefined;
+
+  const order = await prisma.order.findUnique({ where: { id } });
+  if (!order) return { error: "订单不存在" };
+
+  const wantsStripe =
+    order.paymentMethod === "stripe" && !skipStripe;
+
+  if (wantsStripe && !hasPermission(admin, "refund_stripe")) {
+    return {
+      error:
+        "你没有「Stripe 在线退款」权限。请勾选「仅记账（跳过 Stripe）」，或请有权限的同事操作。",
+    };
+  }
+
+  if (!wantsStripe && !hasPermission(admin, "refunds")) {
+    return { error: "无退款记账权限" };
+  }
+
+  // Non-Stripe payments always skip gateway
+  if (order.paymentMethod !== "stripe") {
+    skipStripe = true;
+  }
 
   const result = await refundAndCancelOrder(id, {
     skipStripe,
@@ -373,7 +402,7 @@ export async function refundOrderAction(id: string, formData: FormData) {
 }
 
 export async function updateOrderTrackingAction(id: string, formData: FormData) {
-  await requireAdmin();
+  await requirePermission("orders");
 
   const order = await prisma.order.findUnique({ where: { id } });
   if (!order) return { error: "订单不存在" };
@@ -694,7 +723,8 @@ export async function setContactHandledAction(id: string, handled: boolean) {
 }
 
 export async function setReturnRequestStatusAction(id: string, status: string) {
-  await requireAdmin();
+  const admin = await requirePermission("returns");
+  const { hasPermission } = await import("@/lib/admin-auth");
 
   const allowed = new Set([
     "requested",
@@ -709,9 +739,59 @@ export async function setReturnRequestStatusAction(id: string, status: string) {
   if (!existing) return { error: "退货申请不存在" };
 
   if (status === "refunded" && existing.status !== "refunded") {
-    const result = await refundAndCancelOrder(existing.orderId, {
-      reason: `RMA ${id}: ${existing.reason}`,
+    const canOffline = hasPermission(admin, "refunds");
+    const canStripe = hasPermission(admin, "refund_stripe");
+    if (!canOffline && !canStripe) {
+      return { error: "无退款权限，无法将退货标为已退款" };
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: existing.orderId },
     });
+    if (!order) return { error: "关联订单不存在" };
+
+    const isStripe = order.paymentMethod === "stripe";
+    const skipStripe = !isStripe || !canStripe;
+
+    if (isStripe && !canStripe && !canOffline) {
+      return { error: "无 Stripe 退款权限" };
+    }
+
+    const {
+      parseOrderItems,
+      parseReturnItemsJson,
+      returnLinesCoverWholeOrder,
+      returnLinesMerchandiseTotal,
+    } = await import("@/lib/orders");
+    const { roundMoney } = await import("@/lib/pricing");
+
+    const orderItems = parseOrderItems(order.items);
+    const returnLines = parseReturnItemsJson(existing.itemsJson);
+    const whole =
+      returnLines.length === 0 ||
+      returnLinesCoverWholeOrder(orderItems, returnLines);
+
+    const result = whole
+      ? await refundAndCancelOrder(existing.orderId, {
+          reason: `RMA ${id}: ${existing.reason}`,
+          skipStripe,
+        })
+      : await refundAndCancelOrder(existing.orderId, {
+          reason: `RMA ${id} (行级): ${existing.reason}`,
+          skipStripe,
+          amount: roundMoney(
+            Math.min(
+              returnLinesMerchandiseTotal(returnLines),
+              Math.max(0, order.total - (order.refundedAmount ?? 0)),
+            ),
+          ),
+          restockLines: returnLines.map((l) => ({
+            productId: l.productId,
+            variantId: l.variantId,
+            quantity: l.quantity,
+          })),
+        });
+
     if (!result.ok) {
       return { error: result.error };
     }

@@ -33,6 +33,129 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: "已取消",
 };
 
+/** Normal forward path (no cancel — cancel only via refund panel). */
+const FORWARD_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  paid: ["processing"],
+  processing: ["shipped"],
+  shipped: ["completed"],
+  completed: [],
+  cancelled: [],
+};
+
+export function isOrderStatus(value: string): value is OrderStatus {
+  return (ORDER_STATUSES as readonly string[]).includes(value);
+}
+
+/** Allowed next statuses for normal operators (no cancel, no backward). */
+export function getAllowedNextStatuses(current: string): OrderStatus[] {
+  if (!isOrderStatus(current)) return [];
+  return FORWARD_TRANSITIONS[current];
+}
+
+export function canTransitionOrderStatus(
+  from: string,
+  to: string,
+  options?: { force?: boolean },
+): { ok: true } | { ok: false; error: string } {
+  if (!isOrderStatus(from) || !isOrderStatus(to)) {
+    return { ok: false, error: "无效的订单状态" };
+  }
+  if (from === to) return { ok: true };
+
+  if (to === "cancelled") {
+    return {
+      ok: false,
+      error: "请使用下方「退款 / 取消」面板处理取消与退款，不要直接改状态",
+    };
+  }
+
+  if (options?.force) {
+    if (from === "cancelled") {
+      return {
+        ok: false,
+        error: "已取消订单不能强制改回其他状态（避免库存/资金错乱）",
+      };
+    }
+    return { ok: true };
+  }
+
+  const allowed = FORWARD_TRANSITIONS[from];
+  if (!allowed.includes(to)) {
+    return {
+      ok: false,
+      error: `不能从「${ORDER_STATUS_LABELS[from]}」直接改为「${ORDER_STATUS_LABELS[to]}」。请按 已付款→处理中→已发货→已完成 顺序操作。`,
+    };
+  }
+  return { ok: true };
+}
+
+/** Line selection for RMA (subset of order items). */
+export type ReturnLineSelection = {
+  productId: string;
+  variantId?: string;
+  quantity: number;
+  price: number;
+  nameZh?: string;
+  nameEn?: string;
+};
+
+export function parseReturnItemsJson(raw: string | null | undefined): ReturnLineSelection[] {
+  if (!raw?.trim()) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    const out: ReturnLineSelection[] = [];
+    for (const row of parsed) {
+      const r = row as Record<string, unknown>;
+      const productId = String(r.productId ?? "").trim();
+      const quantity = Math.floor(Number(r.quantity));
+      const price = Number(r.price);
+      if (!productId || !Number.isFinite(quantity) || quantity < 1) continue;
+      out.push({
+        productId,
+        variantId: String(r.variantId ?? "").trim() || undefined,
+        quantity,
+        price: Number.isFinite(price) ? price : 0,
+        nameZh: String(r.nameZh ?? "") || undefined,
+        nameEn: String(r.nameEn ?? "") || undefined,
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+export function returnLinesMerchandiseTotal(lines: ReturnLineSelection[]) {
+  return lines.reduce((n, l) => n + l.price * l.quantity, 0);
+}
+
+function lineKey(productId: string, variantId?: string) {
+  return variantId ? `${productId}:${variantId}` : productId;
+}
+
+/** True when selected return lines cover every unit on the order. */
+export function returnLinesCoverWholeOrder(
+  orderItems: OrderItem[],
+  returnLines: ReturnLineSelection[],
+): boolean {
+  if (returnLines.length === 0) return true;
+  const need = new Map<string, number>();
+  for (const item of orderItems) {
+    const key = lineKey(item.productId, item.variantId);
+    need.set(key, (need.get(key) ?? 0) + item.quantity);
+  }
+  const got = new Map<string, number>();
+  for (const line of returnLines) {
+    const key = lineKey(line.productId, line.variantId);
+    got.set(key, (got.get(key) ?? 0) + line.quantity);
+  }
+  for (const [key, qty] of need) {
+    if ((got.get(key) ?? 0) < qty) return false;
+  }
+  return true;
+}
+
 export function parseOrderItems(items: string): OrderItem[] {
   try {
     return JSON.parse(items) as OrderItem[];
