@@ -61,7 +61,10 @@ export default async function AccountDownloadsPage({ params }: Props) {
         <AccountNav />
       </div>
 
-      <p className="mt-6 text-sm text-zinc-500">{t("downloadsHint")}</p>
+      <div className="mt-8">
+        <h2 className="text-xl font-bold text-zinc-50">{t("downloads")}</h2>
+        <p className="mt-1 text-sm text-zinc-500">{t("downloadsHint")}</p>
+      </div>
 
       {products.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 p-12 text-center">
