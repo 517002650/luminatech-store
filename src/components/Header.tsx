@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { Heart, LogOut, ShoppingBag, Sparkles, User } from "lucide-react";
 import { logoutUserAction } from "@/app/actions/user";
 import { CartBadge } from "./CartBadge";
+import { HeaderSearch } from "./HeaderSearch";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 type Props = {
@@ -28,7 +29,7 @@ export function Header({ user }: Props) {
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-zinc-950/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-[3.75rem] max-w-6xl items-center gap-4 px-4 sm:px-6">
+      <div className="relative mx-auto flex h-[3.75rem] max-w-6xl items-center gap-3 px-4 sm:gap-4 sm:px-6">
         {/* Brand */}
         <Link
           href="/"
@@ -66,6 +67,8 @@ export function Header({ user }: Props) {
             );
           })}
         </nav>
+
+        <HeaderSearch />
 
         <div className="flex-1" />
 

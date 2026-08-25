@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import { buildProductsHref } from "@/lib/product-search";
 import type { ProductCategory } from "@/lib/categories";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
   counts?: Record<string, number>;
   categories: ProductCategory[];
   locale: "en" | "zh";
+  searchQuery?: string;
 };
 
 export function ProductCategoryNav({
@@ -16,6 +18,7 @@ export function ProductCategoryNav({
   counts,
   categories,
   locale,
+  searchQuery = "",
 }: Props) {
   const t = useTranslations("products");
 
@@ -34,7 +37,7 @@ export function ProductCategoryNav({
         aria-label="Product categories"
       >
         {items.map(({ key, label }) => {
-          const href = key ? `/products?category=${key}` : "/products";
+          const href = buildProductsHref(key, searchQuery);
           const isActive = active === key || (!active && key === null);
           const count = key ? (counts?.[key] ?? 0) : undefined;
 

@@ -9,7 +9,26 @@
     "account": "My Account",
     "language": "Language",
     "langZh": "中文",
-    "langEn": "English"
+    "langEn": "English",
+    "search": "Search",
+    "searchPlaceholder": "Search gear, brand, SKU…"
+  },
+  "search": {
+    "title": "Find stage equipment",
+    "subtitle": "Search by name, brand, or SKU across consoles, lasers, fixtures & effects",
+    "placeholder": "e.g. laser, MA2, moving head, fog machine…",
+    "submit": "Search",
+    "resultsFor": "Results for “{query}”",
+    "resultCount": "{count} items found",
+    "empty": "No products matched your search. Try another keyword or browse all categories.",
+    "popular": "Popular",
+    "clear": "Clear",
+    "suggestions": {
+      "laser": "Laser",
+      "console": "Console",
+      "movingHead": "Moving head",
+      "fog": "Fog machine"
+    }
   },
   "home": {
     "badge": "Professional Stage Lighting",

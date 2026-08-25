@@ -9,7 +9,26 @@
     "account": "我的账户",
     "language": "语言",
     "langZh": "中文",
-    "langEn": "English"
+    "langEn": "English",
+    "search": "搜索",
+    "searchPlaceholder": "搜索设备、品牌、型号…"
+  },
+  "search": {
+    "title": "搜索舞台设备",
+    "subtitle": "按名称、品牌、货号快速查找专业灯光与控台",
+    "placeholder": "例如：激光灯、MA2、摇头灯、烟雾机…",
+    "submit": "搜索",
+    "resultsFor": "「{query}」的搜索结果",
+    "resultCount": "找到 {count} 件",
+    "empty": "未找到相关商品，请换个关键词或浏览全部分类。",
+    "popular": "热门搜索",
+    "clear": "清除",
+    "suggestions": {
+      "laser": "激光灯",
+      "console": "灯光控台",
+      "movingHead": "摇头灯",
+      "fog": "烟雾机"
+    }
   },
   "home": {
     "badge": "专业舞台灯光",
