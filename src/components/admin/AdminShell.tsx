@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   Database,
+  Images,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -26,6 +27,7 @@ const NAV = [
   { href: "/admin/inbox", label: "客户留言", icon: MessageSquare },
   { href: "/admin/coupons", label: "优惠码", icon: Ticket },
   { href: "/admin/shipping", label: "运费设置", icon: Truck },
+  { href: "/admin/media", label: "媒体清理", icon: Images },
   { href: "/admin/backup", label: "数据备份", icon: Database },
 ] as const;
 

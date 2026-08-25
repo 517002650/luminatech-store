@@ -221,7 +221,7 @@ prisma generate && prisma db push && npm run db:seed && next build
 | 线上 | https://517002650-luminatech-store.vercel.app/admin | Vercel 中的 `ADMIN_PASSWORD`（[环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables)） |
 | 本地 | http://localhost:3000/admin | `.env` 的 `ADMIN_PASSWORD`；未设时临时可用 `admin123` |
 
-登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、留言、优惠码、运费、备份。
+登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、留言、优惠码、运费、**媒体清理**、备份。
 
 商品 **上架/下架**：商品列表点「下架/上架」，或编辑页勾选「上架销售」。下架商品前台不可见。
 

@@ -657,3 +657,17 @@ export async function setReturnRequestStatusAction(id: string, status: string) {
   return { success: true as const };
 }
 
+export async function scanOrphanMediaAction(includeOrders = true) {
+  await requireAdmin();
+  const { scanOrphanMedia } = await import("@/lib/orphan-media");
+  return scanOrphanMedia({ includeOrders });
+}
+
+export async function deleteOrphanMediaAction(
+  items: Array<{ publicId: string; resourceType: "image" | "raw" | "video" }>,
+) {
+  await requireAdmin();
+  const { deleteOrphanMediaItems } = await import("@/lib/orphan-media");
+  return deleteOrphanMediaItems(items);
+}
+
