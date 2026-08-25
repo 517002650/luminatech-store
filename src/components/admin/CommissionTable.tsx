@@ -23,7 +23,7 @@ export function CommissionTable({ rows }: { rows: CommissionRow[] }) {
   if (rows.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
-        暂无提成记录。买家通过推广链接下单并付款后会出现在这里。
+        暂无提成记录。买家通过推广链接下单并付款后会出现在这里。提成按商品小计减优惠计算，运费不占提成比例。
       </p>
     );
   }
@@ -36,7 +36,7 @@ export function CommissionTable({ rows }: { rows: CommissionRow[] }) {
             <th className="px-4 py-3 font-medium">时间</th>
             <th className="px-4 py-3 font-medium">推广员</th>
             <th className="px-4 py-3 font-medium">订单</th>
-            <th className="px-4 py-3 font-medium">计佣基数</th>
+            <th className="px-4 py-3 font-medium">计佣基数（不含运费）</th>
             <th className="px-4 py-3 font-medium">提成</th>
             <th className="px-4 py-3 font-medium">状态</th>
             <th className="px-4 py-3 font-medium">操作</th>

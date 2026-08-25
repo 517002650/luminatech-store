@@ -137,9 +137,17 @@ export async function resolveCheckoutAttribution(options: {
   return resolveAffiliateAttribution(...(options.linkCandidates ?? []));
 }
 
+/**
+ * Commissionable base = product subtotal − discount.
+ * Shipping and tax must never enter this base (运费/税不占提成比例).
+ */
 export function commissionBaseFromOrder(order: {
   subtotal: number;
   discountAmount: number;
+  /** Ignored — accepted so callers cannot accidentally pass total as base. */
+  shippingFee?: number;
+  taxAmount?: number;
+  total?: number;
 }) {
   return Math.max(0, roundMoney(order.subtotal - (order.discountAmount ?? 0)));
 }
@@ -156,6 +164,9 @@ export async function createCommissionForOrder(
     id: string;
     subtotal: number;
     discountAmount: number;
+    shippingFee?: number;
+    taxAmount?: number;
+    total?: number;
     affiliateId: string | null;
     affiliateCode: string;
   },
@@ -196,10 +207,24 @@ export async function createCommissionForOrder(
   }
 }
 
-/** Full refund / cancel → void commission. Partial → reduce amount. */
+/**
+ * Full refund / cancel → void commission.
+ * Partial → scale by merchandise remaining only (shipping/tax refunds do not cut commission).
+ *
+ * Refunds are attributed to non-commissionable amounts (shipping + tax) first,
+ * then to merchandise (subtotal − discount).
+ */
 export async function adjustCommissionOnRefund(
   orderId: string,
-  options: { full: boolean; orderTotal: number; refundedTotal: number },
+  options: {
+    full: boolean;
+    orderTotal: number;
+    refundedTotal: number;
+    /** Product subtotal − discount; defaults to stored commission.baseAmount */
+    merchandiseBase?: number;
+    shippingFee?: number;
+    taxAmount?: number;
+  },
   db: TxClient | typeof prisma = prisma,
 ) {
   const commission = await db.commission.findUnique({ where: { orderId } });
@@ -234,17 +259,37 @@ export async function adjustCommissionOnRefund(
     return;
   }
 
-  const total = options.orderTotal > 0 ? options.orderTotal : 1;
-  const remainingRatio = Math.max(
+  const merchandiseBase = Math.max(
     0,
-    1 - options.refundedTotal / total,
+    options.merchandiseBase ?? commission.baseAmount,
   );
-  const newAmount = roundMoney(commission.baseAmount * (commission.rate / 100) * remainingRatio);
+  const shippingAndTax = Math.max(
+    0,
+    roundMoney((options.shippingFee ?? 0) + (options.taxAmount ?? 0)),
+  );
+  // Prefer explicit non-commissionable; fall back to orderTotal − merchandise.
+  const nonCommissionable =
+    shippingAndTax > 0
+      ? shippingAndTax
+      : Math.max(0, roundMoney(options.orderTotal - merchandiseBase));
+
+  const refundAppliedToMerchandise = Math.max(
+    0,
+    roundMoney(options.refundedTotal - nonCommissionable),
+  );
+  const remainingRatio =
+    merchandiseBase > 0
+      ? Math.max(0, 1 - refundAppliedToMerchandise / merchandiseBase)
+      : 0;
+
+  const newAmount = roundMoney(
+    commission.baseAmount * (commission.rate / 100) * remainingRatio,
+  );
   await db.commission.update({
     where: { id: commission.id },
     data: {
       amount: newAmount,
-      note: [commission.note, `部分退款后调整为 $${newAmount.toFixed(2)}`]
+      note: [commission.note, `部分退款后调整为 $${newAmount.toFixed(2)}（不计运费/税）`]
         .filter(Boolean)
         .join("；")
         .slice(0, 500),

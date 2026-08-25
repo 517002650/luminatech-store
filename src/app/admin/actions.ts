@@ -308,6 +308,12 @@ export async function updateOrderStatusAction(id: string, status: string) {
       full: true,
       orderTotal: order.total,
       refundedTotal: order.total,
+      merchandiseBase: Math.max(
+        0,
+        order.subtotal - (order.discountAmount ?? 0),
+      ),
+      shippingFee: order.shippingFee ?? 0,
+      taxAmount: order.taxAmount ?? 0,
     });
   }
 

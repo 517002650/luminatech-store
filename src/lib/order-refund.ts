@@ -128,7 +128,17 @@ export async function refundAndCancelOrder(
       });
       await adjustCommissionOnRefund(
         order.id,
-        { full: true, orderTotal: order.total, refundedTotal: newRefunded },
+        {
+          full: true,
+          orderTotal: order.total,
+          refundedTotal: newRefunded,
+          merchandiseBase: Math.max(
+            0,
+            roundMoney(order.subtotal - (order.discountAmount ?? 0)),
+          ),
+          shippingFee: order.shippingFee ?? 0,
+          taxAmount: order.taxAmount ?? 0,
+        },
         tx,
       );
     });
@@ -142,7 +152,17 @@ export async function refundAndCancelOrder(
     });
     await adjustCommissionOnRefund(
       order.id,
-      { full: false, orderTotal: order.total, refundedTotal: newRefunded },
+      {
+        full: false,
+        orderTotal: order.total,
+        refundedTotal: newRefunded,
+        merchandiseBase: Math.max(
+          0,
+          roundMoney(order.subtotal - (order.discountAmount ?? 0)),
+        ),
+        shippingFee: order.shippingFee ?? 0,
+        taxAmount: order.taxAmount ?? 0,
+      },
       tx,
     );
   });

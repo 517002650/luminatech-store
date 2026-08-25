@@ -49,7 +49,7 @@ export function AffiliateCreateForm() {
           className={inputClass}
         />
         <p className="mt-1 text-xs text-stone-500">
-          按「商品小计 − 优惠」计佣，不含运费与税。默认 10%。
+          按「商品小计 − 优惠」计佣，运费与税费不占提成比例。默认 10%。
         </p>
       </div>
       <div>

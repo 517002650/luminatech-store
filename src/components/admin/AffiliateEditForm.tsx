@@ -97,6 +97,9 @@ export function AffiliateEditForm({ affiliate }: Props) {
           required
           className={inputClass}
         />
+        <p className="mt-1 text-xs text-stone-500">
+          按「商品小计 − 优惠」计佣，运费与税费不占提成比例。
+        </p>
       </div>
       <div>
         <label className={labelClass}>备注</label>

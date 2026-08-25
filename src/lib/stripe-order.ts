@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { incrementCouponUsage } from "@/lib/coupons";
-import { parsePricingMetadata } from "@/lib/pricing";
+import { parsePricingMetadata, roundMoney } from "@/lib/pricing";
 import type { OrderItem, ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
@@ -133,6 +133,15 @@ export async function fulfillStripeCheckoutSession(
       ? stripeTaxCents / 100
       : (pricing?.taxAmount ?? 0);
 
+  // Never fall back to payment total for subtotal — that includes shipping/tax
+  // and would inflate commission base.
+  const itemsSubtotal = roundMoney(
+    items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+  );
+  const subtotal = pricing?.subtotal ?? itemsSubtotal;
+  const shippingFee = pricing?.shippingFee ?? 0;
+  const discountAmount = pricing?.discountAmount ?? 0;
+
   let order;
   try {
     order = await prisma.$transaction(async (tx) => {
@@ -141,10 +150,10 @@ export async function fulfillStripeCheckoutSession(
         data: {
           userId: options?.userId,
           email,
-          subtotal: pricing?.subtotal ?? total,
-          shippingFee: pricing?.shippingFee ?? 0,
+          subtotal,
+          shippingFee,
           taxAmount,
-          discountAmount: pricing?.discountAmount ?? 0,
+          discountAmount,
           couponCode: pricing?.couponCode ?? "",
           affiliateCode,
           affiliateId: affiliateId || undefined,
