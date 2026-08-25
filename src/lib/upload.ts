@@ -74,10 +74,13 @@ async function uploadAssetToCloudinary(file: File, buffer: Buffer) {
   });
 
   const base64 = `data:application/octet-stream;base64,${buffer.toString("base64")}`;
+  const safeName = file.name.replace(/[^\w.\-]+/g, "_") || "file.bin";
   const result = await cloudinary.uploader.upload(base64, {
     folder: "luminatech/downloads",
     resource_type: "raw",
-    public_id: `${Date.now()}-${randomBytes(4).toString("hex")}-${file.name.replace(/[^\w.\-]+/g, "_")}`,
+    type: "upload",
+    access_mode: "public",
+    public_id: `${Date.now()}-${randomBytes(4).toString("hex")}-${safeName}`,
   });
 
   return result.secure_url;

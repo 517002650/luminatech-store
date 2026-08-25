@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  buildContentDisposition,
+  fetchAssetResponse,
+} from "@/lib/asset-delivery";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/user-auth";
 import { userHasPurchasedProduct } from "@/lib/product-downloads";
@@ -28,13 +32,26 @@ export async function GET(req: NextRequest, { params }: Props) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const target = download.fileUrl.startsWith("http")
-    ? download.fileUrl
-    : new URL(download.fileUrl, req.nextUrl.origin).toString();
+  try {
+    const target = download.fileUrl.startsWith("http")
+      ? download.fileUrl
+      : new URL(download.fileUrl, req.nextUrl.origin).toString();
 
-  return NextResponse.redirect(target, {
-    headers: {
-      "Cache-Control": "no-store",
-    },
-  });
+    const asset = await fetchAssetResponse(target);
+    const headers = new Headers();
+    headers.set(
+      "Content-Type",
+      asset.headers.get("content-type") ?? "application/octet-stream",
+    );
+    headers.set(
+      "Content-Disposition",
+      buildContentDisposition(download.fileName || "download"),
+    );
+    headers.set("Cache-Control", "no-store");
+
+    return new NextResponse(asset.body, { status: 200, headers });
+  } catch (err) {
+    console.error("Download delivery failed:", download.id, err);
+    return NextResponse.json({ error: "download_failed" }, { status: 502 });
+  }
 }
