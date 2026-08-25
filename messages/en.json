@@ -5,7 +5,8 @@
     "cart": "Cart",
     "login": "Sign in",
     "logout": "Sign out",
-    "wishlist": "Wishlist"
+    "wishlist": "Wishlist",
+    "account": "My Account"
   },
   "home": {
     "badge": "Professional Stage Lighting",

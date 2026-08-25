@@ -5,7 +5,8 @@
     "cart": "购物车",
     "login": "登录",
     "logout": "退出",
-    "wishlist": "收藏夹"
+    "wishlist": "收藏夹",
+    "account": "我的账户"
   },
   "home": {
     "badge": "专业舞台灯光",
