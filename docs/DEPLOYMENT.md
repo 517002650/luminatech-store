@@ -301,6 +301,10 @@ cd "e:\项目\独立站\web"
 | Vercel 上本地上传图片 | 必须配 Cloudinary |
 | Token 发到聊天 | 用完立刻在 GitHub Settings → Tokens 删除 |
 | 改了环境变量网站没变 | 需要 Redeploy |
+| 买家/后台下载报 `download_failed` | 见 **§7.2**；多数是 Cloudinary 密钥或 zip 签名方式问题 |
+| 直接打开 `res.cloudinary.com/...zip` 链接 | 会 401；必须走网站内「下载」按钮（`/api/downloads/...`） |
+| 本地备份同步后固件仍下不了 | 检查附件 URL 是否是 `/downloads/...` 本地路径，线上需重新上传到 Cloudinary |
+| 用 `.env.example` 占位符填了 Cloudinary | Vercel 三个 `CLOUDINARY_*` 必须是控制台里的**真实值**，且与文件所在 cloud name 一致 |
 
 ---
 
@@ -352,6 +356,100 @@ npm run db:sync:local
 
 ---
 
+## 7.2 固件/文件下载失败（`download_failed`）快速修复
+
+> **首次踩坑日期：** 2026-08-25  
+> **相关代码：** `src/lib/asset-delivery.ts`、`/api/downloads/[id]`、`/api/admin/asset`  
+> **线上自检接口（需先登录后台）：** `/api/admin/cloudinary-health`
+
+### 现象
+
+| 表现 | 说明 |
+|------|------|
+| 买家点「下载」返回 `{"error":"download_failed"}` | 服务端取 Cloudinary 文件失败 |
+| 后台商品附件点「文件」同样失败 | 同上 |
+| 浏览器直接打开 `https://res.cloudinary.com/.../xxx.zip` | 常见 **401**，属正常（zip 不能公开直链） |
+| Vercel Runtime Logs 出现 `cloudinary_fetch_failed` | 密钥或签名 URL 有问题 |
+
+### 根因（按出现频率）
+
+1. **Vercel 上 Cloudinary 环境变量无效**  
+   - 仍使用 `.env.example` 占位符（如 `your_cloud_name`）→ API 返回 `unknown api_key`  
+   - `CLOUDINARY_CLOUD_NAME` 与数据库里 `fileUrl` 的 cloud name **不一致**（例如文件在 `tvv56z0q`，Vercel 配了别的账号）
+
+2. **不能用 Cloudinary 直链下载 zip**  
+   - 固件/zip 属于 **raw** 资源，需服务端用 API Secret 生成**签名下载 URL**  
+   - 网站已改为：用户点下载 → `/api/downloads/[id]` → 服务端代理取文件（见 `asset-delivery.ts`）
+
+3. **raw 文件的 public_id 含扩展名**  
+   - 例如 `luminatech/downloads/1787619246345-7e9700a8-_.zip`  
+   - 若错误地把 `.zip` 拆成 format，签名 URL 会 **404**  
+   - 当前修复：使用 `cloudinary.utils.private_download_url(publicId, "", {...})`（format 传空字符串）
+
+4. **附件仍是本地路径**  
+   - 数据库里 `fileUrl` 为 `/downloads/xxx.pkg` 时，**只在本地开发有效**  
+   - Vercel 无持久磁盘，线上必须在后台**重新上传**附件（会存到 Cloudinary）
+
+5. **清空买家账号不能修复下载**  
+   - 下载失败与订单/用户无关，不要指望清空账号解决
+
+### 5 分钟排查清单
+
+```
+□ 1. 登录后台 → 商品编辑 → 附件区域
+     若出现黄色「Cloudinary 未正确配置」→ 先修环境变量
+
+□ 2. 浏览器访问（已登录后台时）：
+     https://你的域名/api/admin/cloudinary-health
+     期望：{ "ok": true, "pingOk": true, "cloudMatch": true }
+
+□ 3. Vercel → Settings → Environment Variables
+     CLOUDINARY_CLOUD_NAME  = 控制台 Cloud name（与 fileUrl 里一致）
+     CLOUDINARY_API_KEY     = 控制台 API Key
+     CLOUDINARY_API_SECRET  = 控制台 API Secret
+     Production + Preview 都要改 → Save → Redeploy
+
+□ 4. 后台 → 商品编辑 → 附件 → 点「文件」测 Cloudinary 上的 zip
+     不要复制 Cloudinary 链接到地址栏
+
+□ 5. 买家端：登录 → 已付款订单 → 订单资料 → 下载
+     （需有 paid/completed 订单；无订单则先下单测试）
+
+□ 6. 若某附件 fileUrl 以 /downloads/ 开头 → 在线上后台重新上传该文件
+```
+
+### 本地验证命令（开发者可选）
+
+在 `web/` 目录，临时注入与线上一致的三个 Cloudinary 变量后执行：
+
+```powershell
+cd "e:\项目\独立站\web"
+$env:CLOUDINARY_CLOUD_NAME="你的cloud_name"
+$env:CLOUDINARY_API_KEY="你的api_key"
+$env:CLOUDINARY_API_SECRET="你的api_secret"
+npx tsx scripts/verify-cloudinary.ts
+```
+
+期望输出：`ping { status: 'ok' }` 且 `download 200 application/zip ...`  
+**不要把 Secret 提交到 Git 或发到公开聊天。**
+
+### 修复记录（2026-08-25）
+
+| 步骤 | 内容 |
+|------|------|
+| 环境变量 | Vercel 更新为 `tvv56z0q` 账号的真实 Key/Secret |
+| 代码 | `asset-delivery.ts` 改用 `private_download_url`，raw zip 不拆分扩展名 |
+| 部署 | `git push` 或 `npx vercel --prod --yes`，改 env 后必须 Redeploy |
+| 验证 | `/api/admin/cloudinary-health` 全绿；Cloudinary zip 附件下载 200 |
+
+### 仍失败时
+
+1. Vercel → Deployments → 最新 Ready 版本 → **Runtime Logs**，搜索 `Download delivery failed`  
+2. Cloudinary 控制台 → Media Library → `luminatech/downloads` 确认文件还在  
+3. 文件被删但数据库有记录 → 后台重新上传，或从备份 JSON「只同步商品/分类/附件」恢复  
+
+---
+
 ## 8. 绑定自定义域名（以后可选）
 
 1. Vercel → 项目 → **Settings** → **Domains** → 添加域名  
@@ -369,6 +467,7 @@ npm run db:sync:local
 | 新版本坏了 | Vercel → Deployments → 选上一个成功版本 → **Promote to Production** |
 | 数据库误删表 | 再部署一次（会 `db push`）；商品需重新 seed 或后台录入 |
 | 忘记后台密码 | 见 **§4.1**：Vercel 改 `ADMIN_PASSWORD` → Redeploy |
+| 固件/文件下载失败 | 见 **§7.2**：修 Cloudinary 环境变量 → Redeploy；本地路径附件需重新上传 |
 
 ---
 
@@ -379,6 +478,8 @@ npm run db:sync:local
 - [ ] GitHub 仓库已有 `main` 代码  
 - [ ] Neon Connection string 已复制  
 - [ ] Cloudinary 三个值已复制  
+- [ ] **Cloudinary 为真实密钥（非占位符）**，且 cloud name 与附件一致  
+- [ ] 后台附件「文件」或 `/api/admin/cloudinary-health` 检测通过  
 - [ ] Vercel 环境变量 7 个必填项已填  
 - [ ] Deploy 成功（Build 无红色报错）  
 - [ ] `/zh` 有商品、`/admin` 能进商品列表  

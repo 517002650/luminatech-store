@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { submitReviewAction } from "@/app/actions/user";
 import { Star } from "lucide-react";
-import { useState } from "react";
+import { lightInputClass } from "@/lib/form-styles";
 
 type Props = {
   productId: string;
@@ -73,7 +73,7 @@ export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
           name="title"
           required
           defaultValue={userReview?.title}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+          className={lightInputClass}
         />
       </div>
       <div>
@@ -83,7 +83,7 @@ export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
           required
           rows={4}
           defaultValue={userReview?.content}
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+          className={lightInputClass}
         />
       </div>
       <button

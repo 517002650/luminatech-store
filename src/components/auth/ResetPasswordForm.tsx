@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { resetPasswordAction } from "@/app/actions/user";
 import type { Locale } from "@/i18n/routing";
+import { lightInputClass } from "@/lib/form-styles";
 
 type Props = { token: string };
 
@@ -35,7 +36,7 @@ export function ResetPasswordForm({ token }: Props) {
           required
           minLength={6}
           autoComplete="new-password"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+          className={lightInputClass}
         />
       </div>
       <button

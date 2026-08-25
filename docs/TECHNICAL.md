@@ -326,8 +326,22 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 | 收不到邮件 | 未配 SMTP 或邮箱拦截 | 检查 SMTP 变量；看垃圾箱 |
 | 推送 Git 失败 | Token 无效/无 repo 权限 | 新建 Classic Token，勾选 `repo`，用完删除 |
 | 本地与线上数据不一致 | 本地/线上是不同数据库 | 正常现象；线上数据只在 Neon |
+| 买家/后台下载 `download_failed` | Cloudinary 密钥错、账号不一致、或附件为本地路径 | 见 [DEPLOYMENT.md §7.2](./DEPLOYMENT.md#72-固件文件下载失败download_failed快速修复) |
+| 直接打开 Cloudinary zip 链接 401 | raw/zip 禁止公开直链 | 必须在网站内点「下载」，走 `/api/downloads/[id]` |
 
-### 配置 Stripe 密钥（解决 `Stripe is not configured`）
+### 固件/文件下载失败（详细）
+
+完整排查步骤、根因与验证命令见 **[DEPLOYMENT.md §7.2](./DEPLOYMENT.md#72-固件文件下载失败download_failed快速修复)**。
+
+**30 秒速查：**
+
+1. 后台登录后打开 `/api/admin/cloudinary-health` → 要 `ok: true`  
+2. Vercel 三个 `CLOUDINARY_*` 必须是 [Cloudinary 控制台](https://console.cloudinary.com) 真实值，且 **cloud name 与附件 URL 一致**  
+3. 改完环境变量 → **Redeploy**  
+4. 附件 `fileUrl` 若是 `/downloads/...` → 线上**重新上传**到 Cloudinary  
+5. **清空买家账号不能修复下载**（与 Cloudinary 配置无关）
+
+---
 
 1. 打开 https://dashboard.stripe.com/test/apikeys （确认是 **Test mode**）
 2. 复制 **Secret key**（`sk_test_...`）和 **Publishable key**（`pk_test_...`）

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { requestPasswordResetAction } from "@/app/actions/user";
 import type { Locale } from "@/i18n/routing";
+import { lightInputClass } from "@/lib/form-styles";
 
 export function ForgotPasswordForm() {
   const t = useTranslations("auth");
@@ -40,7 +41,7 @@ export function ForgotPasswordForm() {
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+          className={lightInputClass}
         />
       </div>
       <button

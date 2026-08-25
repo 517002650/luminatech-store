@@ -194,7 +194,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
             value={couponInput}
             onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
             placeholder={t("couponPlaceholder")}
-            className="flex-1 rounded-lg border border-stone-300 px-3 py-2 text-sm uppercase outline-none focus:border-amber-500"
+            className="flex-1 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm uppercase text-stone-900 outline-none placeholder:text-stone-400 focus:border-amber-500"
           />
           <button
             type="button"

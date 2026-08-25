@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { registerUserAction } from "@/app/actions/user";
+import { lightInputClass } from "@/lib/form-styles";
 
 type Props = { redirect?: string };
 
@@ -28,7 +29,7 @@ export function RegisterForm({ redirect = "/account/orders" }: Props) {
           name="name"
           type="text"
           autoComplete="name"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+          className={lightInputClass}
         />
       </div>
       <div>
@@ -38,7 +39,7 @@ export function RegisterForm({ redirect = "/account/orders" }: Props) {
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+          className={lightInputClass}
         />
       </div>
       <div>
@@ -49,7 +50,7 @@ export function RegisterForm({ redirect = "/account/orders" }: Props) {
           required
           minLength={6}
           autoComplete="new-password"
-          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+          className={lightInputClass}
         />
       </div>
       <button

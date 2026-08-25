@@ -5,6 +5,7 @@ import type { ShippingAddress } from "@/lib/orders";
 import { COUPON_STORAGE_KEY, SHIPPING_STORAGE_KEY } from "@/lib/orders";
 import { COUNTRY_OPTIONS } from "@/lib/pricing";
 import type { Locale } from "@/i18n/routing";
+import { lightInputClass } from "@/lib/form-styles";
 
 type Props = {
   value: ShippingAddress;
@@ -12,8 +13,7 @@ type Props = {
   errors?: Partial<Record<keyof ShippingAddress | "form", string>>;
 };
 
-const inputClass =
-  "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500";
+const inputClass = lightInputClass;
 
 export function ShippingAddressForm({ value, onChange, errors }: Props) {
   const t = useTranslations("checkout");
