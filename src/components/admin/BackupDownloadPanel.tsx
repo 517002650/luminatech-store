@@ -17,6 +17,8 @@ export function BackupDownloadPanel() {
   const [lastCounts, setLastCounts] = useState<Record<string, number> | null>(null);
   const [confirmText, setConfirmText] = useState("");
   const [mode, setMode] = useState<"catalog" | "full">("catalog");
+  const [clearConfirm, setClearConfirm] = useState("");
+  const [clearPending, setClearPending] = useState(false);
 
   async function handleDownload() {
     setPending(true);
@@ -81,6 +83,38 @@ export function BackupDownloadPanel() {
       setError(err instanceof Error ? err.message : "同步失败");
     } finally {
       setSyncPending(false);
+    }
+  }
+
+  async function handleClearAccounts() {
+    if (clearConfirm !== "清空账号") {
+      setError("请输入「清空账号」以确认");
+      return;
+    }
+    setClearPending(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/admin/clear-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "清空账号" }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        message?: string;
+        before?: Record<string, number>;
+        after?: Record<string, number>;
+      };
+      if (!res.ok) throw new Error(data.error || "清空失败");
+      setSuccess(
+        `${data.message ?? "已清空"}（用户 ${data.before?.users ?? 0} → ${data.after?.users ?? 0}，订单 ${data.before?.orders ?? 0} → ${data.after?.orders ?? 0}）`,
+      );
+      setClearConfirm("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "清空失败");
+    } finally {
+      setClearPending(false);
     }
   }
 
@@ -217,6 +251,31 @@ export function BackupDownloadPanel() {
             }}
           />
         </label>
+      </section>
+
+      <section className="rounded-2xl border border-red-200 bg-red-50/50 p-6">
+        <h2 className="text-lg font-semibold text-red-800">清空买家账号（测试用）</h2>
+        <p className="mt-1 text-sm text-red-700/90">
+          删除所有注册用户、订单、评价、收藏。<strong>商品和固件附件保留。</strong>
+          不会修复 Cloudinary 下载问题；清空后需重新注册并下单才能测买家下载。
+        </p>
+        <div className="mt-4">
+          <label className="text-sm font-medium text-red-800">输入「清空账号」以确认</label>
+          <input
+            value={clearConfirm}
+            onChange={(e) => setClearConfirm(e.target.value)}
+            placeholder="清空账号"
+            className="mt-1 w-full rounded-lg border border-red-200 px-3 py-2 text-sm outline-none focus:border-red-400"
+          />
+        </div>
+        <button
+          type="button"
+          disabled={clearPending}
+          onClick={() => void handleClearAccounts()}
+          className="mt-4 rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+        >
+          {clearPending ? "正在清空…" : "清空买家账号与订单"}
+        </button>
       </section>
 
       <section className="rounded-2xl border border-cyan-200 bg-cyan-50/60 p-6">
