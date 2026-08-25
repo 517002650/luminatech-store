@@ -210,7 +210,7 @@ export function ProductForm({
             name="descriptionEn"
             value={descriptionEn}
             onChange={setDescriptionEn}
-            placeholder="支持 Markdown，可插入图片 ![](url)"
+            placeholder="支持 Markdown；可插入图片 ![](url) 与视频 ![介绍视频](YouTube链接)"
           />
           <div>
             <label className={labelClass}>英文亮点（每行一条）</label>
@@ -256,7 +256,7 @@ export function ProductForm({
             name="descriptionZh"
             value={descriptionZh}
             onChange={setDescriptionZh}
-            placeholder="支持 Markdown，可上传插入图片"
+            placeholder="支持 Markdown；可上传图片，或插入视频 ![介绍视频](链接)"
           />
           <div>
             <label className={labelClass}>中文亮点（每行一条）</label>
