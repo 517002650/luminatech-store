@@ -51,27 +51,40 @@ export function SearchBar({
 
   if (variant === "header") {
     return (
-      <form onSubmit={handleSubmit} className="relative w-full">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-        <input
-          ref={inputRef}
-          type="search"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder={tNav("searchPlaceholder")}
-          aria-label={tNav("search")}
-          className="h-9 w-full rounded-lg border border-white/10 bg-zinc-900/80 pl-9 pr-8 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 transition focus:border-cyan-500/40 focus:ring-2 focus:ring-cyan-500/15"
-        />
-        {value ? (
-          <button
-            type="button"
-            onClick={() => setValue("")}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-zinc-500 hover:text-zinc-300"
-            aria-label={t("clear")}
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        ) : null}
+      <form
+        onSubmit={handleSubmit}
+        className="flex h-9 w-full overflow-hidden rounded-lg border border-white/10 bg-zinc-900/80 transition focus-within:border-cyan-500/40 focus-within:ring-2 focus-within:ring-cyan-500/15"
+      >
+        <div className="relative flex min-w-0 flex-1 items-center">
+          <Search className="pointer-events-none absolute left-3 h-4 w-4 text-zinc-500" />
+          <input
+            ref={inputRef}
+            type="search"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder={tNav("searchPlaceholder")}
+            aria-label={tNav("search")}
+            className="h-full w-full bg-transparent py-0 pl-9 pr-8 text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+          />
+          {value ? (
+            <button
+              type="button"
+              onClick={() => setValue("")}
+              className="absolute right-2 rounded p-0.5 text-zinc-500 hover:text-zinc-300"
+              aria-label={t("clear")}
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          ) : null}
+        </div>
+        <button
+          type="submit"
+          className="inline-flex shrink-0 items-center gap-1.5 border-l border-white/10 bg-gradient-to-r from-cyan-600/90 to-violet-600/90 px-3.5 text-sm font-semibold text-white transition hover:from-cyan-500 hover:to-violet-500"
+          aria-label={t("submit")}
+        >
+          <Search className="h-3.5 w-3.5 sm:hidden" />
+          <span className="hidden sm:inline">{t("submit")}</span>
+        </button>
       </form>
     );
   }
