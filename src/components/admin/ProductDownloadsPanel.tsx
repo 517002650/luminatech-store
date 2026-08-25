@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Download, Star, Trash2, Upload } from "lucide-react";
 import {
   createProductDownloadAction,
@@ -47,6 +47,16 @@ export function ProductDownloadsPanel({ productId, downloads }: Props) {
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [fileSize, setFileSize] = useState(0);
+  const [cloudHint, setCloudHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/admin/cloudinary-health")
+      .then((r) => r.json())
+      .then((data: { ok?: boolean; hint?: string | null }) => {
+        if (!data.ok && data.hint) setCloudHint(data.hint);
+      })
+      .catch(() => undefined);
+  }, []);
 
   async function handleUpload(file: File | null) {
     if (!file) return;
@@ -97,6 +107,16 @@ export function ProductDownloadsPanel({ productId, downloads }: Props) {
       <p className="mt-1 text-sm text-stone-500">
         仅已购买客户可见可下。未购买用户前台完全隐藏，支持历史版本。
       </p>
+
+      {cloudHint ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <p className="font-semibold">Cloudinary 未正确配置，下载会失败</p>
+          <p className="mt-1">{cloudHint}</p>
+          <p className="mt-2 text-xs text-amber-800">
+            修复后请在 Vercel Redeploy；若已换 Cloudinary 账号，请在此重新上传固件/文件。
+          </p>
+        </div>
+      ) : null}
 
       {error && (
         <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
