@@ -44,10 +44,12 @@ Vercel（Next.js 网站）
 | Vercel 项目名 | `luminatech-store2` |
 | 线上域名 | https://517002650-luminatech-store.vercel.app |
 | 后台 | https://517002650-luminatech-store.vercel.app/admin |
+| Vercel 团队 / 项目 | `dashan4` / `517002650-luminatech-store` |
+| **环境变量直达** | https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables |
 | 本地代码目录 | `e:\项目\独立站\web` |
 | 数据库 | Neon PostgreSQL（`DATABASE_URL`） |
 | 图片 | Cloudinary（三个 `CLOUDINARY_*`） |
-| 后台默认密码 | `admin123`（**目前仍在使用默认，见下方「修改管理员密码」**） |
+| 后台密码 | Vercel 环境变量 `ADMIN_PASSWORD`（线上须 ≥12 位；禁止 `admin123`，见 §4.1） |
 
 > 若以后换了域名 / 项目名，只改本表和 [TECHNICAL.md](./TECHNICAL.md) 第 2 节即可。
 
@@ -142,7 +144,7 @@ postgresql://用户名:密码@ep-xxxx-pooler.区域.aws.neon.tech/neondb?sslmode
 |-----|----------------|
 | `DATABASE_URL` | Neon 整行 Connection string |
 | `NEXT_PUBLIC_APP_URL` | `https://你的项目名.vercel.app`（部署后可再改） |
-| `ADMIN_PASSWORD` | 后台密码（可先 `admin123`，事后改） |
+| `ADMIN_PASSWORD` | 后台密码（**线上至少 12 位**，不要用 `admin123`） |
 | `USER_SESSION_SECRET` | 自己编一长串，如 `luminatech-session-secret-2026` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud name |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key |
@@ -212,34 +214,67 @@ prisma generate && prisma db push && npm run db:seed && next build
 
 ---
 
-## 4.1 修改管理员密码（当前仍是默认 `admin123`）
+## 4.0 如何进入后台
+
+| 环境 | 地址 | 密码 |
+|------|------|------|
+| 线上 | https://517002650-luminatech-store.vercel.app/admin | Vercel 中的 `ADMIN_PASSWORD`（[环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables)） |
+| 本地 | http://localhost:3000/admin | `.env` 的 `ADMIN_PASSWORD`；未设时临时可用 `admin123` |
+
+登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、留言、优惠码、运费、备份。
+
+商品 **上架/下架**：商品列表点「下架/上架」，或编辑页勾选「上架销售」。下架商品前台不可见。
+
+日常操作细节见 [TECHNICAL.md §2.1 / §5](./TECHNICAL.md)。
+
+---
+
+## 4.1 修改管理员密码
 
 后台密码**不是**在网站设置页里改的，而是改 Vercel 里的环境变量 `ADMIN_PASSWORD`。
 
-### 当前状态
+### 当前规则
 
 | 项目 | 值 |
 |------|-----|
 | 登录地址 | https://517002650-luminatech-store.vercel.app/admin |
-| 当前密码 | `admin123`（代码默认；若 Vercel 已设 `ADMIN_PASSWORD` 则以环境变量为准） |
-| 建议 | 正式给人用之前尽快改成强密码 |
+| 密码来源 | Vercel → `ADMIN_PASSWORD` |
+| 线上要求 | ≥12 位；禁止 `admin123`、`password`、`123456` 等弱口令 |
+| 未配置后果 | 登录页提示配置错误，**无法登录**（生产已禁用默认口令） |
 
 ### 线上修改步骤（推荐）
 
-1. 打开 https://vercel.com/dashboard → 进入绑定仓库 `luminatech-store` 的项目
-2. 点 **Settings** → **Environment Variables**
+> **找不到 Environment Variables？** 必须先点进**具体项目**，不要停在团队首页或账号总设置。  
+> **本项目直达链接（登录 Vercel 后打开）：**  
+> https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables
+
+1. 打开上面的直达链接；或打开 https://vercel.com/dashboard 后点进项目 `517002650-luminatech-store`  
+2. 看**左侧边栏**（不是顶部账号菜单）：
+   - 新版界面：左侧直接有 **Environment Variables**（环境变量）→ 点它  
+   - 旧版界面：先点 **Settings（设置）**，再在设置左侧点 **Environment Variables**
 3. 找到 **`ADMIN_PASSWORD`**：
-   - **已有该变量**：点右侧编辑（Edit / 铅笔），把 Value 改成新密码，保存
-   - **没有该变量**：点 Add，Key 填 `ADMIN_PASSWORD`，Value 填新密码，Environment 勾选 Production（以及 Preview 可选）
-4. 回到 **Deployments** → 最新一次右侧 `⋯` → **Redeploy**（必须重新部署，只改变量不生效）
+   - **已有该变量**：右侧 `⋯` → Edit，改 Value，保存
+   - **没有该变量**：点 **Add** / **Create**，Key 填 `ADMIN_PASSWORD`，Value 填新密码（≥12 位），勾选 **Production**（建议也勾 Preview），保存
+4. 回到左侧 **Deployments** → 最新一次右侧 `⋯` → **Redeploy**（必须；只改变量不生效）
 5. 等待 Deploy 变成 **Ready**
 6. 打开 https://517002650-luminatech-store.vercel.app/admin ，用**新密码**登录
-7. 旧密码 `admin123` 将失效
+7. 旧密码将失效
+
+**仍找不到时的对照：**
+
+| 你现在在哪 | 对不对 |
+|------------|--------|
+| 直达链接 `/settings/environment-variables` | ✅ 正确页 |
+| 仪表盘项目列表（还没点进项目） | ❌ 先点项目卡片 |
+| 项目打开后左侧有 Overview / Deployments / Settings | ✅ 再找 Environment Variables 或 Settings |
+| `/settings/deployment-protection`（部署保护） | ❌ 错页；请改用环境变量直达链接 |
+| 左上角头像 → Account Settings | ❌ 那是账号设置，没有项目环境变量 |
+| 团队 Settings → Environment Variables | ⚠️ 那是团队级；本站密码应配在**项目**里 |
 
 ### 密码建议
 
-- 至少 8 位，含字母 + 数字（可再加符号）
-- 不要用生日、店铺名、`123456` 等
+- 至少 **12** 位，含字母 + 数字（可再加符号）
+- 不要用生日、店铺名、`admin123`、`123456` 等
 - 新密码记在密码管理器或安全备忘录，**不要发到聊天**
 
 ### 本地开发一并修改（可选）
@@ -262,11 +297,11 @@ ADMIN_PASSWORD=你的新密码
 
 ### 改完后自检
 
-- [ ] Vercel 中 `ADMIN_PASSWORD` 已不是 `admin123`
+- [ ] Vercel 中 `ADMIN_PASSWORD` 已不是弱口令且 ≥12 位
 - [ ] 已 Redeploy 成功
 - [ ] 用新密码能进后台
 - [ ] 用 `admin123` 无法登录
-- [ ] 本文档第 1 节「后台默认密码」备注已改为「已修改」（可选）
+- [ ] 本文档第 1 节密码备注已与现状一致（可选）
 
 ---
 
@@ -484,7 +519,7 @@ npx tsx scripts/verify-cloudinary.ts
 - [ ] Deploy 成功（Build 无红色报错）  
 - [ ] `/zh` 有商品、`/admin` 能进商品列表  
 - [ ] GitHub Token 已删除  
-- [ ] **已把默认 `admin123` 改成强密码**（见 §4.1）并 Redeploy 验证 
+- [ ] **已设置 ≥12 位强密码 `ADMIN_PASSWORD`**（见 §4.1）并 Redeploy 验证 
 
 ### 每次更新
 

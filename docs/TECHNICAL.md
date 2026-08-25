@@ -1,7 +1,7 @@
 # LuminaTech 技术与运维手册
 
 > 适用对象：店铺运营 / 非专职开发  
-> 线上地址：https://luminatech-store2.vercel.app  
+> 线上地址：https://517002650-luminatech-store.vercel.app  
 > 代码仓库：https://github.com/517002650/luminatech-store  
 > 更新日期：2026-08-25
 
@@ -21,17 +21,18 @@
 | 托管 | Vercel |
 | 数据库 | Neon PostgreSQL |
 | 图片 | Cloudinary |
-| 支付 | Stripe（信用卡 + 支付宝 + 微信支付）/ PayPal（可选） |
+| 支付 | Stripe（信用卡 + 支付宝 + 微信支付）/ PayPal（可选，需配置后才显示） |
 | 邮件 | SMTP（订单确认、发货通知，可选） |
 
 ### 核心能力
 
-- 商品展示（中英双语、Markdown 详情、图库）
-- 购物车、结算、收货地址
-- **支付**：Stripe（信用卡 / 支付宝 / 微信支付）+ PayPal
-- 用户注册/登录、订单查询、收藏、复购、评价
-- 后台：商品 CRUD、订单状态、Excel 导出、图片上传
-- 邮件：下单确认、发货通知（需 SMTP）
+- 商品展示（中英双语、Markdown 详情、图库、搜索）
+- 商品 **上架 / 下架**（下架后前台不可见、不可加购）
+- 购物车、结算、收货地址、运费与税费、优惠码
+- **支付**：Stripe（信用卡 / 支付宝 / 微信支付）+ PayPal（可选）
+- 用户注册/登录、订单查询、收藏、复购、已购评价
+- 后台：商品/分类、订单与退款、退货、评价审核、客户留言、优惠码、运费、备份
+- 邮件：下单确认、发货通知（需 SMTP）；联系表单可进后台收件箱
 
 ---
 
@@ -39,20 +40,41 @@
 
 | 用途 | 地址 |
 |------|------|
-| 前台首页（中文） | https://luminatech-store2.vercel.app/zh |
-| 前台首页（英文） | https://luminatech-store2.vercel.app/en |
-| 商品列表 | https://luminatech-store2.vercel.app/zh/products |
-| 用户登录 | https://luminatech-store2.vercel.app/zh/login |
-| 用户注册 | https://luminatech-store2.vercel.app/zh/register |
-| 我的订单 | https://luminatech-store2.vercel.app/zh/account/orders |
-| 收藏夹 | https://luminatech-store2.vercel.app/zh/account/wishlist |
-| **后台登录** | https://luminatech-store2.vercel.app/admin |
+| 前台首页（中文） | https://517002650-luminatech-store.vercel.app/zh |
+| 前台首页（英文） | https://517002650-luminatech-store.vercel.app/en |
+| 商品列表 | https://517002650-luminatech-store.vercel.app/zh/products |
+| 用户登录 | https://517002650-luminatech-store.vercel.app/zh/login |
+| 用户注册 | https://517002650-luminatech-store.vercel.app/zh/register |
+| 我的订单 | https://517002650-luminatech-store.vercel.app/zh/account/orders |
+| 收藏夹 | https://517002650-luminatech-store.vercel.app/zh/account/wishlist |
+| **后台登录** | https://517002650-luminatech-store.vercel.app/admin |
 | GitHub 代码 | https://github.com/517002650/luminatech-store |
 | Vercel 控制台 | https://vercel.com/dashboard |
+| **Vercel 环境变量（直达）** | https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables |
 | Neon 数据库 | https://console.neon.tech |
 | Cloudinary | https://console.cloudinary.com |
 | Stripe | https://dashboard.stripe.com |
 | PayPal 开发者 | https://developer.paypal.com |
+
+### 2.1 如何进入后台管理
+
+1. 浏览器打开：**https://517002650-luminatech-store.vercel.app/admin**  
+   （会跳到 `/admin/login`）
+2. 输入 Vercel 环境变量 **`ADMIN_PASSWORD`** 的值，点登录
+3. 登录成功后左侧菜单可进入：商品、分类、订单、退货、评价、留言、优惠码、运费、备份
+
+| 环境 | 地址 | 密码从哪来 |
+|------|------|------------|
+| **线上** | https://517002650-luminatech-store.vercel.app/admin | [环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables) → `ADMIN_PASSWORD` |
+| **本地** | http://localhost:3000/admin | 本地 `web/.env` 里的 `ADMIN_PASSWORD`；未设置时可用临时默认 `admin123` |
+
+**线上密码规则（必须满足，否则登录页会提示配置错误、无法登录）：**
+
+- 必须在 Vercel 配置 `ADMIN_PASSWORD`
+- 至少 **12 位**
+- 不能使用 `admin123`、`password`、`123456` 等弱口令
+
+忘记密码：在 Vercel 改 `ADMIN_PASSWORD` → **Redeploy** → 用新密码登录（见 §5.0）。
 
 ---
 
@@ -60,7 +82,7 @@
 
 | 系统 | 用途 | 备注 |
 |------|------|------|
-| 后台 `ADMIN_PASSWORD` | 登录 `/admin` | **当前仍为默认 `admin123`**，请按下方「5.0 修改管理员密码」尽快改掉 |
+| 后台 `ADMIN_PASSWORD` | 登录 `/admin` | 线上须 ≥12 位强密码；见 §2.1 / §5.0 |
 | GitHub | 代码仓库 | 不要用密码推送；用 Personal Access Token，用完删除 |
 | Vercel | 部署与环境变量 | 用 GitHub 账号登录即可 |
 | Neon | 数据库 | Connection string 填在 `DATABASE_URL` |
@@ -82,7 +104,7 @@
 |--------|------|----------|
 | `DATABASE_URL` | PostgreSQL 连接串 | Neon → Connection string（建议 Pooled，带 `sslmode=require`） |
 | `NEXT_PUBLIC_APP_URL` | 网站完整地址 | 如 `https://luminatech-store2.vercel.app` |
-| `ADMIN_PASSWORD` | 后台密码 | 自己设定 |
+| `ADMIN_PASSWORD` | 后台密码 | 线上 ≥12 位强密码（禁止 `admin123`） |
 | `USER_SESSION_SECRET` | 用户登录会话密钥 | 自己设定一长串随机字符 |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary 云名称 | Cloudinary Dashboard |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | 同上 |
@@ -115,34 +137,41 @@
 
 ## 5. 日常运营操作
 
-### 5.0 修改管理员密码（当前：默认 `admin123`）
+### 5.0 修改管理员密码
 
 后台密码存在 Vercel 环境变量 **`ADMIN_PASSWORD`** 里，不在网页里改。
 
 **线上改法：**
 
-1. Vercel → 项目 `luminatech-store2` → **Settings** → **Environment Variables**
-2. 编辑或新增 `ADMIN_PASSWORD` = 你的新密码
+1. 打开直达链接（需已登录 Vercel）：  
+   https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables  
+   （或从 Dashboard 点进项目后再找 **Environment Variables** / **Settings**）
+2. 编辑或新增 `ADMIN_PASSWORD` = 至少 12 位强密码（不要用 `admin123`）
 3. **Deployments** → **Redeploy**（必须）
-4. 打开 https://luminatech-store2.vercel.app/admin ，用新密码登录
-5. 确认旧密码 `admin123` 不能再登录
+4. 打开 https://517002650-luminatech-store.vercel.app/admin ，用新密码登录
+5. 确认旧密码不能再登录
 
 **规则说明：**
 
-- 若未设置 `ADMIN_PASSWORD`，系统默认接受 `admin123`
-- 一旦设置了 `ADMIN_PASSWORD`，必须以环境变量里的值为准
+- **生产 / Vercel**：必须配置强密码；未配置或过弱时登录页会显示配置错误，无法登录
+- **本地开发**：可不设 `ADMIN_PASSWORD`，临时用 `admin123`；一旦在 `.env` 里设置了，就以设置值为准
 - 忘记密码：再改一次环境变量并 Redeploy 即可
 
-更完整步骤见：[DEPLOYMENT.md §4.1](./DEPLOYMENT.md)
+更完整步骤与「找不到菜单」对照表见：[DEPLOYMENT.md §4.1](./DEPLOYMENT.md)
 
-### 5.1 后台改商品
+### 5.1 后台改商品（含上架 / 下架）
 
-1. 打开 `/admin`，输入当前管理员密码（环境变量 `ADMIN_PASSWORD`，未改前为 `admin123`）
+1. 打开 `/admin`，用 `ADMIN_PASSWORD` 登录（见 §2.1）
 2. **商品列表** → 编辑 / 新增 / 删除
-3. 图片：点上传（自动存到 Cloudinary）
-4. 详细描述支持 Markdown，可插入图片 `![](url)`
-5. 规格格式：每行 `参数名 | 参数值`
-6. 亮点：每行一条
+3. **上架 / 下架**：
+   - 列表「状态」列点 **下架** / **上架**
+   - 或编辑页勾选 / 取消 **上架销售**
+   - 下架后：前台列表、搜索、sitemap 隐藏；详情 404；购物车校验会拒绝
+   - 新商品默认上架；已有商品同步 schema 后也默认上架
+4. 图片：点上传（自动存到 Cloudinary）
+5. 详细描述支持 Markdown，可插入图片 `![](url)`
+6. 规格格式：每行 `参数名 | 参数值`
+7. 亮点：每行一条
 
 ### 5.2 处理订单
 
@@ -150,18 +179,39 @@
 2. 查看收货地址、商品明细、支付方式
 3. 更新状态：已付款 → 处理中 → **已发货** → 已完成
 4. 改为「已发货」且已配置 SMTP 时，会自动给客户发邮件
-5. 可导出 Excel
+5. 可导出 Excel；支持 Stripe 退款（订单详情内）
 
-### 5.3 前台用户相关
+### 5.3 评价、退货、留言
+
+| 菜单 | 说明 |
+|------|------|
+| **评价审核** `/admin/reviews` | 审核已购用户评价的展示状态 |
+| **退货申请** `/admin/returns` | 处理客户退货请求 |
+| **客户留言** `/admin/inbox` | 联系页表单提交的消息 |
+
+### 5.3.1 固件 / 附件维护
+
+商品编辑页 → **购买后下载**：
+
+| 操作 | 说明 |
+|------|------|
+| 添加下载项 | 上传新固件/文件/插件并设版本 |
+| **替换文件** | 同一条记录换新文件；默认勾选删除旧 Cloudinary 文件 |
+| **删除** | 可勾选「同时删除 Cloudinary / 本地文件」；不勾选则只删数据库记录 |
+| 点「文件」 | 后台试下载，用于确认链接是否正常 |
+
+本地路径（`/downloads/...`）在线上无效，需用「替换文件」重新传到 Cloudinary。
+
+### 5.4 前台用户相关
 
 | 功能 | 说明 |
 |------|------|
 | 注册/登录 | 用户可查订单、收藏、写评价 |
 | 收藏夹 | `/account/wishlist` |
 | 再次购买 | 订单详情页「再次购买」加入购物车 |
-| 评价 | 商品详情页，登录后可写星级评论 |
+| 评价 | 需购买验证；后台审核后展示 |
 
-### 5.4 修改店铺文案 / 语言
+### 5.5 修改店铺文案 / 语言
 
 - 中文文案：`messages/zh.json`
 - 英文文案：`messages/en.json`
@@ -234,11 +284,13 @@ npm run dev
 
 | 表 | 内容 |
 |----|------|
-| `Product` | 商品（中英字段、价格、库存、图片等） |
+| `Product` | 商品（中英字段、价格、库存、图片、`active` 上下架等） |
 | `Order` | 订单（邮箱、金额、状态、商品 JSON、收货地址 JSON） |
 | `User` | 前台用户 |
 | `WishlistItem` | 收藏 |
-| `Review` | 商品评价 |
+| `Review` | 商品评价（含审核状态） |
+| `ReturnRequest` | 退货申请 |
+| `ContactMessage` | 联系页留言 |
 
 ### 常用命令
 
@@ -319,6 +371,8 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 |------|----------|------|
 | 前台 `/zh` 500 或空白 | 数据库连不上 / 表未建 | 检查 `DATABASE_URL`，Redeploy；看 Build 日志是否有 `db push` 成功 |
 | 后台登录后报错 | 同上 | 同上；修复后应看到商品列表 |
+| 后台登录页提示密码未配置/过弱 | 生产未设或 `ADMIN_PASSWORD` 不足 12 位 / 弱口令 | Vercel 设 ≥12 位强密码并 Redeploy |
+| 下架商品仍出现在前台 | 缓存未刷新或未点保存 | 后台再点一次上下架；硬刷新前台 |
 | 上传图片失败 | Cloudinary 未配或配错 | 检查三个 `CLOUDINARY_*`，Redeploy |
 | 改了环境变量不生效 | 未重新部署 | Vercel → Deployments → Redeploy |
 | 支付提示 `Stripe is not configured` | 未配置 `STRIPE_SECRET_KEY` | 见下方「配置 Stripe 密钥」 |
@@ -345,7 +399,7 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 
 1. 打开 https://dashboard.stripe.com/test/apikeys （确认是 **Test mode**）
 2. 复制 **Secret key**（`sk_test_...`）和 **Publishable key**（`pk_test_...`）
-3. Vercel → `luminatech-store2` → **Settings** → **Environment Variables**，新增：
+3. Vercel → 项目 → **Settings** → **Environment Variables**，新增：
    - `STRIPE_SECRET_KEY` = `sk_test_...`
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` = `pk_test_...`
 4. **Deployments** → **Redeploy**
@@ -362,7 +416,7 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 
 ## 10. 上线后安全清单
 
-- [ ] 将 `ADMIN_PASSWORD` 从 `admin123` 改为强密码并 Redeploy（步骤见 §5.0 / [DEPLOYMENT.md §4.1](./DEPLOYMENT.md)）  
+- [ ] `ADMIN_PASSWORD` 已设为 ≥12 位强密码（非 `admin123`）并 Redeploy（§5.0 / [DEPLOYMENT.md §4.1](./DEPLOYMENT.md)）  
 - [ ] 确认 GitHub Token 用完即删，勿长期放在聊天里  
 - [ ] `.env` 不要提交到 Git（已在 `.gitignore`）  
 - [ ] 正式营业前切换 Stripe/PayPal 为 Live 密钥  
@@ -383,7 +437,7 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 - 「导出订单增加快递单号列」  
 
 仓库路径：`e:\项目\独立站\web`  
-线上项目名：`luminatech-store2`
+线上域名：`517002650-luminatech-store.vercel.app`
 
 ---
 

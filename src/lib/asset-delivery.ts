@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import { readFile } from "fs/promises";
+import { readFile, unlink } from "fs/promises";
 import path from "path";
 
 type CloudinaryRef = {
@@ -97,6 +97,56 @@ function buildSignedCloudinaryUrls(
 export function buildContentDisposition(fileName: string) {
   const safeAscii = fileName.replace(/[^\x20-\x7E]/g, "_") || "download";
   return `attachment; filename="${safeAscii}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
+}
+
+/**
+ * Best-effort delete for Cloudinary raw/image URLs or local /downloads|/uploads paths.
+ * Returns deleted=false when URL is external, misconfigured, or already gone.
+ */
+export async function deleteStoredAsset(fileUrl: string): Promise<{
+  deleted: boolean;
+  reason?: string;
+}> {
+  const url = fileUrl.trim();
+  if (!url) return { deleted: false, reason: "empty" };
+
+  if (url.startsWith("http")) {
+    const ref = parseCloudinaryUrl(url);
+    if (!ref) return { deleted: false, reason: "not_cloudinary" };
+    if (!isCloudinaryConfigured()) return { deleted: false, reason: "not_configured" };
+
+    try {
+      assertCloudinaryAccount(ref);
+      configureCloudinary(ref.cloudName);
+      const result = await cloudinary.uploader.destroy(ref.publicId, {
+        resource_type: ref.resourceType,
+        type: ref.deliveryType,
+        invalidate: true,
+      });
+      const status = String(result?.result ?? "");
+      return {
+        deleted: status === "ok" || status === "not found",
+        reason: status || "unknown",
+      };
+    } catch (err) {
+      return {
+        deleted: false,
+        reason: err instanceof Error ? err.message : "destroy_failed",
+      };
+    }
+  }
+
+  if (url.startsWith("/downloads/") || url.startsWith("/uploads/")) {
+    try {
+      const relative = url.replace(/^\//, "");
+      await unlink(path.join(process.cwd(), "public", relative));
+      return { deleted: true };
+    } catch {
+      return { deleted: false, reason: "local_missing" };
+    }
+  }
+
+  return { deleted: false, reason: "unsupported" };
 }
 
 /** Fetch asset bytes (Cloudinary signed URL or local public file). */

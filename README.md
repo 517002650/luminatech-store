@@ -15,7 +15,7 @@
 - Stripe 结账（**信用卡 / 支付宝 / 微信支付**）
 - PayPal 结账
 - 6 个数码类示例商品（耳机、键盘、扩展坞等）
-- **后台管理**（商品增删改、订单管理、Excel 导出、发货邮件）
+- **后台管理**（商品上下架、订单、评价审核、退货、留言、Excel 导出、发货邮件）
 - **详细描述支持 Markdown + 图片**
 - **用户注册 / 登录**（订单查询、收藏夹、再次购买）
 - **找回密码**（邮件重置链接，需 SMTP）
@@ -47,7 +47,7 @@ copy .env.example .env
 | `STRIPE_SECRET_KEY` | Stripe 测试密钥 | 用 Stripe 时必填 |
 | `NEXT_PUBLIC_PAYPAL_CLIENT_ID` | PayPal 沙盒 Client ID | 用 PayPal 时必填 |
 | `NEXT_PUBLIC_APP_URL` | 网站地址 | 本地默认即可 |
-| `ADMIN_PASSWORD` | 后台登录密码 | 建议修改，默认 `admin123` |
+| `ADMIN_PASSWORD` | 后台登录密码 | 线上必填且 ≥12 位；本地未设时临时可用 `admin123` |
 | `CLOUDINARY_*` | 图片云存储（**Vercel 必填**） | 上线必填 |
 | `SMTP_*` | 发货通知邮件 | 可选 |
 
@@ -71,16 +71,20 @@ npm run dev
 
 ## 后台管理
 
-地址：**http://localhost:3000/admin**
+| 环境 | 地址 |
+|------|------|
+| 本地 | http://localhost:3000/admin |
+| 线上 | https://517002650-luminatech-store.vercel.app/admin |
+
+密码 = 环境变量 `ADMIN_PASSWORD`（线上须 ≥12 位强密码；本地未配置时临时可用 `admin123`）。详见 [docs/TECHNICAL.md §2.1](./docs/TECHNICAL.md)。
 
 | 功能 | 说明 |
 |------|------|
-| 商品列表 | 查看所有商品、库存、是否精选 |
-| 新增 / 编辑 | 中英文名称、描述、规格、亮点、**本地上传图片** |
+| 商品列表 | 查看商品、库存、精选、**上架/下架** |
+| 新增 / 编辑 | 中英文名称、描述、规格、亮点、**上传图片**、勾选「上架销售」 |
 | 删除 | 点击删除并确认 |
-| **订单管理** | 查看订单、导出 Excel、更新状态、自动发发货邮件 |
-
-默认密码：`admin123`（请在 `.env` 中设置 `ADMIN_PASSWORD` 修改）
+| **订单管理** | 查看订单、导出 Excel、更新状态、退款、发货邮件 |
+| 评价 / 退货 / 留言 | `/admin/reviews`、`/admin/returns`、`/admin/inbox` |
 
 **图片上传**：
 - 本地开发：保存到 `public/uploads/`

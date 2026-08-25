@@ -25,6 +25,7 @@ import {
   buildCountryRatesFromForm,
   updateShippingSettings,
 } from "@/lib/shipping-settings";
+import { deleteStoredAsset } from "@/lib/asset-delivery";
 
 async function requireAdmin() {
   if (!(await isAdminAuthenticated())) {
@@ -200,7 +201,10 @@ export async function createProductDownloadAction(productId: string, formData: F
   return { success: true as const };
 }
 
-export async function deleteProductDownloadAction(id: string) {
+export async function deleteProductDownloadAction(
+  id: string,
+  options?: { deleteCloudinary?: boolean },
+) {
   await requireAdmin();
 
   const row = await prisma.productDownload.findUnique({
@@ -209,12 +213,78 @@ export async function deleteProductDownloadAction(id: string) {
   });
   if (!row) return { error: "记录不存在" };
 
+  let cloudDeleted: boolean | undefined;
+  let cloudReason: string | undefined;
+  if (options?.deleteCloudinary) {
+    const result = await deleteStoredAsset(row.fileUrl);
+    cloudDeleted = result.deleted;
+    cloudReason = result.reason;
+  }
+
   await prisma.productDownload.delete({ where: { id } });
 
   revalidatePath(`/admin/products/${row.product.id}/edit`);
   revalidatePath(`/en/products/${row.product.slug}`);
   revalidatePath(`/zh/products/${row.product.slug}`);
-  return { success: true as const };
+  return {
+    success: true as const,
+    cloudDeleted,
+    cloudReason,
+  };
+}
+
+export async function replaceProductDownloadFileAction(
+  id: string,
+  input: {
+    fileUrl: string;
+    fileName: string;
+    fileSize: number;
+    deleteOldCloudinary?: boolean;
+  },
+) {
+  await requireAdmin();
+
+  const fileUrl = input.fileUrl.trim();
+  const fileName = input.fileName.trim();
+  const fileSize = Number(input.fileSize);
+
+  if (!fileUrl || !fileName) {
+    return { error: "请先上传新文件" };
+  }
+
+  const row = await prisma.productDownload.findUnique({
+    where: { id },
+    include: { product: { select: { id: true, slug: true } } },
+  });
+  if (!row) return { error: "记录不存在" };
+
+  const oldUrl = row.fileUrl;
+
+  await prisma.productDownload.update({
+    where: { id },
+    data: {
+      fileUrl,
+      fileName,
+      fileSize: Number.isFinite(fileSize) ? fileSize : 0,
+    },
+  });
+
+  let cloudDeleted: boolean | undefined;
+  let cloudReason: string | undefined;
+  if (input.deleteOldCloudinary && oldUrl && oldUrl !== fileUrl) {
+    const result = await deleteStoredAsset(oldUrl);
+    cloudDeleted = result.deleted;
+    cloudReason = result.reason;
+  }
+
+  revalidatePath(`/admin/products/${row.product.id}/edit`);
+  revalidatePath(`/en/products/${row.product.slug}`);
+  revalidatePath(`/zh/products/${row.product.slug}`);
+  return {
+    success: true as const,
+    cloudDeleted,
+    cloudReason,
+  };
 }
 
 export async function setLatestProductDownloadAction(id: string) {
