@@ -70,10 +70,8 @@ export function Header({ user }: Props) {
 
         <HeaderSearch />
 
-        <div className="flex-1" />
-
         {/* Tools — one visual system */}
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
           <LanguageSwitcher />
 
           {user ? (

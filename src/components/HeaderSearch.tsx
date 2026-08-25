@@ -30,8 +30,8 @@ export function HeaderSearch() {
 
   return (
     <>
-      {/* Desktop inline search */}
-      <div className="hidden min-w-0 flex-1 md:block md:max-w-xs lg:max-w-sm xl:max-w-md">
+      {/* Desktop inline search — fills space between nav and tools */}
+      <div className="mx-2 hidden min-w-0 flex-1 md:block">
         <SearchBar variant="header" />
       </div>
 
