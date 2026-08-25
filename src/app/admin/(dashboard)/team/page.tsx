@@ -33,11 +33,13 @@ export default async function AdminTeamPage() {
   return (
     <AdminShell
       title="团队账号"
-      subtitle="管理账号类型权限，并添加团队成员。默认 Admin 不能访问运费 / 媒体 / 备份。"
+      subtitle="管理账号类型与成员。每种类型可自定义权限，但不能授予高于你自己的权限。"
       admin={admin}
     >
       <TeamAdminPanel
         currentAdminId={admin.id}
+        actorPermissions={admin.permissions}
+        actorIsOwner={admin.role === "owner"}
         roleTypes={roleTypes.map((rt) => ({
           id: rt.id,
           key: rt.key,

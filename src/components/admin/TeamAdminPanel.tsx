@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   createAdminAction,
@@ -14,7 +14,7 @@ import {
 import {
   ADMIN_PERMISSION_KEYS,
   ADMIN_PERMISSION_LABELS,
-  OWNER_ONLY_PERMISSIONS,
+  permissionsWithinCeiling,
   type AdminPermission,
 } from "@/lib/admin-permissions";
 
@@ -44,6 +44,9 @@ type Props = {
   members: TeamMember[];
   roleTypes: RoleTypeRow[];
   currentAdminId: string;
+  /** Permissions held by the logged-in admin — ceiling for edits. */
+  actorPermissions: AdminPermission[];
+  actorIsOwner: boolean;
 };
 
 const inputClass =
@@ -53,41 +56,64 @@ function PermissionChecklist({
   name = "permissions",
   selected,
   locked = false,
-  hideOwnerOnly = true,
+  actorPermissions,
+  actorIsOwner,
 }: {
   name?: string;
   selected: AdminPermission[];
   locked?: boolean;
-  hideOwnerOnly?: boolean;
+  actorPermissions: AdminPermission[];
+  actorIsOwner: boolean;
 }) {
   const selectedSet = new Set(selected);
-  const keys = hideOwnerOnly
-    ? ADMIN_PERMISSION_KEYS.filter((k) => !OWNER_ONLY_PERMISSIONS.includes(k))
-    : ADMIN_PERMISSION_KEYS;
+  const ceiling = useMemo(
+    () => new Set(actorIsOwner ? ADMIN_PERMISSION_KEYS : actorPermissions),
+    [actorIsOwner, actorPermissions],
+  );
 
   return (
     <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {keys.map((key) => (
-        <label
-          key={key}
-          className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
-            locked ? "border-stone-100 bg-stone-50 text-stone-400" : "border-stone-200"
-          }`}
-        >
-          <input
-            type="checkbox"
-            name={name}
-            value={key}
-            defaultChecked={selectedSet.has(key) || key === "security"}
-            disabled={locked || key === "security"}
-            className="h-4 w-4 rounded border-stone-300"
-          />
-          <span>{ADMIN_PERMISSION_LABELS[key]}</span>
-          {key === "security" ? (
-            <span className="text-[10px] text-stone-400">必选</span>
-          ) : null}
-        </label>
-      ))}
+      {ADMIN_PERMISSION_KEYS.map((key) => {
+        const aboveCeiling = !ceiling.has(key);
+        const checked = selectedSet.has(key) || key === "security";
+        const disabled =
+          locked || key === "security" || (aboveCeiling && !locked);
+
+        return (
+          <label
+            key={key}
+            className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+              disabled
+                ? "border-stone-100 bg-stone-50 text-stone-400"
+                : "border-stone-200"
+            }`}
+            title={
+              aboveCeiling && !locked
+                ? "高于你当前权限，不可勾选"
+                : undefined
+            }
+          >
+            <input
+              type="checkbox"
+              name={name}
+              value={key}
+              defaultChecked={checked}
+              disabled={disabled}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            <span>{ADMIN_PERMISSION_LABELS[key]}</span>
+            {key === "security" ? (
+              <span className="text-[10px] text-stone-400">必选</span>
+            ) : null}
+            {aboveCeiling && checked && !locked ? (
+              <span className="text-[10px] text-amber-700">已有·不可改</span>
+            ) : null}
+            {aboveCeiling && !checked && !locked ? (
+              <span className="text-[10px] text-stone-400">超出权限</span>
+            ) : null}
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -96,9 +122,19 @@ export function TeamAdminPanel({
   members,
   roleTypes,
   currentAdminId,
+  actorPermissions,
+  actorIsOwner,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  const assignableTypes = useMemo(() => {
+    return roleTypes.filter((rt) => {
+      if (rt.key === "owner") return actorIsOwner;
+      if (actorIsOwner) return true;
+      return permissionsWithinCeiling(rt.permissions, actorPermissions);
+    });
+  }, [roleTypes, actorIsOwner, actorPermissions]);
 
   const [createState, createAction, creating] = useActionState(
     async (_p: { error?: string; success?: boolean } | null, fd: FormData) => {
@@ -119,7 +155,14 @@ export function TeamAdminPanel({
   );
 
   const defaultTypeId =
-    roleTypes.find((r) => r.key === "admin")?.id ?? roleTypes[0]?.id ?? "";
+    assignableTypes.find((r) => r.key === "admin")?.id ??
+    assignableTypes[0]?.id ??
+    "";
+
+  const checklistProps = {
+    actorPermissions,
+    actorIsOwner,
+  };
 
   return (
     <div className="space-y-8">
@@ -127,8 +170,8 @@ export function TeamAdminPanel({
         <div className="border-b border-stone-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-stone-900">账号类型与权限</h2>
           <p className="mt-1 text-sm text-stone-500">
-            为不同类型勾选可访问的后台模块。默认 Admin 不含运费设置、媒体清理、数据备份；Owner
-            全权且不可改。
+            可为每种类型勾选模块权限。你只能授予自己已有的权限，不能设置高于自己的权限；Owner
+            类型全权且不可改。
           </p>
         </div>
         <div className="divide-y divide-stone-100">
@@ -174,7 +217,7 @@ export function TeamAdminPanel({
                   <PermissionChecklist
                     selected={rt.permissions}
                     locked
-                    hideOwnerOnly={false}
+                    {...checklistProps}
                   />
                 ) : (
                   <form
@@ -192,7 +235,10 @@ export function TeamAdminPanel({
                         className={inputClass}
                       />
                     </label>
-                    <PermissionChecklist selected={rt.permissions} />
+                    <PermissionChecklist
+                      selected={rt.permissions}
+                      {...checklistProps}
+                    />
                     <button
                       type="submit"
                       className="mt-3 rounded-lg bg-stone-900 px-4 py-2 text-xs font-semibold text-white hover:bg-stone-700"
@@ -212,6 +258,9 @@ export function TeamAdminPanel({
         className="rounded-2xl border border-dashed border-amber-300 bg-amber-50/40 p-6"
       >
         <h2 className="text-lg font-semibold text-stone-900">新建账号类型</h2>
+        <p className="mt-1 text-xs text-stone-500">
+          仅可勾选你当前拥有的权限模块。
+        </p>
         {createTypeState?.error ? (
           <p className="mt-2 text-sm text-red-600">{createTypeState.error}</p>
         ) : null}
@@ -228,7 +277,14 @@ export function TeamAdminPanel({
             <input name="description" placeholder="可选" className={inputClass} />
           </label>
         </div>
-        <PermissionChecklist selected={["products", "orders", "inbox", "security"]} />
+        <PermissionChecklist
+          selected={["products", "orders", "inbox", "security"].filter(
+            (k) =>
+              actorIsOwner ||
+              actorPermissions.includes(k as AdminPermission),
+          ) as AdminPermission[]}
+          {...checklistProps}
+        />
         <button
           type="submit"
           disabled={creatingType}
@@ -243,79 +299,95 @@ export function TeamAdminPanel({
           <h2 className="text-lg font-semibold text-stone-900">团队成员</h2>
         </div>
         <div className="divide-y divide-stone-100">
-          {members.map((m) => (
-            <div
-              key={m.id}
-              className="flex flex-wrap items-start justify-between gap-4 px-6 py-4"
-            >
-              <div>
-                <p className="font-medium text-stone-900">
-                  {m.name || m.email}
-                  {m.id === currentAdminId ? (
-                    <span className="ml-2 text-xs text-stone-400">（我）</span>
-                  ) : null}
-                </p>
-                <p className="text-sm text-stone-500">{m.email}</p>
-                <p className="mt-1 text-xs text-stone-400">
-                  {m.roleTypeName || m.role}
-                  {" · "}
-                  {m.active ? "启用" : "已停用"}
-                  {" · "}
-                  2FA {m.totpEnabled ? "开" : "关"}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <select
-                  disabled={pending || m.id === currentAdminId}
-                  defaultValue={m.roleTypeId ?? ""}
-                  onChange={(e) => {
-                    const roleTypeId = e.target.value;
-                    if (!roleTypeId) return;
-                    startTransition(async () => {
-                      await updateAdminRoleAction(m.id, roleTypeId);
-                      router.refresh();
-                    });
-                  }}
-                  className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs"
-                >
-                  {roleTypes.map((rt) => (
-                    <option key={rt.id} value={rt.id}>
-                      {rt.name}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  disabled={pending || m.id === currentAdminId}
-                  onClick={() =>
-                    startTransition(async () => {
-                      await setAdminActiveAction(m.id, !m.active);
-                      router.refresh();
-                    })
-                  }
-                  className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs hover:bg-stone-50 disabled:opacity-40"
-                >
-                  {m.active ? "停用" : "启用"}
-                </button>
-                {m.totpEnabled ? (
-                  <button
-                    type="button"
-                    disabled={pending || m.id === currentAdminId}
-                    onClick={() => {
-                      if (!window.confirm(`重置 ${m.email} 的两步验证？`)) return;
+          {members.map((m) => {
+            const memberIsOwner = m.role === "owner";
+            const canManageMember = actorIsOwner || !memberIsOwner;
+            return (
+              <div
+                key={m.id}
+                className="flex flex-wrap items-start justify-between gap-4 px-6 py-4"
+              >
+                <div>
+                  <p className="font-medium text-stone-900">
+                    {m.name || m.email}
+                    {m.id === currentAdminId ? (
+                      <span className="ml-2 text-xs text-stone-400">（我）</span>
+                    ) : null}
+                  </p>
+                  <p className="text-sm text-stone-500">{m.email}</p>
+                  <p className="mt-1 text-xs text-stone-400">
+                    {m.roleTypeName || m.role}
+                    {" · "}
+                    {m.active ? "启用" : "已停用"}
+                    {" · "}
+                    2FA {m.totpEnabled ? "开" : "关"}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <select
+                    disabled={
+                      pending || m.id === currentAdminId || !canManageMember
+                    }
+                    defaultValue={m.roleTypeId ?? ""}
+                    onChange={(e) => {
+                      const roleTypeId = e.target.value;
+                      if (!roleTypeId) return;
                       startTransition(async () => {
-                        await resetAdminTotpAction(m.id);
+                        await updateAdminRoleAction(m.id, roleTypeId);
                         router.refresh();
                       });
                     }}
-                    className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-50 disabled:opacity-40"
+                    className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs"
                   >
-                    重置 2FA
+                    {assignableTypes.map((rt) => (
+                      <option key={rt.id} value={rt.id}>
+                        {rt.name}
+                      </option>
+                    ))}
+                    {m.roleTypeId &&
+                    !assignableTypes.some((t) => t.id === m.roleTypeId) ? (
+                      <option value={m.roleTypeId}>
+                        {m.roleTypeName}（当前）
+                      </option>
+                    ) : null}
+                  </select>
+                  <button
+                    type="button"
+                    disabled={
+                      pending || m.id === currentAdminId || !canManageMember
+                    }
+                    onClick={() =>
+                      startTransition(async () => {
+                        await setAdminActiveAction(m.id, !m.active);
+                        router.refresh();
+                      })
+                    }
+                    className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs hover:bg-stone-50 disabled:opacity-40"
+                  >
+                    {m.active ? "停用" : "启用"}
                   </button>
-                ) : null}
+                  {m.totpEnabled ? (
+                    <button
+                      type="button"
+                      disabled={
+                        pending || m.id === currentAdminId || !canManageMember
+                      }
+                      onClick={() => {
+                        if (!window.confirm(`重置 ${m.email} 的两步验证？`)) return;
+                        startTransition(async () => {
+                          await resetAdminTotpAction(m.id);
+                          router.refresh();
+                        });
+                      }}
+                      className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs text-amber-900 hover:bg-amber-50 disabled:opacity-40"
+                    >
+                      重置 2FA
+                    </button>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -348,7 +420,7 @@ export function TeamAdminPanel({
               defaultValue={defaultTypeId}
               className={inputClass}
             >
-              {roleTypes.map((rt) => (
+              {assignableTypes.map((rt) => (
                 <option key={rt.id} value={rt.id}>
                   {rt.name}
                   {rt.key === "admin" ? "（默认运营）" : ""}
@@ -359,7 +431,7 @@ export function TeamAdminPanel({
         </div>
         <button
           type="submit"
-          disabled={creating}
+          disabled={creating || assignableTypes.length === 0}
           className="mt-4 rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-stone-700 disabled:opacity-60"
         >
           {creating ? "创建中..." : "创建账号"}

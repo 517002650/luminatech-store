@@ -14,7 +14,7 @@ import {
   getTotpSetupSecret,
   hasAnyAdmin,
   requireAdmin,
-  requireOwner,
+  requirePermission,
   setAdminSession,
   setPending2fa,
   setTotpSetupSecret,
@@ -212,7 +212,8 @@ export async function disableTotpAction(formData: FormData) {
 }
 
 export async function createAdminAction(formData: FormData) {
-  await requireOwner();
+  const me = await requirePermission("team");
+  const actorIsOwner = me.role === "owner";
 
   const email = String(formData.get("email") ?? "");
   const name = String(formData.get("name") ?? "");
@@ -220,6 +221,23 @@ export async function createAdminAction(formData: FormData) {
   const roleTypeId = String(formData.get("roleTypeId") ?? "").trim();
 
   if (!roleTypeId) return { error: "请选择账号类型" };
+
+  const rt = await prisma.adminRoleType.findUnique({ where: { id: roleTypeId } });
+  if (!rt) return { error: "账号类型不存在" };
+  if (rt.key === "owner" && !actorIsOwner) {
+    return { error: "不能创建 Owner 账号" };
+  }
+
+  const { parsePermissionsJson, permissionsWithinCeiling } = await import(
+    "@/lib/admin-permissions"
+  );
+  const rtPerms = parsePermissionsJson(rt.permissions);
+  if (
+    !actorIsOwner &&
+    !permissionsWithinCeiling(rtPerms, me.permissions)
+  ) {
+    return { error: "不能分配权限高于自己的账号类型" };
+  }
 
   const result = await createAdminAccount({
     email,
@@ -234,7 +252,7 @@ export async function createAdminAction(formData: FormData) {
 }
 
 export async function setAdminActiveAction(id: string, active: boolean) {
-  const me = await requireOwner();
+  const me = await requirePermission("team");
   if (id === me.id && !active) return { error: "不能停用自己的账号" };
 
   const target = await prisma.adminAccount.findUnique({
@@ -243,9 +261,12 @@ export async function setAdminActiveAction(id: string, active: boolean) {
   });
   if (!target) return { error: "账号不存在" };
 
-  const isOwner =
+  const targetIsOwner =
     target.role === "owner" || target.roleType?.key === "owner";
-  if (isOwner && target.active && !active) {
+  if (targetIsOwner && me.role !== "owner") {
+    return { error: "无权变更 Owner 账号" };
+  }
+  if (targetIsOwner && target.active && !active) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能停用最后一个 Owner" };
   }
@@ -259,9 +280,20 @@ export async function setAdminActiveAction(id: string, active: boolean) {
 }
 
 export async function resetAdminTotpAction(id: string) {
-  const me = await requireOwner();
+  const me = await requirePermission("team");
   if (id === me.id) {
     return { error: "请在「安全设置」中自行关闭两步验证" };
+  }
+
+  const target = await prisma.adminAccount.findUnique({
+    where: { id },
+    include: { roleType: { select: { key: true } } },
+  });
+  if (!target) return { error: "账号不存在" };
+  const targetIsOwner =
+    target.role === "owner" || target.roleType?.key === "owner";
+  if (targetIsOwner && me.role !== "owner") {
+    return { error: "无权重置 Owner 的两步验证" };
   }
 
   await prisma.adminAccount.update({
@@ -273,7 +305,8 @@ export async function resetAdminTotpAction(id: string) {
 }
 
 export async function updateAdminRoleAction(id: string, roleTypeId: string) {
-  const me = await requireOwner();
+  const me = await requirePermission("team");
+  const actorIsOwner = me.role === "owner";
 
   const target = await prisma.adminAccount.findUnique({
     where: { id },
@@ -288,14 +321,29 @@ export async function updateAdminRoleAction(id: string, roleTypeId: string) {
     target.role === "owner" || target.roleType?.key === "owner";
   const willBeOwner = rt.key === "owner";
 
+  if ((wasOwner || willBeOwner) && !actorIsOwner) {
+    return { error: "无权变更 Owner 相关角色" };
+  }
+
   if (wasOwner && !willBeOwner) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能降级最后一个 Owner" };
   }
 
-  if (id === me.id && !willBeOwner) {
+  if (id === me.id && !willBeOwner && wasOwner) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能降级最后一个 Owner" };
+  }
+
+  const { parsePermissionsJson, permissionsWithinCeiling } = await import(
+    "@/lib/admin-permissions"
+  );
+  const rtPerms = parsePermissionsJson(rt.permissions);
+  if (
+    !actorIsOwner &&
+    !permissionsWithinCeiling(rtPerms, me.permissions)
+  ) {
+    return { error: "不能分配权限高于自己的账号类型" };
   }
 
   await prisma.adminAccount.update({
@@ -307,20 +355,25 @@ export async function updateAdminRoleAction(id: string, roleTypeId: string) {
 }
 
 export async function createRoleTypeAction(formData: FormData) {
-  await requireOwner();
-  const { sanitizeAssignablePermissions, serializePermissions, isAdminPermission } =
-    await import("@/lib/admin-permissions");
+  const me = await requirePermission("team");
+  const actorIsOwner = me.role === "owner";
+  const {
+    applyRolePermissionEdit,
+    serializePermissions,
+    isAdminPermission,
+  } = await import("@/lib/admin-permissions");
   const { slugifyRoleTypeKey } = await import("@/lib/admin-role-types");
 
   const name = String(formData.get("name") ?? "").trim().slice(0, 40);
   if (!name) return { error: "请填写类型名称" };
 
   const rawPerms = formData.getAll("permissions").map(String);
-  const perms = sanitizeAssignablePermissions(
-    rawPerms.filter(isAdminPermission),
-  );
-  // Always keep security for any staff type
-  if (!perms.includes("security")) perms.push("security");
+  const perms = applyRolePermissionEdit({
+    existing: [],
+    requested: rawPerms.filter(isAdminPermission),
+    actorPerms: me.permissions,
+    actorIsOwner,
+  });
 
   const key = slugifyRoleTypeKey(name);
   await prisma.adminRoleType.create({
@@ -340,12 +393,13 @@ export async function updateRoleTypePermissionsAction(
   id: string,
   formData: FormData,
 ) {
-  await requireOwner();
+  const me = await requirePermission("team");
+  const actorIsOwner = me.role === "owner";
   const {
-    sanitizeAssignablePermissions,
+    applyRolePermissionEdit,
     serializePermissions,
     isAdminPermission,
-    OWNER_PERMISSIONS,
+    parsePermissionsJson,
   } = await import("@/lib/admin-permissions");
 
   const rt = await prisma.adminRoleType.findUnique({ where: { id } });
@@ -354,15 +408,13 @@ export async function updateRoleTypePermissionsAction(
 
   const name = String(formData.get("name") ?? rt.name).trim().slice(0, 40);
   const rawPerms = formData.getAll("permissions").map(String);
-  let perms = sanitizeAssignablePermissions(
-    rawPerms.filter(isAdminPermission),
-  );
-  if (!perms.includes("security")) perms.push("security");
-
-  // Owner type forced full — already blocked above
-  if (rt.key === "owner") {
-    perms = [...OWNER_PERMISSIONS];
-  }
+  const existing = parsePermissionsJson(rt.permissions);
+  const perms = applyRolePermissionEdit({
+    existing,
+    requested: rawPerms.filter(isAdminPermission),
+    actorPerms: me.permissions,
+    actorIsOwner,
+  });
 
   await prisma.adminRoleType.update({
     where: { id },
@@ -379,7 +431,7 @@ export async function updateRoleTypePermissionsAction(
 }
 
 export async function deleteRoleTypeAction(id: string) {
-  await requireOwner();
+  await requirePermission("team");
   const rt = await prisma.adminRoleType.findUnique({
     where: { id },
     include: { _count: { select: { accounts: true } } },

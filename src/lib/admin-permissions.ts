@@ -54,8 +54,8 @@ export const DEFAULT_ADMIN_PERMISSIONS: AdminPermission[] =
       k !== "team",
   );
 
-/** Permissions that may never be granted to non-owner role types. */
-export const OWNER_ONLY_PERMISSIONS: AdminPermission[] = ["team"];
+/** Permissions that must never appear on non-Owner role types (Owner key only). */
+export const OWNER_ONLY_PERMISSIONS: AdminPermission[] = [];
 
 export const SYSTEM_ROLE_KEYS = ["owner", "admin"] as const;
 export type SystemRoleKey = (typeof SYSTEM_ROLE_KEYS)[number];
@@ -80,12 +80,65 @@ export function serializePermissions(perms: AdminPermission[]): string {
   return JSON.stringify(unique);
 }
 
-/** Strip owner-only keys from a customizable role's permission list. */
+export function uniquePermissions(perms: AdminPermission[]): AdminPermission[] {
+  return Array.from(new Set(perms.filter(isAdminPermission)));
+}
+
+/** True if every permission in `target` is also held by `actor`. */
+export function permissionsWithinCeiling(
+  target: AdminPermission[],
+  actor: AdminPermission[],
+): boolean {
+  const ceiling = new Set(actor);
+  return target.every((p) => ceiling.has(p));
+}
+
+/**
+ * Cap requested permissions to what the actor themselves holds.
+ * Owner actors pass through (after optional strip of empty).
+ */
+export function capPermissionsByActor(
+  requested: AdminPermission[],
+  actorPerms: AdminPermission[],
+  actorIsOwner: boolean,
+): AdminPermission[] {
+  const cleaned = uniquePermissions(requested);
+  if (actorIsOwner) return cleaned;
+  const ceiling = new Set(actorPerms);
+  return cleaned.filter((p) => ceiling.has(p));
+}
+
+/**
+ * Apply permission checkbox save for a role type.
+ * - Actor may freely change permissions they themselves have
+ * - Permissions beyond the actor's ceiling that already exist are preserved
+ *   (disabled fields don't submit; server keeps them)
+ * - Actor cannot newly grant anything above their ceiling
+ */
+export function applyRolePermissionEdit(options: {
+  existing: AdminPermission[];
+  requested: AdminPermission[];
+  actorPerms: AdminPermission[];
+  actorIsOwner: boolean;
+}): AdminPermission[] {
+  const { existing, requested, actorPerms, actorIsOwner } = options;
+  let next = capPermissionsByActor(requested, actorPerms, actorIsOwner);
+
+  if (!actorIsOwner) {
+    const ceiling = new Set(actorPerms);
+    const preservedBeyond = existing.filter((p) => !ceiling.has(p));
+    next = uniquePermissions([...preservedBeyond, ...next]);
+  }
+
+  if (!next.includes("security")) next.push("security");
+  return next;
+}
+
+/** @deprecated use capPermissionsByActor / applyRolePermissionEdit */
 export function sanitizeAssignablePermissions(
   perms: AdminPermission[],
 ): AdminPermission[] {
-  const blocked = new Set(OWNER_ONLY_PERMISSIONS);
-  return Array.from(new Set(perms.filter((p) => !blocked.has(p))));
+  return uniquePermissions(perms);
 }
 
 /** Map admin path prefix → required permission. */
