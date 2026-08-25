@@ -1,10 +1,5 @@
 import type { ProductSpec } from "@/lib/product-i18n";
-
-import {
-  getCategoryByKey,
-  resolveCategoryKey,
-  type ProductCategoryKey,
-} from "@/lib/categories";
+import { getCategoryByKey, resolveCategoryKey } from "@/lib/categories";
 
 export type ProductFormInput = {
   slug: string;
@@ -16,7 +11,7 @@ export type ProductFormInput = {
   shortDescZh: string;
   descriptionEn: string;
   descriptionZh: string;
-  categoryKey: ProductCategoryKey;
+  categoryKey: string;
   categoryEn: string;
   categoryZh: string;
   price: number;
@@ -75,7 +70,6 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     categoryEn: String(formData.get("categoryEn") ?? "").trim(),
     slug: slugInput || slugify(nameEn),
   });
-  const category = getCategoryByKey(categoryKey);
 
   return {
     slug: slugInput || slugify(nameEn),
@@ -88,8 +82,8 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     descriptionEn: String(formData.get("descriptionEn") ?? "").trim(),
     descriptionZh: String(formData.get("descriptionZh") ?? "").trim(),
     categoryKey,
-    categoryEn: category.en,
-    categoryZh: category.zh,
+    categoryEn: "",
+    categoryZh: "",
     price: Number(formData.get("price") ?? 0),
     image: String(formData.get("image") ?? "").trim(),
     galleryText: String(formData.get("galleryText") ?? ""),
@@ -100,6 +94,21 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     stock: Number(formData.get("stock") ?? 0),
     featured: formData.get("featured") === "on",
     warranty: String(formData.get("warranty") ?? "").trim(),
+  };
+}
+
+export async function applyCategoryLabels(
+  input: ProductFormInput,
+): Promise<ProductFormInput | { error: string }> {
+  const category = await getCategoryByKey(input.categoryKey);
+  if (!category) {
+    return { error: "请选择有效的商品分类" };
+  }
+  return {
+    ...input,
+    categoryKey: category.key,
+    categoryEn: category.en,
+    categoryZh: category.zh,
   };
 }
 

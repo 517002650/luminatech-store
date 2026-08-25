@@ -2,21 +2,28 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { PRODUCT_CATEGORIES, type ProductCategoryKey } from "@/lib/categories";
+import type { ProductCategory } from "@/lib/categories";
 
 type Props = {
-  active?: ProductCategoryKey | null;
-  counts?: Partial<Record<ProductCategoryKey, number>>;
+  active?: string | null;
+  counts?: Record<string, number>;
+  categories: ProductCategory[];
+  locale: "en" | "zh";
 };
 
-export function ProductCategoryNav({ active = null, counts }: Props) {
+export function ProductCategoryNav({
+  active = null,
+  counts,
+  categories,
+  locale,
+}: Props) {
   const t = useTranslations("products");
 
-  const items: { key: ProductCategoryKey | null; label: string }[] = [
+  const items: { key: string | null; label: string }[] = [
     { key: null, label: t("allCategories") },
-    ...PRODUCT_CATEGORIES.map((c) => ({
+    ...categories.map((c) => ({
       key: c.key,
-      label: t(`categories.${c.key}`),
+      label: locale === "zh" ? c.zh : c.en,
     })),
   ];
 

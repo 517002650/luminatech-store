@@ -4,7 +4,7 @@
  * Run: npm run db:seed:brands
  */
 import { PrismaClient } from "@prisma/client";
-import { resolveCategoryKey, getCategoryByKey } from "../src/lib/categories";
+import { resolveCategoryKey, findCategoryInList, DEFAULT_CATEGORIES } from "../src/lib/categories";
 import { EFFECTS_PRODUCTS } from "./effects-products";
 import { LASER_PRODUCTS } from "./laser-products";
 
@@ -1236,7 +1236,7 @@ function toDbRow(p: ProductSeed & { categoryKey?: string }) {
     categoryEn: p.categoryEn,
     slug: p.slug,
   });
-  const category = getCategoryByKey(categoryKey);
+  const category = findCategoryInList(DEFAULT_CATEGORIES, categoryKey);
 
   return {
     slug: p.slug,

@@ -2,26 +2,30 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductTable } from "@/components/admin/ProductTable";
+import { listCategories } from "@/lib/categories";
 import { prisma } from "@/lib/db";
 
 export default async function AdminDashboardPage() {
   try {
-    const products = await prisma.product.findMany({
-      orderBy: { updatedAt: "desc" },
-      select: {
-        id: true,
-        slug: true,
-        nameEn: true,
-        nameZh: true,
-        price: true,
-        stock: true,
-        featured: true,
-        image: true,
-        categoryEn: true,
-        categoryZh: true,
-        categoryKey: true,
-      },
-    });
+    const [products, categories] = await Promise.all([
+      prisma.product.findMany({
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          slug: true,
+          nameEn: true,
+          nameZh: true,
+          price: true,
+          stock: true,
+          featured: true,
+          image: true,
+          categoryEn: true,
+          categoryZh: true,
+          categoryKey: true,
+        },
+      }),
+      listCategories(),
+    ]);
 
     return (
       <AdminShell title="商品列表">
@@ -34,7 +38,7 @@ export default async function AdminDashboardPage() {
             新增商品
           </Link>
         </div>
-        <ProductTable products={products} />
+        <ProductTable products={products} categories={categories} />
       </AdminShell>
     );
   } catch (err) {

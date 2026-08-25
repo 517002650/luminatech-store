@@ -5,7 +5,7 @@ import { createProductAction, updateProductAction } from "@/app/admin/actions";
 import { GalleryUploadField } from "@/components/admin/GalleryUploadField";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
-import { PRODUCT_CATEGORIES, resolveCategoryKey, type ProductCategoryKey } from "@/lib/categories";
+import { PRODUCT_CATEGORIES, resolveCategoryKey, type ProductCategory } from "@/lib/categories";
 
 type ProductFormValues = {
   slug?: string;
@@ -17,7 +17,7 @@ type ProductFormValues = {
   shortDescZh?: string;
   descriptionEn?: string;
   descriptionZh?: string;
-  categoryKey?: ProductCategoryKey;
+  categoryKey?: string;
   categoryEn?: string;
   categoryZh?: string;
   price?: number;
@@ -35,22 +35,31 @@ type ProductFormValues = {
 type Props = {
   productId?: string;
   initialValues?: ProductFormValues;
+  categories?: ProductCategory[];
 };
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200";
 const labelClass = "text-sm font-medium text-stone-700";
 
-export function ProductForm({ productId, initialValues = {} }: Props) {
+export function ProductForm({
+  productId,
+  initialValues = {},
+  categories = PRODUCT_CATEGORIES,
+}: Props) {
   const [image, setImage] = useState(initialValues.image ?? "");
   const [galleryText, setGalleryText] = useState(initialValues.galleryText ?? "");
   const [descriptionEn, setDescriptionEn] = useState(initialValues.descriptionEn ?? "");
   const [descriptionZh, setDescriptionZh] = useState(initialValues.descriptionZh ?? "");
-  const defaultCategoryKey = resolveCategoryKey({
-    categoryKey: initialValues.categoryKey,
-    categoryEn: initialValues.categoryEn,
-    slug: initialValues.slug,
-  });
+  const knownKeys = categories.map((c) => c.key);
+  const defaultCategoryKey = resolveCategoryKey(
+    {
+      categoryKey: initialValues.categoryKey,
+      categoryEn: initialValues.categoryEn,
+      slug: initialValues.slug,
+    },
+    knownKeys,
+  );
 
   const action = productId
     ? updateProductAction.bind(null, productId)
@@ -95,7 +104,7 @@ export function ProductForm({ productId, initialValues = {} }: Props) {
               defaultValue={defaultCategoryKey}
               className={inputClass}
             >
-              {PRODUCT_CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat.key} value={cat.key}>
                   {cat.zh} ({cat.en})
                 </option>

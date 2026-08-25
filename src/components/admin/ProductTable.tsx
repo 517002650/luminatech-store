@@ -7,9 +7,10 @@ import { Pencil, Trash2 } from "lucide-react";
 import { SafeImage } from "@/components/SafeImage";
 import { deleteProductAction } from "@/app/admin/actions";
 import {
+  findCategoryInList,
   PRODUCT_CATEGORIES,
   resolveCategoryKey,
-  type ProductCategoryKey,
+  type ProductCategory,
 } from "@/lib/categories";
 import { formatPrice } from "@/lib/format";
 
@@ -27,37 +28,54 @@ type ProductRow = {
   categoryZh: string;
 };
 
-export function ProductTable({ products }: { products: ProductRow[] }) {
+export function ProductTable({
+  products,
+  categories = PRODUCT_CATEGORIES,
+}: {
+  products: ProductRow[];
+  categories?: ProductCategory[];
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [filter, setFilter] = useState<ProductCategoryKey | "all">("all");
+  const [filter, setFilter] = useState<string>("all");
 
   const counts = useMemo(() => {
-    const map: Partial<Record<ProductCategoryKey, number>> = {};
+    const knownKeys = categories.map((c) => c.key);
+    const map: Record<string, number> = {};
     for (const p of products) {
-      const key = resolveCategoryKey({
-        categoryKey: p.categoryKey,
-        categoryEn: p.categoryEn,
-        slug: p.slug,
-      });
-      map[key] = (map[key] ?? 0) + 1;
-    }
-    return map;
-  }, [products]);
-
-  const enriched = useMemo(
-    () =>
-      products.map((p) => {
-        const key = resolveCategoryKey({
+      const key = resolveCategoryKey(
+        {
           categoryKey: p.categoryKey,
           categoryEn: p.categoryEn,
           slug: p.slug,
-        });
-        const cat = PRODUCT_CATEGORIES.find((c) => c.key === key)!;
-        return { ...p, key, labelZh: cat.zh, labelEn: cat.en };
-      }),
-    [products],
-  );
+        },
+        knownKeys,
+      );
+      map[key] = (map[key] ?? 0) + 1;
+    }
+    return map;
+  }, [products, categories]);
+
+  const enriched = useMemo(() => {
+    const knownKeys = categories.map((c) => c.key);
+    return products.map((p) => {
+      const key = resolveCategoryKey(
+        {
+          categoryKey: p.categoryKey,
+          categoryEn: p.categoryEn,
+          slug: p.slug,
+        },
+        knownKeys,
+      );
+      const cat = findCategoryInList(categories, key);
+      return {
+        ...p,
+        key,
+        labelZh: cat.zh || p.categoryZh,
+        labelEn: cat.en || p.categoryEn,
+      };
+    });
+  }, [products, categories]);
 
   const visible = useMemo(
     () => (filter === "all" ? enriched : enriched.filter((p) => p.key === filter)),
@@ -100,7 +118,7 @@ export function ProductTable({ products }: { products: ProductRow[] }) {
         >
           全部 ({products.length})
         </button>
-        {PRODUCT_CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.key}
             type="button"

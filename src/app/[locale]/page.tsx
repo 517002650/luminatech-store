@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/routing";
-import { Lightbulb, Radio, SlidersHorizontal, Zap } from "lucide-react";
+import { Lightbulb, Package, Radio, SlidersHorizontal, Zap } from "lucide-react";
+import { listCategories } from "@/lib/categories";
 import { prisma } from "@/lib/db";
 import { localizeProduct } from "@/lib/product-i18n";
 import { getProductRatingMap } from "@/lib/reviews";
@@ -12,12 +13,13 @@ type Props = {
   params: Promise<{ locale: Locale }>;
 };
 
-const categoryIcons = {
+const categoryIcons: Record<string, typeof Lightbulb> = {
   consoles: SlidersHorizontal,
   lasers: Zap,
   fixtures: Lightbulb,
   effects: Radio,
-} as const;
+  accessories: Package,
+};
 
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
@@ -27,21 +29,25 @@ export default async function HomePage({ params }: Props) {
   let featured: ReturnType<typeof localizeProduct>[] = [];
   let ratingMap = new Map<string, { avg: number; count: number }>();
   let dbError = "";
+  let homeCategories: Awaited<ReturnType<typeof listCategories>> = [];
 
   try {
-    const products = await prisma.product.findMany({
-      where: { featured: true },
-      take: 3,
-    });
+    const [products, categories] = await Promise.all([
+      prisma.product.findMany({
+        where: { featured: true },
+        take: 3,
+      }),
+      listCategories({ activeOnly: true }),
+    ]);
     featured = products.map((p) => localizeProduct(p, locale));
     ratingMap = await getProductRatingMap(products.map((p) => p.id));
+    homeCategories = categories.slice(0, 4);
   } catch (err) {
     console.error("Home page DB error:", err);
     dbError = err instanceof Error ? err.message : "Database error";
   }
 
   const features = ["shipping", "payment", "warranty"] as const;
-  const categories = ["consoles", "lasers", "fixtures", "effects"] as const;
 
   return (
     <>
@@ -79,18 +85,31 @@ export default async function HomePage({ params }: Props) {
             {t("categoriesTitle")}
           </h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((key) => {
-              const Icon = categoryIcons[key];
+            {homeCategories.map((cat) => {
+              const Icon = categoryIcons[cat.key] ?? Package;
+              const knownI18n = ["consoles", "lasers", "fixtures", "effects"].includes(cat.key);
               return (
-                <Link key={key} href={`/products?category=${key}`} className="category-card group text-center">
+                <Link
+                  key={cat.key}
+                  href={`/products?category=${cat.key}`}
+                  className="category-card group text-center"
+                >
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/10 to-violet-500/10 ring-1 ring-cyan-500/20 transition group-hover:ring-cyan-500/40">
                     <Icon className="h-6 w-6 text-cyan-400" />
                   </div>
                   <h3 className="mt-4 font-semibold text-zinc-100">
-                    {t(`categories.${key}.title`)}
+                    {knownI18n
+                      ? t(`categories.${cat.key}.title`)
+                      : locale === "zh"
+                        ? cat.zh
+                        : cat.en}
                   </h3>
                   <p className="mt-1 text-sm text-zinc-500">
-                    {t(`categories.${key}.desc`)}
+                    {knownI18n
+                      ? t(`categories.${cat.key}.desc`)
+                      : locale === "zh"
+                        ? cat.en
+                        : cat.zh}
                   </p>
                 </Link>
               );

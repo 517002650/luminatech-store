@@ -7,7 +7,7 @@ import { ProductCategoryNav } from "@/components/ProductCategoryNav";
 import {
   categoryLabels,
   isValidCategoryKey,
-  type ProductCategoryKey,
+  listCategories,
 } from "@/lib/categories";
 import type { Locale } from "@/i18n/routing";
 
@@ -20,9 +20,13 @@ export async function generateMetadata({ params, searchParams }: Props) {
   const { locale } = await params;
   const { category } = await searchParams;
   const t = await getTranslations({ locale, namespace: "products" });
+  const categories = await listCategories({ activeOnly: true });
+  const keys = categories.map((c) => c.key);
 
-  if (isValidCategoryKey(category)) {
-    return { title: `${categoryLabels(category, locale)} | ${t("title")}` };
+  if (isValidCategoryKey(category, keys)) {
+    return {
+      title: `${categoryLabels(category, locale, categories)} | ${t("title")}`,
+    };
   }
   return { title: t("title") };
 }
@@ -33,7 +37,9 @@ export default async function ProductsPage({ params, searchParams }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("products");
 
-  const activeCategory = isValidCategoryKey(categoryParam) ? categoryParam : null;
+  const categories = await listCategories({ activeOnly: true });
+  const keys = categories.map((c) => c.key);
+  const activeCategory = isValidCategoryKey(categoryParam, keys) ? categoryParam : null;
 
   const [products, categoryGroups] = await Promise.all([
     prisma.product.findMany({
@@ -51,15 +57,20 @@ export default async function ProductsPage({ params, searchParams }: Props) {
 
   const counts = Object.fromEntries(
     categoryGroups.map((g) => [g.categoryKey, g._count._all]),
-  ) as Partial<Record<ProductCategoryKey, number>>;
+  );
 
   const pageTitle = activeCategory
-    ? categoryLabels(activeCategory, locale)
+    ? categoryLabels(activeCategory, locale, categories)
     : t("title");
 
   return (
     <>
-      <ProductCategoryNav active={activeCategory} counts={counts} />
+      <ProductCategoryNav
+        active={activeCategory}
+        counts={counts}
+        categories={categories}
+        locale={locale}
+      />
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         <h1 className="text-3xl font-bold text-zinc-50">{pageTitle}</h1>

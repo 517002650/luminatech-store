@@ -11,10 +11,14 @@ import {
 import { sendShippingEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
 import {
+  applyCategoryLabels,
   formDataToProductInput,
   productInputToDbData,
   validateProductInput,
 } from "@/lib/product-admin";
+import {
+  slugifyCategoryKey,
+} from "@/lib/categories";
 import {
   buildCountryRatesFromForm,
   updateShippingSettings,
@@ -45,14 +49,17 @@ export async function logoutAction() {
 export async function createProductAction(formData: FormData) {
   await requireAdmin();
 
-  const input = formDataToProductInput(formData);
-  const errors = validateProductInput(input);
+  const raw = formDataToProductInput(formData);
+  const withCat = await applyCategoryLabels(raw);
+  if ("error" in withCat) return withCat;
+
+  const errors = validateProductInput(withCat);
   if (errors.length > 0) {
     return { error: errors.join("；") };
   }
 
   try {
-    await prisma.product.create({ data: productInputToDbData(input) });
+    await prisma.product.create({ data: productInputToDbData(withCat) });
   } catch {
     return { error: "创建失败，Slug 或 SKU 可能已存在" };
   }
@@ -68,8 +75,11 @@ export async function createProductAction(formData: FormData) {
 export async function updateProductAction(id: string, formData: FormData) {
   await requireAdmin();
 
-  const input = formDataToProductInput(formData);
-  const errors = validateProductInput(input);
+  const raw = formDataToProductInput(formData);
+  const withCat = await applyCategoryLabels(raw);
+  if ("error" in withCat) return withCat;
+
+  const errors = validateProductInput(withCat);
   if (errors.length > 0) {
     return { error: errors.join("；") };
   }
@@ -77,7 +87,7 @@ export async function updateProductAction(id: string, formData: FormData) {
   try {
     await prisma.product.update({
       where: { id },
-      data: productInputToDbData(input),
+      data: productInputToDbData(withCat),
     });
   } catch {
     return { error: "更新失败，Slug 或 SKU 可能已被占用" };
@@ -88,8 +98,8 @@ export async function updateProductAction(id: string, formData: FormData) {
   revalidatePath("/zh");
   revalidatePath("/en/products");
   revalidatePath("/zh/products");
-  revalidatePath(`/en/products/${input.slug}`);
-  revalidatePath(`/zh/products/${input.slug}`);
+  revalidatePath(`/en/products/${withCat.slug}`);
+  revalidatePath(`/zh/products/${withCat.slug}`);
   redirect("/admin");
 }
 
@@ -306,3 +316,109 @@ export async function updateShippingSettingsAction(formData: FormData) {
 
   return { success: true as const };
 }
+
+function revalidateCategoryPaths() {
+  revalidatePath("/admin");
+  revalidatePath("/admin/categories");
+  revalidatePath("/en");
+  revalidatePath("/zh");
+  revalidatePath("/en/products");
+  revalidatePath("/zh/products");
+}
+
+export async function createCategoryAction(formData: FormData) {
+  await requireAdmin();
+
+  const nameEn = String(formData.get("nameEn") ?? "").trim();
+  const nameZh = String(formData.get("nameZh") ?? "").trim();
+  const keyInput = String(formData.get("key") ?? "").trim();
+  const key = slugifyCategoryKey(keyInput || nameEn);
+  const sortOrder = Number(formData.get("sortOrder") ?? 0);
+  const active = formData.get("active") === "on";
+
+  if (!nameEn || !nameZh || !key) {
+    return { error: "请填写中英文名称与标识" };
+  }
+
+  try {
+    await prisma.category.create({
+      data: {
+        key,
+        nameEn,
+        nameZh,
+        sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
+        active,
+      },
+    });
+  } catch {
+    return { error: "创建失败，分类标识可能已存在" };
+  }
+
+  revalidateCategoryPaths();
+  redirect("/admin/categories");
+}
+
+export async function updateCategoryAction(id: string, formData: FormData) {
+  await requireAdmin();
+
+  const existing = await prisma.category.findUnique({ where: { id } });
+  if (!existing) return { error: "分类不存在" };
+
+  const nameEn = String(formData.get("nameEn") ?? "").trim();
+  const nameZh = String(formData.get("nameZh") ?? "").trim();
+  const keyInput = String(formData.get("key") ?? "").trim();
+  const key = slugifyCategoryKey(keyInput || nameEn);
+  const sortOrder = Number(formData.get("sortOrder") ?? 0);
+  const active = formData.get("active") === "on";
+
+  if (!nameEn || !nameZh || !key) {
+    return { error: "请填写中英文名称与标识" };
+  }
+
+  try {
+    await prisma.category.update({
+      where: { id },
+      data: {
+        key,
+        nameEn,
+        nameZh,
+        sortOrder: Number.isFinite(sortOrder) ? sortOrder : 0,
+        active,
+      },
+    });
+  } catch {
+    return { error: "更新失败，分类标识可能已被占用" };
+  }
+
+  // Keep product labels / keys in sync when category changes.
+  await prisma.product.updateMany({
+    where: { categoryKey: existing.key },
+    data: {
+      categoryKey: key,
+      categoryEn: nameEn,
+      categoryZh: nameZh,
+    },
+  });
+
+  revalidateCategoryPaths();
+  redirect("/admin/categories");
+}
+
+export async function deleteCategoryAction(id: string) {
+  await requireAdmin();
+
+  const existing = await prisma.category.findUnique({ where: { id } });
+  if (!existing) return { error: "分类不存在" };
+
+  const productCount = await prisma.product.count({
+    where: { categoryKey: existing.key },
+  });
+  if (productCount > 0) {
+    return { error: `该分类下还有 ${productCount} 个商品，请先改商品分类后再删除` };
+  }
+
+  await prisma.category.delete({ where: { id } });
+  revalidateCategoryPaths();
+  return { success: true as const };
+}
+

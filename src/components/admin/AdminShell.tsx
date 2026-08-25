@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { LayoutDashboard, LogOut, Package, Plus, ShoppingCart, Store, Ticket, Truck } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  Package,
+  Plus,
+  ShoppingCart,
+  Store,
+  Tags,
+  Ticket,
+  Truck,
+} from "lucide-react";
 import { logoutAction } from "@/app/admin/actions";
 
 export function AdminShell({
@@ -34,6 +44,13 @@ export function AdminShell({
               >
                 <Plus className="h-4 w-4" />
                 新增商品
+              </Link>
+              <Link
+                href="/admin/categories"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                <Tags className="h-4 w-4" />
+                商品分类
               </Link>
               <Link
                 href="/admin/orders"

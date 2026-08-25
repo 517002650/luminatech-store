@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ProductDownloadsPanel } from "@/components/admin/ProductDownloadsPanel";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { resolveCategoryKey } from "@/lib/categories";
+import { listCategories, resolveCategoryKey } from "@/lib/categories";
 import { prisma } from "@/lib/db";
 import { specsToText } from "@/lib/product-admin";
 
@@ -28,22 +28,27 @@ function parseJsonSpecs(value: string) {
 
 export default async function EditProductPage({ params }: Props) {
   const { id } = await params;
-  const product = await prisma.product.findUnique({
-    where: { id },
-    include: {
-      downloads: { orderBy: [{ type: "asc" }, { createdAt: "desc" }] },
-    },
-  });
+  const [product, categories] = await Promise.all([
+    prisma.product.findUnique({
+      where: { id },
+      include: {
+        downloads: { orderBy: [{ type: "asc" }, { createdAt: "desc" }] },
+      },
+    }),
+    listCategories(),
+  ]);
 
   if (!product) notFound();
 
   const gallery = parseJsonArray(product.images);
+  const knownKeys = categories.map((c) => c.key);
 
   return (
     <AdminShell title={`编辑商品：${product.nameZh}`}>
       <div className="space-y-8">
         <ProductForm
           productId={product.id}
+          categories={categories}
           initialValues={{
             slug: product.slug,
             sku: product.sku,
@@ -54,11 +59,14 @@ export default async function EditProductPage({ params }: Props) {
             shortDescZh: product.shortDescZh,
             descriptionEn: product.descriptionEn,
             descriptionZh: product.descriptionZh,
-            categoryKey: resolveCategoryKey({
-              categoryKey: product.categoryKey,
-              categoryEn: product.categoryEn,
-              slug: product.slug,
-            }),
+            categoryKey: resolveCategoryKey(
+              {
+                categoryKey: product.categoryKey,
+                categoryEn: product.categoryEn,
+                slug: product.slug,
+              },
+              knownKeys,
+            ),
             categoryEn: product.categoryEn,
             categoryZh: product.categoryZh,
             price: product.price,
