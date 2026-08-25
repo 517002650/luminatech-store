@@ -4,7 +4,7 @@ import { localizeProduct } from "@/lib/product-i18n";
 import { getProductRatingMap } from "@/lib/reviews";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductCategoryNav } from "@/components/ProductCategoryNav";
-import { SearchBar } from "@/components/SearchBar";
+import { ClearSearchLink, SearchBar } from "@/components/SearchBar";
 import {
   categoryLabels,
   isValidCategoryKey,
@@ -99,9 +99,16 @@ export default async function ProductsPage({ params, searchParams }: Props) {
           <div>
             <h1 className="text-3xl font-bold text-zinc-50">{pageTitle}</h1>
             <p className="mt-2 text-zinc-500">{countLabel}</p>
+            {searchQuery ? (
+              <ClearSearchLink category={activeCategory} />
+            ) : null}
           </div>
           <div className="w-full sm:max-w-sm">
-            <SearchBar variant="header" defaultValue={searchQuery} />
+            <SearchBar
+              variant="header"
+              defaultValue={searchQuery}
+              category={activeCategory}
+            />
           </div>
         </div>
 

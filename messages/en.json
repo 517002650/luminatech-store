@@ -23,6 +23,7 @@
     "empty": "No products matched your search. Try another keyword or browse all categories.",
     "popular": "Popular",
     "clear": "Clear",
+    "clearSearch": "Clear search, show all",
     "suggestions": {
       "laser": "Laser",
       "console": "Console",

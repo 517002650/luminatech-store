@@ -23,6 +23,7 @@
     "empty": "未找到相关商品，请换个关键词或浏览全部分类。",
     "popular": "热门搜索",
     "clear": "清除",
+    "clearSearch": "清除搜索，显示全部",
     "suggestions": {
       "laser": "激光灯",
       "console": "灯光控台",
