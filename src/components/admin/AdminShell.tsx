@@ -19,6 +19,7 @@ import {
   Truck,
   UserCog,
   Users,
+  Wallet,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/account-actions";
 import {
@@ -40,6 +41,7 @@ const BASE_NAV = [
   { href: "/admin/coupons", label: "优惠码", icon: Ticket },
   { href: "/admin/affiliates", label: "推广员", icon: Megaphone },
   { href: "/admin/commissions", label: "推广提成", icon: Percent },
+  { href: "/admin/finance", label: "财务", icon: Wallet },
   { href: "/admin/shipping", label: "运费设置", icon: Truck },
   { href: "/admin/media", label: "媒体清理", icon: Images },
   { href: "/admin/backup", label: "数据备份", icon: Database },

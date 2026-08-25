@@ -1,15 +1,40 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminWithPermission } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { formatOrderId, ORDER_STATUS_LABELS, parseOrderItems, parseShippingAddress } from "@/lib/orders";
+import {
+  formatOrderId,
+  ORDER_STATUS_LABELS,
+  parseOrderItems,
+  parseShippingAddress,
+} from "@/lib/orders";
+import { resolveFinanceDateRange } from "@/lib/finance-report";
 
-export async function GET() {
-  if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "未授权" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  if (!(await getAdminWithPermission("finance"))) {
+    if (!(await getAdminWithPermission("orders"))) {
+      return NextResponse.json({ error: "未授权" }, { status: 401 });
+    }
   }
 
-  const orders = await prisma.order.findMany({ orderBy: { createdAt: "desc" } });
+  const sp = req.nextUrl.searchParams;
+  const fromQ = sp.get("from");
+  const toQ = sp.get("to");
+  const hasRange = Boolean(fromQ || toQ);
+  const range = hasRange
+    ? resolveFinanceDateRange({
+        range: "custom",
+        from: fromQ,
+        to: toQ,
+      })
+    : null;
+
+  const orders = await prisma.order.findMany({
+    where: range
+      ? { createdAt: { gte: range.from, lte: range.to } }
+      : undefined,
+    orderBy: { createdAt: "desc" },
+  });
 
   const rows = orders.flatMap((order) => {
     const items = parseOrderItems(order.items);
@@ -20,26 +45,49 @@ export async function GET() {
       收件人: shipping?.name ?? "",
       电话: shipping?.phone ?? "",
       地址: shipping
-        ? [shipping.line1, shipping.line2, shipping.city, shipping.state, shipping.country, shipping.postalCode]
+        ? [
+            shipping.line1,
+            shipping.line2,
+            shipping.city,
+            shipping.state,
+            shipping.country,
+            shipping.postalCode,
+          ]
             .filter(Boolean)
             .join(" ")
         : "",
-      订单金额: order.total,
-      状态: ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] ?? order.status,
+      商品小计: order.subtotal ?? 0,
+      优惠金额: order.discountAmount ?? 0,
+      运费: order.shippingFee ?? 0,
+      税费: order.taxAmount ?? 0,
+      订单实收: order.total,
+      已退款: order.refundedAmount ?? 0,
+      优惠码: order.couponCode || "",
+      推广码: order.affiliateCode || "",
+      状态:
+        ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] ??
+        order.status,
       支付方式: order.paymentMethod,
       支付ID: order.paymentId ?? "",
       下单时间: new Date(order.createdAt).toLocaleString("zh-CN"),
     };
 
     if (items.length === 0) {
-      return [{ ...base, 商品: "", 数量: 0, 单价: 0, 小计: 0 }];
+      return [{ ...base, 商品: "", 数量: 0, 单价: 0, 行小计: 0 }];
     }
 
     return items.map((item, index) => ({
       ...base,
       订单号: index === 0 ? formatOrderId(order.id) : "",
       邮箱: index === 0 ? base.邮箱 : "",
-      订单金额: index === 0 ? base.订单金额 : "",
+      商品小计: index === 0 ? base.商品小计 : "",
+      优惠金额: index === 0 ? base.优惠金额 : "",
+      运费: index === 0 ? base.运费 : "",
+      税费: index === 0 ? base.税费 : "",
+      订单实收: index === 0 ? base.订单实收 : "",
+      已退款: index === 0 ? base.已退款 : "",
+      优惠码: index === 0 ? base.优惠码 : "",
+      推广码: index === 0 ? base.推广码 : "",
       状态: index === 0 ? base.状态 : "",
       支付方式: index === 0 ? base.支付方式 : "",
       支付ID: index === 0 ? base.支付ID : "",
@@ -47,7 +95,7 @@ export async function GET() {
       商品: `${item.nameZh} / ${item.nameEn}`,
       数量: item.quantity,
       单价: item.price,
-      小计: item.price * item.quantity,
+      行小计: item.price * item.quantity,
     }));
   });
 
@@ -56,11 +104,15 @@ export async function GET() {
   XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
   const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
 
+  const stamp = range
+    ? `${range.fromStr}_${range.toStr}`
+    : new Date().toISOString().slice(0, 10);
+
   return new NextResponse(buffer, {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="orders-${new Date().toISOString().slice(0, 10)}.xlsx"`,
+      "Content-Disposition": `attachment; filename="orders-${stamp}.xlsx"`,
     },
   });
 }

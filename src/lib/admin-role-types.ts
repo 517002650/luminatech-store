@@ -38,11 +38,15 @@ export async function ensureAdminRoleTypes() {
         data: {
           name: existingAdmin.name || "Admin",
           isSystem: true,
-          // Keep Owner-customized permissions; only fill if empty/unset
-          permissions:
-            parsePermissionsJson(existingAdmin.permissions).length > 0
-              ? existingAdmin.permissions
-              : adminPerms,
+          permissions: (() => {
+            const current = parsePermissionsJson(existingAdmin.permissions);
+            if (current.length === 0) return adminPerms;
+            // Soft-add new default modules (e.g. finance) without wiping customizations
+            if (!current.includes("finance")) {
+              return serializePermissions([...current, "finance"]);
+            }
+            return existingAdmin.permissions;
+          })(),
         },
       })
     : await prisma.adminRoleType.create({

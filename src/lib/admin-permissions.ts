@@ -11,6 +11,7 @@ export const ADMIN_PERMISSION_KEYS = [
   "coupons",
   "affiliates",
   "commissions",
+  "finance",
   "shipping",
   "media",
   "backup",
@@ -31,6 +32,7 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   coupons: "优惠码",
   affiliates: "推广员",
   commissions: "推广提成",
+  finance: "财务账本",
   shipping: "运费设置",
   media: "媒体清理",
   backup: "数据备份",
@@ -154,6 +156,7 @@ export function permissionForAdminPath(pathname: string): AdminPermission | null
   if (path.startsWith("/admin/coupons")) return "coupons";
   if (path.startsWith("/admin/affiliates")) return "affiliates";
   if (path.startsWith("/admin/commissions")) return "commissions";
+  if (path.startsWith("/admin/finance")) return "finance";
   if (path.startsWith("/admin/shipping")) return "shipping";
   if (path.startsWith("/admin/media")) return "media";
   if (path.startsWith("/admin/backup")) return "backup";
@@ -174,6 +177,7 @@ export const NAV_PERMISSION: Record<string, AdminPermission> = {
   "/admin/coupons": "coupons",
   "/admin/affiliates": "affiliates",
   "/admin/commissions": "commissions",
+  "/admin/finance": "finance",
   "/admin/shipping": "shipping",
   "/admin/media": "media",
   "/admin/backup": "backup",

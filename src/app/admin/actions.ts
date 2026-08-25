@@ -961,12 +961,28 @@ export async function setCommissionStatusAction(
   status: "pending" | "approved" | "paid" | "void",
   _formData?: FormData,
 ) {
-  await requireAdmin();
+  await requirePermission("commissions");
   const { COMMISSION_STATUSES } = await import("@/lib/affiliates");
   if (!(COMMISSION_STATUSES as readonly string[]).includes(status)) {
     return;
   }
   await prisma.commission.update({ where: { id }, data: { status } });
   revalidatePath("/admin/commissions");
+  revalidatePath("/admin/finance");
+}
+
+/** Mark many approved commissions as paid (finance payout desk). */
+export async function markApprovedCommissionsPaidAction(ids: string[]) {
+  await requirePermission("finance");
+  const unique = Array.from(new Set(ids.filter(Boolean))).slice(0, 500);
+  if (unique.length === 0) return { error: "没有可结算记录" as const };
+
+  await prisma.commission.updateMany({
+    where: { id: { in: unique }, status: "approved" },
+    data: { status: "paid" },
+  });
+  revalidatePath("/admin/commissions");
+  revalidatePath("/admin/finance");
+  return { success: true as const, count: unique.length };
 }
 
