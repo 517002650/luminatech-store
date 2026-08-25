@@ -484,7 +484,8 @@ npx tsx scripts/seed-multi-variants.ts
 | 现象 | 可能原因 | 处理 |
 |------|----------|------|
 | 前台 `/zh` 500 或空白 | 数据库连不上 / 表未建 | 检查 `DATABASE_URL`，Redeploy；看 Build 日志是否有 `db push` 成功 |
-| 后台登录后报错 | 同上 | 同上；修复后应看到商品列表 |
+| 后台登录后报错（数据库） | `DATABASE_URL` 错 / 表未建 | 检查 Neon、`db push`；见下方「数据库连接失败」红框 |
+| 香港 IP `/admin/login` 有表单，登录后 `This page couldn't load` | HTTP 代理下 Server Actions + Secure Cookie；或 `next.config` 未用 `experimental.serverActions` | 设 `SERVER_ACTIONS_ALLOWED_ORIGINS`、`ADMIN_COOKIE_SECURE=false` 并 Redeploy；详见 [HK-REVERSE-PROXY.md §12 / §16](./HK-REVERSE-PROXY.md) |
 | 后台登录页提示会话密钥未配置 | 未设 `ADMIN_SECRET` 且 `ADMIN_PASSWORD` 过弱/缺失 | Vercel 设 `ADMIN_SECRET`（≥16）或强 `ADMIN_PASSWORD` 并 Redeploy |
 | 部署后要求创建 Owner | 正常：空库首次引导 | 用安装口令 + 邮箱创建首个 Owner |
 | 下架商品仍出现在前台 | 缓存未刷新或未点保存 | 后台再点一次上下架；硬刷新前台 |
@@ -570,7 +571,7 @@ npx tsx scripts/seed-multi-variants.ts
 | `DEPLOY.md` | 首次部署补充说明 |
 | `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `docs/DEPLOYMENT.md` | **部署上线防忘手册**（Vercel + Cloudinary + PostgreSQL） |
-| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、Nginx 配置、403 排查 |
+| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、Nginx 配置、403 排查、**§16 IP 后台 BUG 记录** |
 | `docs/TECHNICAL.md` | 日常运维与技术说明 |
 | `.env.example` | 环境变量模板 |
 

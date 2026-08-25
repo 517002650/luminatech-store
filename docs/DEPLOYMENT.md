@@ -654,7 +654,7 @@ npx tsx scripts/verify-cloudinary.ts
 | 文档 | 何时看 |
 |------|--------|
 | **本文 `docs/DEPLOYMENT.md`** | 部署 / **§5.1 触发重新部署** / **§5.1.1 accept-data-loss 构建失败** / 忘记上线步骤时 |
-| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、403 排查、Nginx 配置 |
+| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、403 排查、Nginx 配置、**§16 IP 后台 BUG 记录** |
 | `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `.cursor/rules/vercel-deploy.mdc` | AI：功能提交后必须生产部署的约定 |
 | `docs/TECHNICAL.md` | 日常改商品、订单、排错 |

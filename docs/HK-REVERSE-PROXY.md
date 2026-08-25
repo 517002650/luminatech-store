@@ -442,11 +442,11 @@ x-powered-by: Next.js
 
 | 文件 | 改动 | 作用 |
 |------|------|------|
-| `next.config.ts` | 读取 `SERVER_ACTIONS_ALLOWED_ORIGINS`，写入 `experimental.serverActions.allowedOrigins` | 允许经香港 IP 发起的 Server Actions |
+| `next.config.ts` | 读取 `SERVER_ACTIONS_ALLOWED_ORIGINS`，写入 **`experimental.serverActions.allowedOrigins`**（Next.js 16 必须放 `experimental` 下，勿写顶层 `serverActions`） | 允许经香港 IP 发起的 Server Actions |
 | `src/lib/admin-auth.ts` | 读取 `ADMIN_COOKIE_SECURE`（默认生产为 `true`） | HTTP 代理下可设为 `false` 以写入会话 Cookie |
 | `.env.example` | 注释示例 | 本地/文档参考 |
 
-> **注意**：`SERVER_ACTIONS_ALLOWED_ORIGINS` 在 **构建时** 写入配置，改 Vercel 环境变量后必须 **Redeploy** 才会生效。
+> **注意**：`SERVER_ACTIONS_ALLOWED_ORIGINS` 在 **构建时** 写入配置，改 Vercel 环境变量后必须 **Redeploy** 才会生效。构建成功时应看到 `Experiments: serverActions`；若出现 `Unrecognized key(s): serverActions` 说明配置路径错误，见 **§16 BUG 记录**。
 
 ### 12.3 启用步骤（当前 IP 阶段）
 
@@ -639,11 +639,62 @@ NEXT_PUBLIC_APP_URL=https://stagevio.com
 
 ---
 
-## 16. 文档索引
+## 16. BUG 修复记录
+
+### 2026-08-26 — 香港 IP 访问后台：登录页能开，登录后 `This page couldn't load`
+
+| 项目 | 内容 |
+|------|------|
+| **现象** | `http://150.109.71.243/en` 前台正常；`/admin/login` 能看到表单；点击登录或进入 `/admin` 报 `This page couldn't load` / `A server error occurred` |
+| **对照** | VPN + `https://517002650-luminatech-store.vercel.app/admin` 完全正常 |
+| **判定** | 不是数据库/Vercel 应用坏了，是 **HTTP + 反向代理** 与 Next.js 安全策略冲突 |
+
+#### 根因（两层）
+
+**1. 业务层（预期行为）**
+
+| 原因 | 说明 |
+|------|------|
+| Server Actions Origin 校验 | 浏览器 Origin 为 `http://150.109.71.243`，Nginx 转给 Vercel 的 Host 为 `517002650-luminatech-store.vercel.app`，Next.js 默认拒绝 Server Action / 部分 RSC 请求 |
+| Cookie `Secure` | 生产环境管理员 Cookie 默认 `Secure=true`，在 **HTTP** 下浏览器不保存会话，登录无法保持 |
+
+**2. 实现层（本次修复中发现的配置 BUG）**
+
+| 原因 | 说明 |
+|------|------|
+| `next.config.ts` 路径错误 | 首次把 `serverActions.allowedOrigins` 写在顶层；Next.js **16.3.2** 构建告警 `Unrecognized key(s): serverActions`，**环境变量实际未生效** |
+| 正确写法 | 必须写在 `experimental.serverActions.allowedOrigins` 下；构建日志应出现 `Experiments: serverActions` |
+
+#### 修复内容
+
+| 层级 | 改动 |
+|------|------|
+| **Vercel 环境变量** | `SERVER_ACTIONS_ALLOWED_ORIGINS=150.109.71.243`、`ADMIN_COOKIE_SECURE=false`（Production） |
+| **代码** | `next.config.ts`：`experimental.serverActions.allowedOrigins`；`admin-auth.ts`：读取 `ADMIN_COOKIE_SECURE` |
+| **文档** | 本文 §12；`TECHNICAL.md` 环境变量表；`DEPLOYMENT.md` 后台入口 |
+| **Git** | `9792578`（功能+文档）、`b5ba62e`（修正 `experimental` 路径） |
+| **部署** | `git push origin main` + `npx vercel --prod --yes` × 2（第二次才使 `allowedOrigins` 真正生效） |
+
+#### 验证通过标准
+
+- [ ] 构建日志 **无** `Unrecognized key(s): serverActions`，且有 `Experiments: serverActions`
+- [ ] 大陆关 VPN：`http://150.109.71.243/admin/login` 邮箱登录成功进入商品列表
+- [ ] `https://517002650-luminatech-store.vercel.app/zh` → 200；`/admin` 未登录 → 307 `/admin/login`
+
+#### 若以后再遇到类似问题
+
+1. 确认 Vercel Production 已设 §12.3 两个环境变量并已 **Redeploy**
+2. 打开最新 Deployment **Build Logs**，搜 `serverActions` / `Unrecognized key`
+3. 对照 §12.2 确认 `next.config.ts` 使用 `experimental.serverActions`
+4. 买回 `stagevio.com` 后按 **§12.4** 改回 Secure Cookie，勿长期 `ADMIN_COOKIE_SECURE=false`
+
+---
+
+## 17. 文档索引
 
 | 文档 | 何时看 |
 |------|--------|
-| **本文 `docs/HK-REVERSE-PROXY.md`** | 香港反向代理配置、403 排查、忘步骤时 |
+| **本文 `docs/HK-REVERSE-PROXY.md`** | 香港反向代理配置、403 排查、**§16 BUG 记录**、忘步骤时 |
 | `docs/DEPLOYMENT.md` | Vercel / Neon / Cloudinary 首次部署 |
 | `docs/BRAND.md` | stagevio.com 域名与品牌环境变量 |
 | `docs/TECHNICAL.md` | 日常改商品、订单、后台运营 |
