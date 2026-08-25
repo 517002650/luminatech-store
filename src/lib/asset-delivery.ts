@@ -38,24 +38,77 @@ export function parseCloudinaryUrl(url: string): CloudinaryRef | null {
   };
 }
 
-function buildSignedCloudinaryUrl(ref: CloudinaryRef, deliveryType: CloudinaryRef["deliveryType"]) {
-  configureCloudinary();
-  return cloudinary.url(ref.publicId, {
-    resource_type: ref.resourceType,
-    type: deliveryType,
-    sign_url: true,
-    secure: true,
-  });
+/** Split `folder/file.zip` → public id + format for Cloudinary download helpers. */
+export function splitPublicIdAndFormat(fullPublicId: string) {
+  const dot = fullPublicId.lastIndexOf(".");
+  if (dot <= 0 || dot === fullPublicId.length - 1) {
+    return { publicId: fullPublicId, format: "" };
+  }
+  return {
+    publicId: fullPublicId.slice(0, dot),
+    format: fullPublicId.slice(dot + 1),
+  };
 }
 
-function candidateCloudinaryUrls(ref: CloudinaryRef) {
-  const types: CloudinaryRef["deliveryType"][] = [
-    ref.deliveryType,
-    "authenticated",
-    "upload",
-    "private",
-  ];
-  return [...new Set(types)].map((type) => buildSignedCloudinaryUrl(ref, type));
+async function resolveCloudinaryDeliveryType(ref: CloudinaryRef) {
+  configureCloudinary();
+  const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
+  const lookupId = format ? publicId : ref.publicId;
+
+  for (const type of [ref.deliveryType, "upload", "authenticated", "private"] as const) {
+    try {
+      const resource = await cloudinary.api.resource(lookupId, {
+        resource_type: ref.resourceType,
+        type,
+      });
+      if (resource?.public_id) {
+        return type;
+      }
+    } catch {
+      // try next delivery type
+    }
+  }
+
+  return ref.deliveryType;
+}
+
+function buildSignedCloudinaryUrls(ref: CloudinaryRef, deliveryType: CloudinaryRef["deliveryType"]) {
+  configureCloudinary();
+  const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
+  const fmt = format || "bin";
+  const expiresAt = Math.floor(Date.now() / 1000) + 3600;
+  const urls: string[] = [];
+
+  urls.push(
+    cloudinary.utils.private_download_url(publicId, fmt, {
+      resource_type: ref.resourceType,
+      type: deliveryType,
+      expires_at: expiresAt,
+      attachment: true,
+    }),
+  );
+
+  urls.push(
+    cloudinary.url(format ? publicId : ref.publicId, {
+      resource_type: ref.resourceType,
+      type: deliveryType,
+      format: fmt,
+      sign_url: true,
+      secure: true,
+      flags: "attachment",
+    }),
+  );
+
+  urls.push(
+    cloudinary.url(format ? publicId : ref.publicId, {
+      resource_type: ref.resourceType,
+      type: deliveryType,
+      sign_url: true,
+      secure: true,
+    }),
+  );
+
+  return [...new Set(urls)];
 }
 
 export function buildContentDisposition(fileName: string) {
@@ -63,20 +116,26 @@ export function buildContentDisposition(fileName: string) {
   return `attachment; filename="${safeAscii}"; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
-/** Fetch purchaser asset bytes (Cloudinary signed URL or local public file). */
+/** Fetch asset bytes (Cloudinary signed URL or local public file). */
 export async function fetchAssetResponse(fileUrl: string) {
   if (fileUrl.startsWith("http")) {
     const ref = parseCloudinaryUrl(fileUrl);
     if (ref && isCloudinaryConfigured()) {
-      for (const url of candidateCloudinaryUrls(ref)) {
+      const deliveryType = await resolveCloudinaryDeliveryType(ref);
+      const candidates = buildSignedCloudinaryUrls(ref, deliveryType);
+
+      let lastStatus = 0;
+      for (const url of candidates) {
         const res = await fetch(url);
+        lastStatus = res.status;
         if (res.ok) return res;
       }
-      throw new Error("cloudinary_fetch_failed");
+
+      throw new Error(`cloudinary_fetch_failed:${lastStatus}`);
     }
 
     const res = await fetch(fileUrl);
-    if (!res.ok) throw new Error("remote_fetch_failed");
+    if (!res.ok) throw new Error(`remote_fetch_failed:${res.status}`);
     return res;
   }
 

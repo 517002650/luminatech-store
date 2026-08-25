@@ -225,9 +225,7 @@ export function ProductDownloadsPanel({ productId, downloads }: Props) {
                         </button>
                       )}
                       <a
-                        href={item.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                        href={`/api/admin/asset?url=${encodeURIComponent(item.fileUrl)}&name=${encodeURIComponent(item.fileName)}`}
                         className="inline-flex items-center gap-1 rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-600 hover:bg-stone-50"
                       >
                         <Download className="h-3.5 w-3.5" />
