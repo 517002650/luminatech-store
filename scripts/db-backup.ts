@@ -2,12 +2,8 @@
  * Export all Prisma tables to backups/*.json
  *
  * Usage:
- *   # Backup whatever DATABASE_URL points to (local SQLite or Postgres)
  *   npm run db:backup
- *
- *   # Backup Neon / production without changing .env
- *   set BACKUP_DATABASE_URL=postgresql://...neon.tech/neondb?sslmode=require
- *   npm run db:backup
+ *   set BACKUP_DATABASE_URL=postgresql://... && npm run db:backup
  */
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
@@ -67,9 +63,10 @@ async function main() {
   ]);
 
   const payload = {
-    version: 1,
+    version: 1 as const,
     exportedAt: new Date().toISOString(),
     engine,
+    source: "cli" as const,
     counts: {
       users: users.length,
       passwordResetTokens: passwordResetTokens.length,
@@ -99,10 +96,9 @@ async function main() {
   const dir = path.join(process.cwd(), "backups");
   await mkdir(dir, { recursive: true });
   const file = path.join(dir, `db-${stamp()}.json`);
-  await writeFile(file, JSON.stringify(payload, null, 2), "utf8");
-
-  // Also refresh a stable "latest" pointer for sync scripts
-  await writeFile(path.join(dir, "latest.json"), JSON.stringify(payload, null, 2), "utf8");
+  const json = JSON.stringify(payload, null, 2);
+  await writeFile(file, json, "utf8");
+  await writeFile(path.join(dir, "latest.json"), json, "utf8");
 
   console.log(`Saved ${file}`);
   console.log(`Also updated backups/latest.json`);

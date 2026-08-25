@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  DatabaseBackup,
   LayoutDashboard,
   LogOut,
   Package,
@@ -72,6 +73,13 @@ export function AdminShell({
               >
                 <Truck className="h-4 w-4" />
                 运费设置
+              </Link>
+              <Link
+                href="/admin/backup"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+              >
+                <DatabaseBackup className="h-4 w-4" />
+                数据备份
               </Link>
               <Link
                 href="/en"

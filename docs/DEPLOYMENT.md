@@ -316,30 +316,37 @@ Vercel / Neon / Cloudinary **账号里的配置还在**，不用重做，除非�
 
 ---
 
-## 7.1 数据库备份与同步本地
+## 7.1 数据库备份（推荐：不用命令）
 
-备份文件在 `web/backups/`（已 gitignore，含订单/邮箱，勿上传仓库）。
+### 方式 B — 后台一键下载（最省事）
+
+1. 打开线上后台：`https://你的域名/admin` 并登录  
+2. 左侧点 **数据备份**  
+3. 点 **下载数据库备份**，把文件存到电脑或网盘  
+
+建议：每改完一批商品 / 每周至少下载一次。
+
+### 方式 A — Neon 云端快照（防误删）
+
+1. 打开 [https://console.neon.tech](https://console.neon.tech) 登录  
+2. 进入商店用的那个项目  
+3. 左侧点 **Branches**  
+4. 点 **Create branch**，名称例如 `backup-2026-08-25`  
+5. 创建成功 = 留了一份当时数据；出事可在 Branches 里对照/恢复  
+
+免费版保留时间有限，**重要节点请同时做方式 B**。
+
+### 进阶（开发者命令，可忽略）
+
+备份文件也可通过脚本导出到 `web/backups/`（已 gitignore）：
 
 ```powershell
 cd "e:\项目\独立站\web"
-
-# A) 只备份当前 .env 指向的库（本地 SQLite）
 npm run db:backup
-
-# B) 备份线上 Neon（不改 .env）
-$env:BACKUP_DATABASE_URL="postgresql://...@ep-xxxx.neon.tech/neondb?sslmode=require"
-npm run db:backup
-
-# C) 一键：Neon → 本地 prisma/dev.db（覆盖本地数据）
-$env:BACKUP_DATABASE_URL="postgresql://...@ep-xxxx.neon.tech/neondb?sslmode=require"
+# 或同步 Neon → 本地：
+$env:BACKUP_DATABASE_URL="postgresql://...@neon.tech/neondb?sslmode=require"
 npm run db:sync:local
-
-# D) 从某份 JSON 恢复到指定库（需 --yes）
-$env:RESTORE_DATABASE_URL="file:./prisma/dev.db"
-npm run db:restore -- backups/latest.json --yes
 ```
-
-建议：每周执行一次 `db:backup`（对 Neon），并把 `backups\db-*.json` 拷到网盘。
 
 ---
 
