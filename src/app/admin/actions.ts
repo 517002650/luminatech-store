@@ -2,13 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import {
-  clearAdminSession,
-  getAdminPasswordConfigError,
-  isAdminAuthenticated,
-  setAdminSession,
-  verifyAdminPassword,
-} from "@/lib/admin-auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { sendShippingEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
 import { refundAndCancelOrder } from "@/lib/order-refund";
@@ -26,33 +20,6 @@ import {
   updateShippingSettings,
 } from "@/lib/shipping-settings";
 import { deleteStoredAsset } from "@/lib/asset-delivery";
-
-async function requireAdmin() {
-  if (!(await isAdminAuthenticated())) {
-    redirect("/admin/login");
-  }
-}
-
-export async function loginAction(formData: FormData) {
-  const password = String(formData.get("password") ?? "");
-
-  const configError = getAdminPasswordConfigError();
-  if (configError) {
-    return { error: configError };
-  }
-
-  if (!verifyAdminPassword(password)) {
-    return { error: "密码错误" };
-  }
-
-  await setAdminSession();
-  redirect("/admin");
-}
-
-export async function logoutAction() {
-  await clearAdminSession();
-  redirect("/admin/login");
-}
 
 export async function createProductAction(formData: FormData) {
   await requireAdmin();

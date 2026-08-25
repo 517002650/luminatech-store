@@ -144,7 +144,8 @@ postgresql://用户名:密码@ep-xxxx-pooler.区域.aws.neon.tech/neondb?sslmode
 |-----|----------------|
 | `DATABASE_URL` | Neon 整行 Connection string |
 | `NEXT_PUBLIC_APP_URL` | `https://你的项目名.vercel.app`（部署后可再改） |
-| `ADMIN_PASSWORD` | 后台密码（**线上至少 12 位**，不要用 `admin123`） |
+| `ADMIN_PASSWORD` | 首次创建 Owner 的安装口令（**线上至少 12 位**，不要用 `admin123`） |
+| `ADMIN_SECRET` | 推荐：后台会话签名（≥16 位随机串） |
 | `USER_SESSION_SECRET` | 自己编一长串，如 `luminatech-session-secret-2026` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary Cloud name |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key |

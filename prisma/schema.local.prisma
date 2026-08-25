@@ -63,6 +63,21 @@ model SiteSettings {
   updatedAt               DateTime @updatedAt
 }
 
+/** Back-office staff (not storefront customers). */
+model AdminAccount {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String   @default("")
+  passwordHash String
+  /** owner | admin — only owner manages team accounts */
+  role         String   @default("admin")
+  active       Boolean  @default(true)
+  totpSecret   String?
+  totpEnabled  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model Category {
   id        String   @id @default(cuid())
   key       String   @unique

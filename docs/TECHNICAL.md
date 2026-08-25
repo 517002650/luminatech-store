@@ -59,22 +59,21 @@
 ### 2.1 如何进入后台管理
 
 1. 浏览器打开：**https://517002650-luminatech-store.vercel.app/admin**  
-   （会跳到 `/admin/login`）
-2. 输入 Vercel 环境变量 **`ADMIN_PASSWORD`** 的值，点登录
-3. 登录成功后左侧菜单可进入：商品、分类、订单、退货、评价、留言、优惠码、运费、备份
+2. **首次部署（库中尚无管理员）**：用安装口令（Vercel 的 `ADMIN_PASSWORD`）创建首个 **Owner**（邮箱 + 登录密码 ≥12 位）  
+3. **之后登录**：使用 Owner/Admin 的**邮箱 + 密码**（不再用环境变量当日常登录密码）  
+4. 可选：在「安全设置」开启 TOTP 两步验证；Owner 可在「团队账号」添加其他管理员
 
-| 环境 | 地址 | 密码从哪来 |
-|------|------|------------|
-| **线上** | https://517002650-luminatech-store.vercel.app/admin | [环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables) → `ADMIN_PASSWORD` |
-| **本地** | http://localhost:3000/admin | 本地 `web/.env` 里的 `ADMIN_PASSWORD`；未设置时可用临时默认 `admin123` |
+| 环境 | 地址 | 说明 |
+|------|------|------|
+| **线上** | https://517002650-luminatech-store.vercel.app/admin | 首次用 `ADMIN_PASSWORD` 做安装口令；日常用管理员邮箱登录 |
+| **本地** | http://localhost:3000/admin | 同上；未设 `ADMIN_PASSWORD` 时安装口令临时为 `admin123` |
 
-**线上密码规则（必须满足，否则登录页会提示配置错误、无法登录）：**
+**线上会话签名（必须）：**
 
-- 必须在 Vercel 配置 `ADMIN_PASSWORD`
-- 至少 **12 位**
-- 不能使用 `admin123`、`password`、`123456` 等弱口令
+- 推荐设置 `ADMIN_SECRET`（≥16 位随机串）用于签名 cookie  
+- 或保留强 `ADMIN_PASSWORD`（≥12 位）作签名兜底  
 
-忘记密码：在 Vercel 改 `ADMIN_PASSWORD` → **Redeploy** → 用新密码登录（见 §5.0）。
+忘记 **Owner 登录密码**：由另一 Owner 在「团队账号」新建账号，或清空 `AdminAccount` 表后重新引导（运维操作，慎用）。忘记 2FA：Owner 可在团队页「重置 2FA」。
 
 ---
 
@@ -82,7 +81,8 @@
 
 | 系统 | 用途 | 备注 |
 |------|------|------|
-| 后台 `ADMIN_PASSWORD` | 登录 `/admin` | 线上须 ≥12 位强密码；见 §2.1 / §5.0 |
+| `ADMIN_PASSWORD` / `ADMIN_SECRET` | 首次引导安装口令 + 会话签名 | 日常登录用 DB 管理员邮箱；见 §2.1 |
+| 后台 Owner/Admin | `/admin` 邮箱登录 | 「安全设置」改密/2FA；「团队账号」仅 Owner |
 | GitHub | 代码仓库 | 不要用密码推送；用 Personal Access Token，用完删除 |
 | Vercel | 部署与环境变量 | 用 GitHub 账号登录即可 |
 | Neon | 数据库 | Connection string 填在 `DATABASE_URL` |
@@ -104,7 +104,8 @@
 |--------|------|----------|
 | `DATABASE_URL` | PostgreSQL 连接串 | Neon → Connection string（建议 Pooled，带 `sslmode=require`） |
 | `NEXT_PUBLIC_APP_URL` | 网站完整地址 | 如 `https://luminatech-store2.vercel.app` |
-| `ADMIN_PASSWORD` | 后台密码 | 线上 ≥12 位强密码（禁止 `admin123`） |
+| `ADMIN_PASSWORD` | 首次创建 Owner 的安装口令；也可作会话签名兜底 | 线上 ≥12 位强密码（禁止 `admin123`） |
+| `ADMIN_SECRET` | 后台会话签名（推荐） | ≥16 位随机串 |
 | `USER_SESSION_SECRET` | 用户登录会话密钥 | 自己设定一长串随机字符 |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary 云名称 | Cloudinary Dashboard |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | 同上 |
@@ -137,31 +138,20 @@
 
 ## 5. 日常运营操作
 
-### 5.0 修改管理员密码
+### 5.0 修改管理员密码 / 2FA / 团队
 
-后台密码存在 Vercel 环境变量 **`ADMIN_PASSWORD`** 里，不在网页里改。
+日常**不要**改环境变量来换登录密码：
 
-**线上改法：**
+1. 登录后台 → **安全设置**：修改自己的密码、绑定或关闭 TOTP  
+2. **Owner** → **团队账号**：添加 Admin/Owner、停用账号、重置他人 2FA  
 
-1. 打开直达链接（需已登录 Vercel）：  
-   https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables  
-   （或从 Dashboard 点进项目后再找 **Environment Variables** / **Settings**）
-2. 编辑或新增 `ADMIN_PASSWORD` = 至少 12 位强密码（不要用 `admin123`）
-3. **Deployments** → **Redeploy**（必须）
-4. 打开 https://517002650-luminatech-store.vercel.app/admin ，用新密码登录
-5. 确认旧密码不能再登录
+`ADMIN_PASSWORD` 仅用于：空库时创建首个 Owner 的安装口令，以及（未设 `ADMIN_SECRET` 时）会话签名兜底。
 
-**规则说明：**
-
-- **生产 / Vercel**：必须配置强密码；未配置或过弱时登录页会显示配置错误，无法登录
-- **本地开发**：可不设 `ADMIN_PASSWORD`，临时用 `admin123`；一旦在 `.env` 里设置了，就以设置值为准
-- 忘记密码：再改一次环境变量并 Redeploy 即可
-
-更完整步骤与「找不到菜单」对照表见：[DEPLOYMENT.md §4.1](./DEPLOYMENT.md)
+更完整部署说明见：[DEPLOYMENT.md §4.1](./DEPLOYMENT.md)
 
 ### 5.1 后台改商品（含上架 / 下架）
 
-1. 打开 `/admin`，用 `ADMIN_PASSWORD` 登录（见 §2.1）
+1. 打开 `/admin`，用管理员邮箱登录（见 §2.1）
 2. **商品列表** → 编辑 / 新增 / 删除
 3. **上架 / 下架**：
    - 列表「状态」列点 **下架** / **上架**
@@ -400,7 +390,8 @@ npx prisma studio       # 可视化查看/编辑数据（浏览器打开）
 |------|----------|------|
 | 前台 `/zh` 500 或空白 | 数据库连不上 / 表未建 | 检查 `DATABASE_URL`，Redeploy；看 Build 日志是否有 `db push` 成功 |
 | 后台登录后报错 | 同上 | 同上；修复后应看到商品列表 |
-| 后台登录页提示密码未配置/过弱 | 生产未设或 `ADMIN_PASSWORD` 不足 12 位 / 弱口令 | Vercel 设 ≥12 位强密码并 Redeploy |
+| 后台登录页提示会话密钥未配置 | 未设 `ADMIN_SECRET` 且 `ADMIN_PASSWORD` 过弱/缺失 | Vercel 设 `ADMIN_SECRET`（≥16）或强 `ADMIN_PASSWORD` 并 Redeploy |
+| 部署后要求创建 Owner | 正常：空库首次引导 | 用安装口令 + 邮箱创建首个 Owner |
 | 下架商品仍出现在前台 | 缓存未刷新或未点保存 | 后台再点一次上下架；硬刷新前台 |
 | 上传图片失败 | Cloudinary 未配或配错 | 检查三个 `CLOUDINARY_*`，Redeploy |
 | 改了环境变量不生效 | 未重新部署 | Vercel → Deployments → Redeploy |

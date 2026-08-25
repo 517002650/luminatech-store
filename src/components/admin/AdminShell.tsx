@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Database,
   Images,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   MessageSquare,
@@ -14,11 +15,16 @@ import {
   Tags,
   Ticket,
   Truck,
+  UserCog,
   Users,
 } from "lucide-react";
-import { logoutAction } from "@/app/admin/actions";
+import { logoutAction } from "@/app/admin/account-actions";
+import {
+  getCurrentAdmin,
+  type AdminSession,
+} from "@/lib/admin-auth";
 
-const NAV = [
+const BASE_NAV = [
   { href: "/admin", label: "商品列表", icon: LayoutDashboard },
   { href: "/admin/products/new", label: "新增商品", icon: Plus },
   { href: "/admin/categories", label: "商品分类", icon: Tags },
@@ -31,17 +37,28 @@ const NAV = [
   { href: "/admin/shipping", label: "运费设置", icon: Truck },
   { href: "/admin/media", label: "媒体清理", icon: Images },
   { href: "/admin/backup", label: "数据备份", icon: Database },
+  { href: "/admin/security", label: "安全设置", icon: KeyRound },
 ] as const;
 
-export function AdminShell({
+export async function AdminShell({
   children,
   title,
   subtitle = "管理商品、订单与图片，保存后立即同步到前台",
+  admin: adminProp,
 }: {
   children: React.ReactNode;
   title: string;
   subtitle?: string;
+  admin?: AdminSession | null;
 }) {
+  const admin = adminProp ?? (await getCurrentAdmin());
+  const nav = [
+    ...BASE_NAV,
+    ...(admin?.role === "owner"
+      ? ([{ href: "/admin/team", label: "团队账号", icon: UserCog }] as const)
+      : []),
+  ];
+
   return (
     <div className="min-h-screen bg-stone-100">
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-6 sm:px-6">
@@ -51,8 +68,17 @@ export function AdminShell({
               Lumina<span className="text-amber-600">Tech</span>
             </p>
             <p className="mt-1 text-xs text-stone-500">商店管理后台</p>
+            {admin ? (
+              <p className="mt-2 truncate text-xs text-stone-600" title={admin.email}>
+                {admin.email}
+                <span className="text-stone-400">
+                  {" "}
+                  · {admin.role === "owner" ? "Owner" : "Admin"}
+                </span>
+              </p>
+            ) : null}
             <nav className="mt-6 space-y-1">
-              {NAV.map(({ href, label, icon: Icon }) => (
+              {nav.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
@@ -86,7 +112,7 @@ export function AdminShell({
         <main className="min-w-0 flex-1">
           <div className="mb-4 overflow-x-auto lg:hidden">
             <nav className="flex min-w-max gap-2 pb-1">
-              {NAV.map(({ href, label }) => (
+              {nav.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
