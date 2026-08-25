@@ -11,6 +11,12 @@ import {
   type DownloadType,
 } from "@/lib/product-downloads";
 import { getCurrentUser } from "@/lib/user-auth";
+import {
+  darkCardClass,
+  darkEmptyStateClass,
+  darkHeadingClass,
+  darkMetaClass,
+} from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -55,20 +61,20 @@ export default async function AccountDownloadsPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-50">{t("myAccount")}</h1>
-      <p className="mt-1 text-sm text-zinc-500">{user.email}</p>
+      <h1 className={`text-2xl font-bold ${darkHeadingClass}`}>{t("myAccount")}</h1>
+      <p className={`mt-1 text-sm ${darkMetaClass}`}>{user.email}</p>
       <div className="mt-6">
         <AccountNav />
       </div>
 
       <div className="mt-8">
-        <h2 className="text-xl font-bold text-zinc-50">{t("downloads")}</h2>
-        <p className="mt-1 text-sm text-zinc-500">{t("downloadsHint")}</p>
+        <h2 className={`text-xl font-bold ${darkHeadingClass}`}>{t("downloads")}</h2>
+        <p className={`mt-1 text-sm ${darkMetaClass}`}>{t("downloadsHint")}</p>
       </div>
 
       {products.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 p-12 text-center">
-          <p className="text-zinc-400">{t("noDownloads")}</p>
+        <div className={`mt-8 p-12 text-center ${darkEmptyStateClass}`}>
+          <p>{t("noDownloads")}</p>
           <Link
             href="/products"
             className="mt-4 inline-block text-cyan-400 hover:text-cyan-300 hover:underline"
@@ -88,12 +94,12 @@ export default async function AccountDownloadsPage({ params }: Props) {
             return (
               <section
                 key={product.id}
-                className="overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70"
+                className={`overflow-hidden ${darkCardClass}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-950/50 px-5 py-4">
                   <div>
                     <h2 className="font-semibold text-zinc-50">{name}</h2>
-                    <p className="text-xs text-zinc-500">{product.sku}</p>
+                    <p className={`text-xs ${darkMetaClass}`}>{product.sku}</p>
                   </div>
                   <Link
                     href={`/products/${product.slug}`}
@@ -118,27 +124,27 @@ export default async function AccountDownloadsPage({ params }: Props) {
                             <div className="min-w-0">
                               <p className="font-medium text-zinc-100">
                                 {locale === "zh" ? row.titleZh : row.titleEn}
-                                <span className="ml-2 text-sm font-normal text-zinc-500">
+                                <span className="ml-2 text-sm font-normal text-zinc-400">
                                   v{row.version}
                                 </span>
                                 {row.isLatest ? (
-                                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs text-cyan-300">
+                                  <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs text-cyan-100">
                                     <Star className="h-3 w-3" />
                                     {tProduct("downloadLatest")}
                                   </span>
                                 ) : (
-                                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-zinc-500">
+                                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-zinc-400">
                                     <History className="h-3 w-3" />
                                     {tProduct("downloadHistory")}
                                   </span>
                                 )}
                               </p>
                               {(locale === "zh" ? row.notesZh : row.notesEn) ? (
-                                <p className="mt-1 text-sm text-zinc-500">
+                                <p className={`mt-1 text-sm ${darkMetaClass}`}>
                                   {locale === "zh" ? row.notesZh : row.notesEn}
                                 </p>
                               ) : null}
-                              <p className="mt-1 text-xs text-zinc-600">
+                              <p className={`mt-1 text-xs ${darkMetaClass}`}>
                                 {row.fileName} · {formatFileSize(row.fileSize)} ·{" "}
                                 {new Date(row.createdAt).toLocaleDateString(
                                   locale === "zh" ? "zh-CN" : "en-US",

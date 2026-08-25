@@ -58,7 +58,7 @@ export function ProductDownloadsSection({
             <h2 className="text-xl font-bold text-zinc-50">
               {title ?? t("downloadsTitle")}
             </h2>
-            <p className="mt-1 text-sm text-zinc-500">
+            <p className="mt-1 text-sm text-zinc-400">
               {subtitle ?? t("downloadsSubtitle")}
             </p>
           </div>
@@ -70,7 +70,7 @@ export function ProductDownloadsSection({
           <div key={type}>
             <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-cyan-400">
               {t(`downloadTypes.${type as DownloadType}`)}
-              <span className="font-normal text-zinc-600">({rows.length})</span>
+              <span className="font-normal text-zinc-400">({rows.length})</span>
             </h3>
             <ul className="mt-3 divide-y divide-zinc-800 overflow-hidden rounded-xl border border-zinc-800">
               {rows.map((row) => (
@@ -81,25 +81,25 @@ export function ProductDownloadsSection({
                   <div className="min-w-0">
                     <p className="font-medium text-zinc-100">
                       {row.title}
-                      <span className="ml-2 text-sm font-normal text-zinc-500">
+                      <span className="ml-2 text-sm font-normal text-zinc-400">
                         v{row.version}
                       </span>
                       {row.isLatest ? (
-                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs text-cyan-300">
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs text-cyan-100">
                           <Star className="h-3 w-3" />
                           {t("downloadLatest")}
                         </span>
                       ) : (
-                        <span className="ml-2 inline-flex items-center gap-1 text-xs text-zinc-500">
+                        <span className="ml-2 inline-flex items-center gap-1 text-xs text-zinc-400">
                           <History className="h-3 w-3" />
                           {t("downloadHistory")}
                         </span>
                       )}
                     </p>
                     {row.notes ? (
-                      <p className="mt-1 text-sm text-zinc-500">{row.notes}</p>
+                      <p className="mt-1 text-sm text-zinc-400">{row.notes}</p>
                     ) : null}
-                    <p className="mt-1 text-xs text-zinc-600">
+                    <p className="mt-1 text-xs text-zinc-400">
                       {row.fileName} · {formatFileSize(row.fileSize)} ·{" "}
                       {new Date(row.createdAt).toLocaleDateString()}
                     </p>

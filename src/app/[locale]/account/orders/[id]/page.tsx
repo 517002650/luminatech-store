@@ -21,6 +21,13 @@ import {
 } from "@/lib/product-downloads";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { prisma } from "@/lib/db";
+import {
+  darkCardClass,
+  darkHeadingClass,
+  darkLabelClass,
+  darkMetaClass,
+  darkPanelClass,
+} from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
@@ -90,10 +97,10 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
       <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-50">
+          <h1 className={`text-2xl font-bold ${darkHeadingClass}`}>
             {t("order")} #{formatOrderId(order.id)}
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className={`mt-1 text-sm ${darkMetaClass}`}>
             {new Date(order.createdAt).toLocaleString(
               locale === "zh" ? "zh-CN" : "en-US",
             )}
@@ -106,9 +113,9 @@ export default async function AccountOrderDetailPage({ params }: Props) {
         <AccountNav />
       </div>
 
-      <dl className="mt-8 grid gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 sm:grid-cols-3">
+      <dl className={`mt-8 grid gap-4 p-6 sm:grid-cols-3 ${darkPanelClass}`}>
         <div>
-          <dt className="text-xs text-zinc-500">{t("status")}</dt>
+          <dt className={`text-xs ${darkLabelClass}`}>{t("status")}</dt>
           <dd className="mt-2">
             <OrderStatusBadge
               status={order.status}
@@ -117,13 +124,13 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-zinc-500">{t("payment")}</dt>
+          <dt className={`text-xs ${darkLabelClass}`}>{t("payment")}</dt>
           <dd className="mt-2 text-base font-semibold capitalize text-zinc-100">
             {order.paymentMethod}
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-zinc-500">{t("total")}</dt>
+          <dt className={`text-xs ${darkLabelClass}`}>{t("total")}</dt>
           <dd className="mt-2 text-xl font-bold text-zinc-50">
             {formatPrice(order.total)}
           </dd>
@@ -150,10 +157,10 @@ export default async function AccountOrderDetailPage({ params }: Props) {
       ) : null}
 
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-500">
+        <h2 className={`mb-3 text-sm font-semibold uppercase tracking-wider ${darkLabelClass}`}>
           {t("orderItems")}
         </h2>
-        <div className="divide-y divide-zinc-800 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70">
+        <div className={`divide-y divide-zinc-700/80 overflow-hidden ${darkCardClass}`}>
           {localizedItems.map((item) => {
             const fileCount = downloads.filter((d) => d.productId === item.productId).length;
             return (
@@ -174,7 +181,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
                     >
                       {item.name}
                     </Link>
-                    <p className="text-sm text-zinc-500">
+                    <p className={`text-sm ${darkMetaClass}`}>
                       {formatPrice(item.price)} × {item.quantity}
                     </p>
                     {fileCount > 0 ? (
@@ -198,8 +205,8 @@ export default async function AccountOrderDetailPage({ params }: Props) {
         <div className="mt-10 space-y-8">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-zinc-50">{t("orderDownloads")}</h2>
-              <p className="mt-1 text-sm text-zinc-500">{t("orderDownloadsHint")}</p>
+              <h2 className={`text-xl font-bold ${darkHeadingClass}`}>{t("orderDownloads")}</h2>
+              <p className={`mt-1 text-sm ${darkMetaClass}`}>{t("orderDownloadsHint")}</p>
             </div>
             <Link
               href="/account/downloads"
@@ -211,7 +218,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
           {downloadsByProduct.map((group) => (
               <div key={group.productId}>
-                <h3 className="mb-2 text-sm font-medium text-zinc-300">
+                <h3 className="mb-2 text-sm font-medium text-zinc-200">
                   {group.productName}
                 </h3>
                 <ProductDownloadsSection items={group.items} compact />

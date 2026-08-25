@@ -1,11 +1,11 @@
 import type { OrderStatus } from "@/lib/orders";
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
-  paid: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
-  processing: "bg-sky-500/15 text-sky-300 ring-sky-500/30",
-  shipped: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
-  completed: "bg-zinc-500/15 text-zinc-300 ring-zinc-500/30",
-  cancelled: "bg-red-500/15 text-red-300 ring-red-500/30",
+  paid: "bg-emerald-500/20 text-emerald-100 ring-emerald-400/45",
+  processing: "bg-sky-500/20 text-sky-100 ring-sky-400/45",
+  shipped: "bg-violet-500/20 text-violet-100 ring-violet-400/45",
+  completed: "bg-zinc-500/20 text-zinc-100 ring-zinc-400/45",
+  cancelled: "bg-red-500/20 text-red-100 ring-red-400/45",
 };
 
 export function OrderStatusBadge({
@@ -17,7 +17,7 @@ export function OrderStatusBadge({
 }) {
   const style =
     STATUS_STYLES[status as OrderStatus] ??
-    "bg-zinc-500/15 text-zinc-300 ring-zinc-500/30";
+    "bg-zinc-500/20 text-zinc-100 ring-zinc-400/45";
 
   return (
     <span

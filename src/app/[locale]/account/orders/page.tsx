@@ -17,6 +17,13 @@ import {
   orderStatusAllowsDownloads,
 } from "@/lib/product-downloads";
 import { prisma } from "@/lib/db";
+import {
+  darkCardClass,
+  darkCardHoverClass,
+  darkEmptyStateClass,
+  darkHeadingClass,
+  darkMetaClass,
+} from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -56,15 +63,15 @@ export default async function AccountOrdersPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-50">{t("myAccount")}</h1>
-      <p className="mt-1 text-sm text-zinc-500">{user.email}</p>
+      <h1 className={`text-2xl font-bold ${darkHeadingClass}`}>{t("myAccount")}</h1>
+      <p className={`mt-1 text-sm ${darkMetaClass}`}>{user.email}</p>
       <div className="mt-6">
         <AccountNav />
       </div>
 
       {orders.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 p-12 text-center">
-          <p className="text-zinc-400">{t("noOrders")}</p>
+        <div className={`mt-10 p-12 text-center ${darkEmptyStateClass}`}>
+          <p>{t("noOrders")}</p>
           <Link
             href="/products"
             className="mt-4 inline-block text-cyan-400 hover:text-cyan-300 hover:underline"
@@ -95,22 +102,22 @@ export default async function AccountOrdersPage({ params }: Props) {
               <Link
                 key={order.id}
                 href={`/account/orders/${order.id}`}
-                className="block rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 transition hover:border-cyan-500/40 hover:bg-zinc-900"
+                className={`block p-5 ${darkCardClass} ${darkCardHoverClass}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-mono text-sm font-semibold text-zinc-100">
+                      <p className="font-mono text-sm font-semibold text-zinc-50">
                         #{formatOrderId(order.id)}
                       </p>
                       {downloadFileCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300 ring-1 ring-cyan-500/30">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs font-medium text-cyan-100 ring-1 ring-cyan-400/40">
                           <Download className="h-3 w-3" />
                           {t("hasDownloads", { count: downloadFileCount })}
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-1 text-xs text-zinc-500">
+                    <p className={`mt-1 text-xs ${darkMetaClass}`}>
                       {new Date(order.createdAt).toLocaleString(
                         locale === "zh" ? "zh-CN" : "en-US",
                       )}
@@ -151,11 +158,11 @@ export default async function AccountOrdersPage({ params }: Props) {
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-zinc-300">
+                    <p className="truncate text-sm text-zinc-200">
                       {names}
                       {moreNames}
                     </p>
-                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-cyan-400">
+                    <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-cyan-300">
                       {downloadFileCount > 0 ? t("viewOrderDownloads") : t("viewDetails")}
                       <ChevronRight className="h-3.5 w-3.5" />
                     </p>

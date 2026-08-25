@@ -8,6 +8,10 @@ import { localizeProduct } from "@/lib/product-i18n";
 import { getProductRatingMap } from "@/lib/reviews";
 import { prisma } from "@/lib/db";
 import { Link } from "@/i18n/routing";
+import {
+  darkEmptyStateClass,
+  darkHeadingClass,
+} from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -37,14 +41,14 @@ export default async function WishlistPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-bold text-zinc-50">{t("myAccount")}</h1>
+      <h1 className={`text-2xl font-bold ${darkHeadingClass}`}>{t("myAccount")}</h1>
       <div className="mt-6">
         <AccountNav />
       </div>
 
       {items.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 p-12 text-center">
-          <p className="text-zinc-400">{t("emptyWishlist")}</p>
+        <div className={`mt-10 p-12 text-center ${darkEmptyStateClass}`}>
+          <p>{t("emptyWishlist")}</p>
           <Link
             href="/products"
             className="mt-4 inline-block text-cyan-400 hover:text-cyan-300 hover:underline"

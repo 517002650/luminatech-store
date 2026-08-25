@@ -59,10 +59,10 @@ export function ShippingAddressDisplay({
   const shell =
     variant === "admin"
       ? "rounded-2xl border border-stone-200 bg-white p-5"
-      : "rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5";
+      : "rounded-2xl border border-zinc-700/80 bg-zinc-900/90 p-5 text-zinc-200";
   const titleClass =
     variant === "admin" ? "font-semibold text-stone-900" : "font-semibold text-zinc-50";
-  const dtClass = variant === "admin" ? "text-stone-500" : "text-zinc-500";
+  const dtClass = variant === "admin" ? "text-stone-500" : "text-zinc-400";
   const ddClass =
     variant === "admin" ? "font-medium text-stone-900" : "font-medium text-zinc-100";
 
