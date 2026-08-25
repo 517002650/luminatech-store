@@ -2,6 +2,7 @@
   "nav": {
     "shop": "Shop",
     "about": "About",
+    "affiliate": "Become a partner",
     "cart": "Cart",
     "login": "Sign in",
     "logout": "Sign out",
@@ -204,7 +205,8 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "returns": "Returns",
-    "contact": "Contact"
+    "contact": "Contact",
+    "affiliate": "Become a partner"
   },
   "meta": {
     "title": "LuminaTech — Professional Stage Lighting",
@@ -356,6 +358,18 @@
     "affiliateHint": "Share your link. After referred customers pay, track commissions and payout status here.",
     "affiliateNotMember": "You are not a promoter yet",
     "affiliateNotMemberHint": "Ask the store to enable your account as a promoter. Then sign in with this customer account — no admin login needed.",
+    "affiliateJoinTitle": "Become a promoter now",
+    "affiliateJoinSubtitle": "Get your referral link in one step. Then contact the admin to confirm your commission rate and payout method.",
+    "affiliateJoinSubmit": "Register as promoter",
+    "affiliateJoinSubmitting": "Creating…",
+    "affiliateJoinRateHint": "Default rate {rate}% (final rate confirmed by admin)",
+    "affiliateDisplayName": "Display name",
+    "affiliateContactTitle": "Contact admin for commissions",
+    "affiliateContactBody": "Confirm your rate and payout details with the admin. Use the contacts below anytime.",
+    "affiliateContactEmail": "Admin email",
+    "affiliateContactPhone": "Phone",
+    "affiliateContactWechat": "WeChat",
+    "affiliateContactNote": "Notes",
     "affiliateActive": "Active",
     "affiliateInactive": "Inactive",
     "affiliateCode": "Referral code",

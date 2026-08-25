@@ -66,6 +66,14 @@ model ShippingSettings {
 model SiteSettings {
   id                      String   @id @default("default")
   reviewModerationEnabled Boolean  @default(true)
+  /** Allow storefront users to self-register as affiliates */
+  affiliateSelfRegister   Boolean  @default(true)
+  /** Default commission % for self-registered promoters */
+  affiliateDefaultRate    Float    @default(10)
+  affiliateAdminEmail     String   @default("")
+  affiliateAdminPhone     String   @default("")
+  affiliateAdminWechat    String   @default("")
+  affiliateAdminNote      String   @default("")
   updatedAt               DateTime @updatedAt
 }
 

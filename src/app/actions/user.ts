@@ -285,3 +285,69 @@ export async function setDefaultUserAddressAction(id: string) {
   return { success: true as const };
 }
 
+/** Storefront user self-registers as promoter (bound to their account). */
+export async function registerAsAffiliateAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "请先登录后再申请成为推广员" };
+
+  const {
+    getSiteSettings,
+  } = await import("@/lib/site-settings");
+  const {
+    allocateAffiliateCode,
+    normalizeAffiliateCode,
+  } = await import("@/lib/affiliates");
+
+  const settings = await getSiteSettings();
+  if (!settings.affiliateSelfRegister) {
+    return { error: "暂未开放自助注册，请联系管理员开通" };
+  }
+
+  const existing = await prisma.affiliate.findUnique({
+    where: { userId: user.id },
+  });
+  if (existing) return { error: "您已经是推广员了" };
+
+  const name =
+    String(formData.get("name") ?? "").trim() ||
+    user.name?.trim() ||
+    user.email.split("@")[0];
+  const codeMode = String(formData.get("codeMode") ?? "auto");
+
+  let code: string;
+  if (codeMode === "manual") {
+    code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+    if (!code) return { error: "请填写推广码（仅字母数字_-）" };
+    const taken = await prisma.affiliate.findUnique({ where: { code } });
+    if (taken) return { error: "该推广码已被占用，请换一个或改用自动生成" };
+  } else {
+    code = await allocateAffiliateCode({
+      seed: name || user.email,
+    });
+  }
+
+  const rate = settings.affiliateDefaultRate;
+  try {
+    await prisma.affiliate.create({
+      data: {
+        userId: user.id,
+        code,
+        name,
+        email: user.email,
+        commissionRate: rate,
+        active: true,
+        notes: "self-registered",
+      },
+    });
+  } catch {
+    return { error: "注册失败，请稍后重试或更换推广码" };
+  }
+
+  revalidatePath("/account/affiliate");
+  revalidatePath("/zh/account/affiliate");
+  revalidatePath("/en/account/affiliate");
+  revalidatePath("/admin/affiliates");
+  redirect("/account/affiliate");
+}
+
+

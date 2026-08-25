@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateAffiliateAction } from "@/app/admin/actions";
 import { buildAffiliateLink } from "@/lib/affiliates";
+import { AffiliateCodeField } from "@/components/admin/AffiliateCodeField";
 import {
   AffiliateUserPicker,
   type AffiliateUserOption,
@@ -53,16 +54,8 @@ export function AffiliateEditForm({ affiliate }: Props) {
       </div>
 
       <AffiliateUserPicker initialUser={affiliate.user} required />
+      <AffiliateCodeField defaultCode={affiliate.code} defaultManual />
 
-      <div>
-        <label className={labelClass}>推广码 *</label>
-        <input
-          name="code"
-          required
-          defaultValue={affiliate.code}
-          className={inputClass}
-        />
-      </div>
       <div>
         <label className={labelClass}>名称 *</label>
         <input

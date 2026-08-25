@@ -17,6 +17,9 @@ export function Footer() {
             <p className="mt-2 max-w-xs text-sm text-zinc-500">{t("tagline")}</p>
           </div>
           <div className="flex flex-wrap gap-6 text-sm text-zinc-500">
+            <Link href="/account/affiliate" className="font-semibold text-cyan-400 transition hover:text-cyan-300">
+              {t("affiliate")}
+            </Link>
             <Link href="/privacy" className="transition hover:text-cyan-400">
               {t("privacy")}
             </Link>

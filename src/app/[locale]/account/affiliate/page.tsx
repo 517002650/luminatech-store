@@ -1,10 +1,15 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { AccountNav } from "@/components/account/AccountNav";
+import { AffiliateRegisterPanel } from "@/components/account/AffiliateRegisterPanel";
 import { formatPrice } from "@/lib/format";
 import { getCurrentUser } from "@/lib/user-auth";
 import { buildAffiliateLink } from "@/lib/affiliates";
 import { formatOrderId } from "@/lib/orders";
+import {
+  getAffiliateAdminContact,
+  getSiteSettings,
+} from "@/lib/site-settings";
 import { prisma } from "@/lib/db";
 import {
   darkCardClass,
@@ -32,28 +37,67 @@ export default async function AccountAffiliatePage({ params }: Props) {
   const user = await getCurrentUser();
   if (!user) redirect("/login?redirect=/account/affiliate");
 
-  const affiliate = await prisma.affiliate.findUnique({
-    where: { userId: user.id },
-    include: {
-      commissions: {
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        include: {
-          order: { select: { id: true, total: true, status: true, email: true } },
+  const [affiliate, settings, contact] = await Promise.all([
+    prisma.affiliate.findUnique({
+      where: { userId: user.id },
+      include: {
+        commissions: {
+          orderBy: { createdAt: "desc" },
+          take: 50,
+          include: {
+            order: {
+              select: { id: true, total: true, status: true, email: true },
+            },
+          },
         },
       },
-    },
-  });
+    }),
+    getSiteSettings(),
+    getAffiliateAdminContact(),
+  ]);
 
   if (!affiliate) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
         <h1 className={`mb-6 ${darkHeadingClass}`}>{t("myAccount")}</h1>
         <AccountNav />
-        <div className={`mt-8 ${darkEmptyStateClass}`}>
-          <p className="font-medium text-zinc-200">{t("affiliateNotMember")}</p>
-          <p className={`mt-2 ${darkMetaClass}`}>{t("affiliateNotMemberHint")}</p>
-        </div>
+        {settings.affiliateSelfRegister ? (
+          <AffiliateRegisterPanel
+            defaultName={user.name || user.email.split("@")[0]}
+            defaultEmail={user.email}
+            defaultRate={settings.affiliateDefaultRate}
+            contact={contact}
+            labels={{
+              title: t("affiliateJoinTitle"),
+              subtitle: t("affiliateJoinSubtitle"),
+              name: t("affiliateDisplayName"),
+              code: t("affiliateCode"),
+              submit: t("affiliateJoinSubmit"),
+              submitting: t("affiliateJoinSubmitting"),
+              rateHint: t("affiliateJoinRateHint"),
+              contactTitle: t("affiliateContactTitle"),
+              contactBody: t("affiliateContactBody"),
+              email: t("affiliateContactEmail"),
+              phone: t("affiliateContactPhone"),
+              wechat: t("affiliateContactWechat"),
+              note: t("affiliateContactNote"),
+            }}
+          />
+        ) : (
+          <div className={`mt-8 ${darkEmptyStateClass}`}>
+            <p className="font-medium text-zinc-200">{t("affiliateNotMember")}</p>
+            <p className={`mt-2 ${darkMetaClass}`}>{t("affiliateNotMemberHint")}</p>
+            <div className="mt-4 rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 text-left text-sm text-amber-50">
+              <p className="font-semibold">{t("affiliateContactTitle")}</p>
+              <a
+                href={`mailto:${contact.email}`}
+                className="mt-2 inline-block font-medium text-cyan-300 hover:underline"
+              >
+                {contact.email}
+              </a>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -73,7 +117,37 @@ export default async function AccountAffiliatePage({ params }: Props) {
       <h1 className={`mb-6 ${darkHeadingClass}`}>{t("myAccount")}</h1>
       <AccountNav />
 
-      <section className={`mt-8 space-y-4 ${darkCardClass} p-6`}>
+      <section className="mt-8 rounded-2xl border-2 border-amber-400/40 bg-amber-500/10 p-5">
+        <h2 className="text-base font-bold text-amber-100">
+          {t("affiliateContactTitle")}
+        </h2>
+        <p className="mt-1 text-sm text-amber-50/85">{t("affiliateContactBody")}</p>
+        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <a
+            href={`mailto:${contact.email}?subject=${encodeURIComponent(`推广提成咨询 ${affiliate.code}`)}`}
+            className="font-semibold text-cyan-300 hover:underline"
+          >
+            {contact.email}
+          </a>
+          {contact.phone ? (
+            <span className="text-zinc-200">
+              {t("affiliateContactPhone")}: {contact.phone}
+            </span>
+          ) : null}
+          {contact.wechat ? (
+            <span className="text-zinc-200">
+              {t("affiliateContactWechat")}: {contact.wechat}
+            </span>
+          ) : null}
+        </div>
+        {contact.note ? (
+          <p className="mt-2 whitespace-pre-wrap text-xs text-amber-100/70">
+            {contact.note}
+          </p>
+        ) : null}
+      </section>
+
+      <section className={`mt-6 space-y-4 ${darkCardClass} p-6`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-zinc-50">{t("affiliate")}</h2>
@@ -157,7 +231,9 @@ export default async function AccountAffiliatePage({ params }: Props) {
                     <td className="px-4 py-3 text-zinc-300">
                       {t(
                         `affiliateStatuses.${
-                          STATUS_KEYS.includes(row.status as (typeof STATUS_KEYS)[number])
+                          STATUS_KEYS.includes(
+                            row.status as (typeof STATUS_KEYS)[number],
+                          )
                             ? row.status
                             : "pending"
                         }`,

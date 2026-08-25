@@ -31,6 +31,47 @@ export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
 
 type TxClient = Prisma.TransactionClient;
 
+/** Build a short code seed from email / name. */
+export function suggestAffiliateCodeSeed(seed: string) {
+  const raw = String(seed ?? "")
+    .split("@")[0]
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 10);
+  return raw || "PROMO";
+}
+
+/**
+ * Allocate a unique referral code.
+ * - preferred: use if free after normalize
+ * - otherwise generate from seed / random and suffix until unique
+ */
+export async function allocateAffiliateCode(options?: {
+  preferred?: string | null;
+  seed?: string | null;
+}) {
+  const preferred = normalizeAffiliateCode(options?.preferred);
+  if (preferred) {
+    const taken = await prisma.affiliate.findUnique({ where: { code: preferred } });
+    if (!taken) return preferred;
+  }
+
+  const base =
+    normalizeAffiliateCode(suggestAffiliateCodeSeed(options?.seed ?? "")) ||
+    `LT${Date.now().toString(36).toUpperCase().slice(-6)}`;
+
+  for (let i = 0; i < 30; i++) {
+    const candidate =
+      i === 0
+        ? base
+        : normalizeAffiliateCode(`${base}${i + 1}`) || `${base}${i + 1}`;
+    const taken = await prisma.affiliate.findUnique({ where: { code: candidate } });
+    if (!taken) return candidate;
+  }
+
+  return normalizeAffiliateCode(`LT${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`.toUpperCase());
+}
+
 export async function findActiveAffiliateByCode(code: string) {
   const normalized = normalizeAffiliateCode(code);
   if (!normalized) return null;

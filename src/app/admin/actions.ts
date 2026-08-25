@@ -754,17 +754,18 @@ export async function searchUsersForAffiliateAction(
 
 export async function createAffiliateAction(formData: FormData) {
   await requireAdmin();
-  const { normalizeAffiliateCode } = await import("@/lib/affiliates");
+  const { allocateAffiliateCode, normalizeAffiliateCode } = await import(
+    "@/lib/affiliates"
+  );
 
   const userId = String(formData.get("userId") ?? "").trim();
-  const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+  const codeMode = String(formData.get("codeMode") ?? "auto");
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
   const rate = Number(formData.get("commissionRate") ?? 10);
 
   if (!userId) return { error: "请搜索并选择要绑定的前台用户" };
-  if (!code) return { error: "推广码不能为空（仅字母数字_-）" };
   if (!name) return { error: "名称不能为空" };
   if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
     return { error: "佣金比例须在 0–100 之间" };
@@ -776,6 +777,18 @@ export async function createAffiliateAction(formData: FormData) {
   });
   if (!user) return { error: "所选用户不存在" };
   if (user.affiliate) return { error: "该用户已是推广员，请勿重复绑定" };
+
+  let code: string;
+  if (codeMode === "manual") {
+    code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+    if (!code) return { error: "推广码不能为空（仅字母数字_-）" };
+    const taken = await prisma.affiliate.findUnique({ where: { code } });
+    if (taken) return { error: "推广码已存在，请换一个" };
+  } else {
+    code = await allocateAffiliateCode({
+      seed: email || name || user.email || user.name,
+    });
+  }
 
   try {
     await prisma.affiliate.create({
@@ -799,10 +812,12 @@ export async function createAffiliateAction(formData: FormData) {
 
 export async function updateAffiliateAction(id: string, formData: FormData) {
   await requireAdmin();
-  const { normalizeAffiliateCode } = await import("@/lib/affiliates");
+  const { allocateAffiliateCode, normalizeAffiliateCode } = await import(
+    "@/lib/affiliates"
+  );
 
   const userId = String(formData.get("userId") ?? "").trim();
-  const code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+  const codeMode = String(formData.get("codeMode") ?? "manual");
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
@@ -810,7 +825,6 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
   const active = formData.get("active") === "on";
 
   if (!userId) return { error: "请绑定前台用户" };
-  if (!code) return { error: "推广码不能为空" };
   if (!name) return { error: "名称不能为空" };
   if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
     return { error: "佣金比例须在 0–100 之间" };
@@ -823,6 +837,21 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
   if (!user) return { error: "所选用户不存在" };
   if (user.affiliate && user.affiliate.id !== id) {
     return { error: "该用户已绑定其他推广员" };
+  }
+
+  const existing = await prisma.affiliate.findUnique({ where: { id } });
+  if (!existing) return { error: "推广员不存在" };
+
+  let code: string;
+  if (codeMode === "auto") {
+    code = await allocateAffiliateCode({
+      seed: email || name || user.email || existing.code,
+    });
+  } else {
+    code = normalizeAffiliateCode(String(formData.get("code") ?? ""));
+    if (!code) return { error: "推广码不能为空" };
+    const taken = await prisma.affiliate.findUnique({ where: { code } });
+    if (taken && taken.id !== id) return { error: "推广码已被占用" };
   }
 
   try {
@@ -844,6 +873,26 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
 
   revalidatePath("/admin/affiliates");
   revalidatePath(`/admin/affiliates/${id}`);
+  return { success: true as const };
+}
+
+export async function updateAffiliateProgramSettingsAction(formData: FormData) {
+  await requireAdmin();
+  const { updateSiteSettings } = await import("@/lib/site-settings");
+  const rate = Number(formData.get("affiliateDefaultRate") ?? 10);
+  if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+    return { error: "默认佣金比例须在 0–100 之间" };
+  }
+  await updateSiteSettings({
+    affiliateSelfRegister: formData.get("affiliateSelfRegister") === "on",
+    affiliateDefaultRate: rate,
+    affiliateAdminEmail: String(formData.get("affiliateAdminEmail") ?? ""),
+    affiliateAdminPhone: String(formData.get("affiliateAdminPhone") ?? ""),
+    affiliateAdminWechat: String(formData.get("affiliateAdminWechat") ?? ""),
+    affiliateAdminNote: String(formData.get("affiliateAdminNote") ?? ""),
+  });
+  revalidatePath("/admin/affiliates");
+  revalidatePath("/account/affiliate");
   return { success: true as const };
 }
 

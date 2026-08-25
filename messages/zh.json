@@ -2,6 +2,7 @@
   "nav": {
     "shop": "商城",
     "about": "关于",
+    "affiliate": "成为推广员",
     "cart": "购物车",
     "login": "登录",
     "logout": "退出",
@@ -204,7 +205,8 @@
     "privacy": "隐私政策",
     "terms": "服务条款",
     "returns": "退换货",
-    "contact": "联系我们"
+    "contact": "联系我们",
+    "affiliate": "成为推广员"
   },
   "meta": {
     "title": "LuminaTech — 专业舞台灯光设备",
@@ -356,6 +358,18 @@
     "affiliateHint": "分享推广链接，买家下单付款后可在此查看提成与结算状态。",
     "affiliateNotMember": "您还不是推广员",
     "affiliateNotMemberHint": "请联系商家开通推广员资格。开通后使用此账号登录即可查询，无需后台账号。",
+    "affiliateJoinTitle": "立即注册成为推广员",
+    "affiliateJoinSubtitle": "一键开通专属推广链接。注册后请联系管理员确认提成比例与结算方式，即可开始带客赚钱。",
+    "affiliateJoinSubmit": "注册成为推广员",
+    "affiliateJoinSubmitting": "开通中…",
+    "affiliateJoinRateHint": "默认佣金比例 {rate}%（最终以管理员确认后的比例为准）",
+    "affiliateDisplayName": "推广显示名称",
+    "affiliateContactTitle": "联系管理员谈提成",
+    "affiliateContactBody": "提成比例与打款方式请与管理员确认。注册后可随时通过以下方式联系。",
+    "affiliateContactEmail": "管理员邮箱",
+    "affiliateContactPhone": "电话",
+    "affiliateContactWechat": "微信",
+    "affiliateContactNote": "说明",
     "affiliateActive": "推广中",
     "affiliateInactive": "已停用",
     "affiliateCode": "推广码",

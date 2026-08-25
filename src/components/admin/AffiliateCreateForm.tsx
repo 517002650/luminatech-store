@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState } from "react";
 import { createAffiliateAction } from "@/app/admin/actions";
 import { AffiliateUserPicker } from "@/components/admin/AffiliateUserPicker";
+import { AffiliateCodeField } from "@/components/admin/AffiliateCodeField";
 
 const inputClass =
   "mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200";
@@ -16,10 +17,6 @@ export function AffiliateCreateForm() {
     null,
   );
 
-  useEffect(() => {
-    // keep form controlled via native inputs
-  }, []);
-
   return (
     <form action={formAction} className="max-w-xl space-y-4 rounded-2xl border border-stone-200 bg-white p-6">
       {state?.error ? (
@@ -29,19 +26,8 @@ export function AffiliateCreateForm() {
       ) : null}
 
       <AffiliateUserPicker required />
+      <AffiliateCodeField />
 
-      <div>
-        <label className={labelClass}>推广码 *</label>
-        <input
-          name="code"
-          required
-          placeholder="如 ZHANGSAN"
-          className={inputClass}
-        />
-        <p className="mt-1 text-xs text-stone-500">
-          链接形如 /zh?ref=ZHANGSAN ，仅字母数字与 _ -
-        </p>
-      </div>
       <div>
         <label className={labelClass}>名称 *</label>
         <input name="name" required className={inputClass} />

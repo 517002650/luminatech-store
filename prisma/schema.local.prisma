@@ -65,6 +65,12 @@ model ShippingSettings {
 model SiteSettings {
   id                      String   @id @default("default")
   reviewModerationEnabled Boolean  @default(true)
+  affiliateSelfRegister   Boolean  @default(true)
+  affiliateDefaultRate    Float    @default(10)
+  affiliateAdminEmail     String   @default("")
+  affiliateAdminPhone     String   @default("")
+  affiliateAdminWechat    String   @default("")
+  affiliateAdminNote      String   @default("")
   updatedAt               DateTime @updatedAt
 }
 
