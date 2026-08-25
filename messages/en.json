@@ -6,7 +6,10 @@
     "login": "Sign in",
     "logout": "Sign out",
     "wishlist": "Wishlist",
-    "account": "My Account"
+    "account": "My Account",
+    "language": "Language",
+    "langZh": "中文",
+    "langEn": "English"
   },
   "home": {
     "badge": "Professional Stage Lighting",

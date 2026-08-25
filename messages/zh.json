@@ -6,7 +6,10 @@
     "login": "登录",
     "logout": "退出",
     "wishlist": "收藏夹",
-    "account": "我的账户"
+    "account": "我的账户",
+    "language": "语言",
+    "langZh": "中文",
+    "langEn": "English"
   },
   "home": {
     "badge": "专业舞台灯光",
