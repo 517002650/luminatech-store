@@ -33,7 +33,7 @@ const root = process.cwd();
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 const npx = process.platform === "win32" ? "npx.cmd" : "npx";
 
-function run(command: string, args: string[], env: NodeJS.ProcessEnv = {}) {
+function run(command: string, args: string[], env: Record<string, string> = {}) {
   console.log(`\n> ${command} ${args.join(" ")}`);
   const result = spawnSync(command, args, {
     cwd: root,

@@ -2,7 +2,7 @@
 
 > **写给第一次成功上线的自己**——按本文重做一遍即可再次部署，不必靠记忆。  
 > 首次成功日期：2026-08-25  
-> 线上站点：https://luminatech-store2.vercel.app  
+> 线上站点：https://517002650-luminatech-store.vercel.app  
 > 代码仓库：https://github.com/517002650/luminatech-store  
 
 相关文档：
@@ -42,8 +42,8 @@ Vercel（Next.js 网站）
 | 仓库名 | `luminatech-store` |
 | 仓库地址 | https://github.com/517002650/luminatech-store |
 | Vercel 项目名 | `luminatech-store2` |
-| 线上域名 | https://luminatech-store2.vercel.app |
-| 后台 | https://luminatech-store2.vercel.app/admin |
+| 线上域名 | https://517002650-luminatech-store.vercel.app |
+| 后台 | https://517002650-luminatech-store.vercel.app/admin |
 | 本地代码目录 | `e:\项目\独立站\web` |
 | 数据库 | Neon PostgreSQL（`DATABASE_URL`） |
 | 图片 | Cloudinary（三个 `CLOUDINARY_*`） |
@@ -220,7 +220,7 @@ prisma generate && prisma db push && npm run db:seed && next build
 
 | 项目 | 值 |
 |------|-----|
-| 登录地址 | https://luminatech-store2.vercel.app/admin |
+| 登录地址 | https://517002650-luminatech-store.vercel.app/admin |
 | 当前密码 | `admin123`（代码默认；若 Vercel 已设 `ADMIN_PASSWORD` 则以环境变量为准） |
 | 建议 | 正式给人用之前尽快改成强密码 |
 

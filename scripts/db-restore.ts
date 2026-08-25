@@ -61,8 +61,8 @@ if (!confirm) {
 process.env.DATABASE_URL = url;
 const prisma = new PrismaClient();
 
-function reviveDates<T extends Record<string, unknown>>(row: T, fields: string[]): T {
-  const next = { ...row };
+function reviveDates(row: Record<string, unknown>, fields: string[]): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...row };
   for (const field of fields) {
     const value = next[field];
     if (typeof value === "string") {
@@ -96,7 +96,7 @@ async function main() {
     reviews,
   } = backup.data;
 
-  console.log(`Restoring from ${filePath} → ${url.replace(/:[^:@/]+@/, ":****@")}`);
+  console.log(`Restoring from ${filePath} → ${(url as string).replace(/:[^:@/]+@/, ":****@")}`);
 
   // Children first
   await prisma.review.deleteMany();

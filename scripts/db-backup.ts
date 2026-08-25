@@ -35,7 +35,8 @@ function detectEngine(connection: string) {
 }
 
 async function main() {
-  const engine = detectEngine(url);
+  const connectionUrl = url as string;
+  const engine = detectEngine(connectionUrl);
   console.log(`Backing up (${engine})…`);
 
   const [
