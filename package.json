@@ -15,7 +15,10 @@
     "db:local:setup": "npm run db:local:generate && npm run db:local:push && npm run db:seed:brands && npm run db:seed",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:brands": "tsx prisma/seed-brand-demo.ts",
-    "db:studio": "prisma studio --schema=prisma/schema.local.prisma"
+    "db:studio": "prisma studio --schema=prisma/schema.local.prisma",
+    "db:backup": "tsx scripts/db-backup.ts",
+    "db:restore": "tsx scripts/db-restore.ts",
+    "db:sync:local": "tsx scripts/db-sync-local.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

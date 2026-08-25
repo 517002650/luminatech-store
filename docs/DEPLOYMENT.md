@@ -316,6 +316,33 @@ Vercel / Neon / Cloudinary **账号里的配置还在**，不用重做，除非�
 
 ---
 
+## 7.1 数据库备份与同步本地
+
+备份文件在 `web/backups/`（已 gitignore，含订单/邮箱，勿上传仓库）。
+
+```powershell
+cd "e:\项目\独立站\web"
+
+# A) 只备份当前 .env 指向的库（本地 SQLite）
+npm run db:backup
+
+# B) 备份线上 Neon（不改 .env）
+$env:BACKUP_DATABASE_URL="postgresql://...@ep-xxxx.neon.tech/neondb?sslmode=require"
+npm run db:backup
+
+# C) 一键：Neon → 本地 prisma/dev.db（覆盖本地数据）
+$env:BACKUP_DATABASE_URL="postgresql://...@ep-xxxx.neon.tech/neondb?sslmode=require"
+npm run db:sync:local
+
+# D) 从某份 JSON 恢复到指定库（需 --yes）
+$env:RESTORE_DATABASE_URL="file:./prisma/dev.db"
+npm run db:restore -- backups/latest.json --yes
+```
+
+建议：每周执行一次 `db:backup`（对 Neon），并把 `backups\db-*.json` 拷到网盘。
+
+---
+
 ## 8. 绑定自定义域名（以后可选）
 
 1. Vercel → 项目 → **Settings** → **Domains** → 添加域名  

@@ -54,3 +54,7 @@ next-env.d.ts
 !/public/uploads/.gitkeep
 /public/downloads/*
 !/public/downloads/.gitkeep
+
+# database backups (may contain customer emails / orders)
+/backups/*
+!/backups/.gitkeep
