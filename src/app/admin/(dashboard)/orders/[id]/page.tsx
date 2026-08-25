@@ -18,7 +18,7 @@ export default async function AdminOrderDetailPage({ params }: Props) {
   return (
     <AdminShell
       title={`订单 #${formatOrderId(order.id)}`}
-      subtitle="查看商品明细并更新订单状态"
+      subtitle="查看商品明细、填写物流并更新订单状态"
     >
       <Link
         href="/admin/orders"

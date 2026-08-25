@@ -25,6 +25,7 @@ import {
   darkMetaClass,
   darkThumbStackClass,
 } from "@/lib/dark-surface-styles";
+import { hasTrackingInfo } from "@/lib/shipping-tracking";
 import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
@@ -169,6 +170,11 @@ export default async function AccountOrdersPage({ params }: Props) {
                       {downloadFileCount > 0 ? t("viewOrderDownloads") : t("viewDetails")}
                       <ChevronRight className="h-4 w-4" />
                     </p>
+                    {hasTrackingInfo(order) ? (
+                      <p className="mt-1 text-xs font-medium text-violet-300">
+                        {t("hasTracking")} · {order.trackingNumber}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </Link>

@@ -128,6 +128,8 @@ model Order {
   couponCode      String   @default("")
   total           Float
   status          String   @default("paid")
+  shippingCarrier String   @default("")
+  trackingNumber  String   @default("")
   paymentMethod   String
   paymentId       String?  @unique
   items           String

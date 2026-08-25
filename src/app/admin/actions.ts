@@ -222,7 +222,8 @@ export async function updateOrderStatusAction(id: string, status: string) {
 
   if (status === "shipped" && order.status !== "shipped") {
     try {
-      await sendShippingEmail(order);
+      const updated = await prisma.order.findUnique({ where: { id } });
+      if (updated) await sendShippingEmail(updated);
     } catch (err) {
       console.error("Shipping email failed:", err);
     }
@@ -230,6 +231,53 @@ export async function updateOrderStatusAction(id: string, status: string) {
 
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/zh/account/orders");
+  revalidatePath("/en/account/orders");
+  revalidatePath(`/zh/account/orders/${id}`);
+  revalidatePath(`/en/account/orders/${id}`);
+}
+
+export async function updateOrderTrackingAction(id: string, formData: FormData) {
+  await requireAdmin();
+
+  const order = await prisma.order.findUnique({ where: { id } });
+  if (!order) return { error: "订单不存在" };
+
+  const shippingCarrier = String(formData.get("shippingCarrier") ?? "other").trim();
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  const notifyBuyer = formData.get("notifyBuyer") === "on";
+
+  if (notifyBuyer && !trackingNumber) {
+    return { error: "通知买家前请先填写运单号" };
+  }
+
+  await prisma.order.update({
+    where: { id },
+    data: { shippingCarrier, trackingNumber },
+  });
+
+  let notified = false;
+  if (notifyBuyer) {
+    try {
+      const updated = await prisma.order.findUnique({ where: { id } });
+      if (updated) {
+        await sendShippingEmail(updated);
+        notified = true;
+      }
+    } catch (err) {
+      console.error("Shipping email failed:", err);
+      return { error: "物流已保存，但发货通知邮件发送失败" };
+    }
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/zh/account/orders");
+  revalidatePath("/en/account/orders");
+  revalidatePath(`/zh/account/orders/${id}`);
+  revalidatePath(`/en/account/orders/${id}`);
+
+  return { success: true as const, notified };
 }
 
 export async function createCouponAction(formData: FormData) {

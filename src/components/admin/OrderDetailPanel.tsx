@@ -14,6 +14,7 @@ import {
   type OrderStatus,
 } from "@/lib/orders";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
+import { OrderTrackingForm } from "@/components/admin/OrderTrackingForm";
 
 type Props = {
   order: {
@@ -26,6 +27,8 @@ type Props = {
     couponCode?: string;
     total: number;
     status: string;
+    shippingCarrier: string;
+    trackingNumber: string;
     paymentMethod: string;
     paymentId: string | null;
     items: string;
@@ -97,6 +100,13 @@ export function OrderDetailPanel({ order }: Props) {
           </select>
         </div>
       </div>
+
+      <OrderTrackingForm
+        orderId={order.id}
+        shippingCarrier={order.shippingCarrier}
+        trackingNumber={order.trackingNumber}
+        status={order.status}
+      />
 
       <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
         <div className="border-b border-stone-200 px-6 py-4">

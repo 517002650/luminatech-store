@@ -20,6 +20,7 @@ import {
   orderStatusAllowsDownloads,
 } from "@/lib/product-downloads";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
+import { OrderTrackingInfo } from "@/components/account/OrderTrackingInfo";
 import { prisma } from "@/lib/db";
 import {
   darkCardClass,
@@ -137,6 +138,20 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           </dd>
         </div>
       </dl>
+
+      <OrderTrackingInfo
+        locale={locale}
+        status={order.status}
+        shippingCarrier={order.shippingCarrier}
+        trackingNumber={order.trackingNumber}
+        labels={{
+          title: t("trackingTitle"),
+          carrier: t("trackingCarrier"),
+          trackingNumber: t("trackingNumber"),
+          trackShipment: t("trackShipment"),
+          pending: t("trackingPending"),
+        }}
+      />
 
       {shipping ? (
         <div className="mt-8">

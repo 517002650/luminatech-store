@@ -6,6 +6,11 @@ import {
   parseShippingAddress,
 } from "@/lib/orders";
 import { formatPrice } from "@/lib/format";
+import {
+  getCarrierLabel,
+  getTrackingUrl,
+  hasTrackingInfo,
+} from "@/lib/shipping-tracking";
 
 type Order = {
   id: string;
@@ -13,6 +18,8 @@ type Order = {
   total: number;
   items: string;
   shippingAddress?: string;
+  shippingCarrier?: string;
+  trackingNumber?: string;
 };
 
 function isSmtpConfigured() {
@@ -110,6 +117,25 @@ Thank you for shopping at ${storeName}!`;
   return { sent: true as const };
 }
 
+function buildTrackingBlock(order: Order) {
+  if (!hasTrackingInfo(order)) return { text: "", html: "" };
+
+  const carrier = getCarrierLabel(order.shippingCarrier ?? "other", "en");
+  const url = getTrackingUrl(order.shippingCarrier ?? "other", order.trackingNumber ?? "");
+
+  const text = `
+Carrier: ${carrier}
+Tracking: ${order.trackingNumber}
+Track: ${url ?? ""}`;
+
+  const html = `
+    <p><strong>Carrier:</strong> ${carrier}<br/>
+    <strong>Tracking:</strong> ${order.trackingNumber}<br/>
+    ${url ? `<a href="${url}">Track shipment</a>` : ""}</p>`;
+
+  return { text, html };
+}
+
 export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   if (!isSmtpConfigured()) {
     return { sent: false, reason: "smtp_not_configured" as const };
@@ -159,6 +185,7 @@ export async function sendShippingEmail(order: Order) {
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress ?? "");
   const orderNo = formatOrderId(order.id);
+  const tracking = buildTrackingBlock(order);
 
   const subject = `Your order #${orderNo} has shipped — ${storeName}`;
   const shippingBlock = shipping
@@ -173,7 +200,7 @@ Items:
 ${buildItemRows(items)}
 
 Total: ${formatPrice(order.total)}
-${shippingBlock}
+${shippingBlock}${tracking.text ? `\n${tracking.text}\n` : ""}
 Thank you for shopping at ${storeName}!`;
 
   const shippingHtml = shipping
@@ -187,9 +214,10 @@ Thank you for shopping at ${storeName}!`;
       ${buildItemHtml(items)}
       <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
       ${shippingHtml}
+      ${tracking.html}
       <p style="color:#78716c">Thank you for shopping at ${storeName}.</p>
       <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />
-      <p style="color:#78716c;font-size:14px">您好，您的订单 #${orderNo} 已发货，感谢您的购买！</p>
+      <p style="color:#78716c;font-size:14px">您好，您的订单 #${orderNo} 已发货${order.trackingNumber ? `，运单号：${order.trackingNumber}` : ""}，感谢您的购买！</p>
     </div>
   `;
 
