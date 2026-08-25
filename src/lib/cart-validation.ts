@@ -7,6 +7,9 @@ export type CartRequestItem = {
   productId: string;
   quantity: number;
   variantId?: string;
+  /** Used to recover after DB restore / reseed when productId is stale */
+  slug?: string;
+  variantSku?: string;
 };
 
 export type ValidatedCartItem = OrderItem & {
@@ -53,10 +56,21 @@ export async function resolveCartItemsFromDb(
     throw new CartValidationError("Cart is empty", "empty");
   }
 
-  const quantities = new Map<LineKey, { productId: string; variantId?: string; quantity: number }>();
+  const quantities = new Map<
+    LineKey,
+    {
+      productId: string;
+      variantId?: string;
+      quantity: number;
+      slug?: string;
+      variantSku?: string;
+    }
+  >();
   for (const item of rawItems) {
     const productId = String(item.productId ?? "").trim();
     const variantId = String(item.variantId ?? "").trim() || undefined;
+    const slug = String(item.slug ?? "").trim() || undefined;
+    const variantSku = String(item.variantSku ?? "").trim() || undefined;
     const qty = Math.floor(Number(item.quantity));
     if (!productId || !Number.isFinite(qty) || qty < 1) {
       throw new CartValidationError("Invalid cart quantity", "invalid_qty");
@@ -66,6 +80,8 @@ export async function resolveCartItemsFromDb(
     quantities.set(key, {
       productId,
       variantId,
+      slug: slug ?? prev?.slug,
+      variantSku: variantSku ?? prev?.variantSku,
       quantity: (prev?.quantity ?? 0) + qty,
     });
   }
@@ -80,14 +96,40 @@ export async function resolveCartItemsFromDb(
     include: { variants: true },
   });
 
-  if (products.length !== productIds.length) {
+  const byId = new Map(products.map((p) => [p.id, p]));
+  const missing = [...quantities.values()].filter((q) => !byId.has(q.productId));
+  if (missing.length > 0) {
+    const slugs = [
+      ...new Set(missing.map((m) => m.slug).filter((s): s is string => Boolean(s))),
+    ];
+    if (slugs.length > 0) {
+      const bySlugRows = await prisma.product.findMany({
+        where: { slug: { in: slugs } },
+        include: { variants: true },
+      });
+      const bySlug = new Map(bySlugRows.map((p) => [p.slug, p]));
+      for (const line of missing) {
+        const recovered = line.slug ? bySlug.get(line.slug) : undefined;
+        if (recovered) {
+          byId.set(line.productId, recovered);
+          await ensureDefaultVariant(recovered.id);
+          const fresh = await prisma.product.findUnique({
+            where: { id: recovered.id },
+            include: { variants: true },
+          });
+          if (fresh) byId.set(line.productId, fresh);
+        }
+      }
+    }
+  }
+
+  if ([...quantities.values()].some((q) => !byId.has(q.productId))) {
     throw new CartValidationError("One or more products are unavailable", "not_found");
   }
 
-  const byId = new Map(products.map((p) => [p.id, p]));
   const resolved: ValidatedCartItem[] = [];
 
-  for (const { productId, variantId, quantity } of quantities.values()) {
+  for (const { productId, variantId, quantity, variantSku } of quantities.values()) {
     const product = byId.get(productId)!;
 
     if (!product.active) {
@@ -103,11 +145,15 @@ export async function resolveCartItemsFromDb(
       (variantId
         ? product.variants.find((v) => v.id === variantId)
         : null) ??
+      (variantSku
+        ? activeVariants.find((v) => v.sku === variantSku) ??
+          product.variants.find((v) => v.sku === variantSku)
+        : null) ??
       activeVariants.find((v) => v.isDefault) ??
       activeVariants[0] ??
       product.variants[0];
 
-    if (!variant || (variantId && variant.id !== variantId) || !variant.active) {
+    if (!variant || !variant.active) {
       const name = locale === "zh" ? product.nameZh : product.nameEn;
       throw new CartValidationError(
         `Selected option for “${name}” is unavailable`,

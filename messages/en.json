@@ -172,7 +172,7 @@
     "errors": {
       "form": "Please complete all required shipping fields.",
       "coupon": "Please check your coupon code.",
-      "stock": "Some items are out of stock or unavailable.",
+      "stock": "Some items are unavailable or out of stock. Clear your cart and add them again.",
       "email_required": "Email is required.",
       "email_invalid": "Please enter a valid email.",
       "name_required": "Full name is required.",

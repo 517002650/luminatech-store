@@ -106,6 +106,8 @@ export function CheckoutPanel({
             items: items.map((i) => ({
               productId: i.productId,
               variantId: i.variantId,
+              variantSku: i.variantSku,
+              slug: i.slug,
               quantity: i.quantity,
             })),
             shippingAddress: shipping,
@@ -119,7 +121,7 @@ export function CheckoutPanel({
         if (data.stockError) {
           setCouponError("");
           setQuote(null);
-          setError(data.error || t("errors.stock"));
+          setError(t("errors.stock"));
           return;
         }
 
@@ -188,6 +190,8 @@ export function CheckoutPanel({
     return items.map((item) => ({
       productId: item.productId,
       variantId: item.variantId,
+      variantSku: item.variantSku,
+      slug: item.slug,
       quantity: item.quantity,
     }));
   }
