@@ -226,14 +226,14 @@ prisma generate && prisma db push && npm run db:seed && next build
 
 ### 线上修改步骤（推荐）
 
-1. 打开 https://vercel.com/dashboard → 进入项目 **`luminatech-store2`**
+1. 打开 https://vercel.com/dashboard → 进入绑定仓库 `luminatech-store` 的项目
 2. 点 **Settings** → **Environment Variables**
 3. 找到 **`ADMIN_PASSWORD`**：
    - **已有该变量**：点右侧编辑（Edit / 铅笔），把 Value 改成新密码，保存
    - **没有该变量**：点 Add，Key 填 `ADMIN_PASSWORD`，Value 填新密码，Environment 勾选 Production（以及 Preview 可选）
 4. 回到 **Deployments** → 最新一次右侧 `⋯` → **Redeploy**（必须重新部署，只改变量不生效）
 5. 等待 Deploy 变成 **Ready**
-6. 打开 https://luminatech-store2.vercel.app/admin ，用**新密码**登录
+6. 打开 https://517002650-luminatech-store.vercel.app/admin ，用**新密码**登录
 7. 旧密码 `admin123` 将失效
 
 ### 密码建议
