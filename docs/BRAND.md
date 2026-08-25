@@ -2,7 +2,8 @@
 
 > 决策日期：2026-08-26  
 > 状态：**首选 Stagevio（代码已切换）**；Plotnova / Voxrig 为备选  
-> 线上域名绑定 `stagevio.com` 与 Vercel `STORE_NAME` 等环境变量仍可能待更新，见 §5
+> 线上域名：未购买 `stagevio.com` 前，勿改 `NEXT_PUBLIC_APP_URL`。  
+> 联系邮箱现阶段：`517002650@qq.com`（QQ）；买域名企业邮后再改，见 §1.3 / §5.1
 
 本文记录独立站**正式品牌选型**、域名规划、商标方向与迁移清单。代码内对外品牌已统一为 Stagevio。
 
@@ -50,7 +51,30 @@ support@stagevio.com
 noreply@stagevio.com
 ```
 
-### 1.3 环境变量（迁移后）
+### 1.3 环境变量
+
+> **未购买 / 未绑定自定义域名时：不要改 `NEXT_PUBLIC_APP_URL` 为 `stagevio.com`。**  
+> **联系与发信邮箱：现阶段使用 QQ 邮箱；购买域名并开通企业邮后再改为 `@stagevio.com`。**
+
+**现阶段推荐（不依赖自有域名）：**
+
+```env
+STORE_NAME=Stagevio
+CONTACT_EMAIL=517002650@qq.com
+SMTP_FROM="Stagevio <517002650@qq.com>"
+NEXT_PUBLIC_APP_URL=https://517002650-luminatech-store.vercel.app
+```
+
+说明：
+
+| 变量 | 现阶段 | 买域名 + 企业邮之后 |
+|------|--------|---------------------|
+| `CONTACT_EMAIL` | `517002650@qq.com`（QQ，可收客户邮件） | `support@stagevio.com` |
+| `SMTP_FROM` | `"Stagevio <517002650@qq.com>"`（须与 SMTP 发信账号一致；QQ 需开 SMTP 授权码） | `"Stagevio <noreply@stagevio.com>"` |
+| `NEXT_PUBLIC_APP_URL` | 当前 Vercel 生产 URL，**勿改成 stagevio.com** | `https://stagevio.com` |
+| `STORE_NAME` | `Stagevio` | 保持不变 |
+
+**仅在已购买并绑定 `stagevio.com` 且企业邮箱开通后，再更新为：**
 
 ```env
 STORE_NAME=Stagevio
@@ -59,7 +83,7 @@ SMTP_FROM="Stagevio <noreply@stagevio.com>"
 NEXT_PUBLIC_APP_URL=https://stagevio.com
 ```
 
-Stripe Statement descriptor 建议：`STAGEVIO` 或 `STAGEVIO STORE`（长度与字符限制以 Stripe 为准）。
+改完后必须 Redeploy。Stripe Statement descriptor 建议：`STAGEVIO` 或 `STAGEVIO STORE`（长度与字符限制以 Stripe 为准）。
 
 ### 1.4 商标申请方向（需律师/代理正式检索后提交）
 
@@ -131,10 +155,16 @@ Stripe Statement descriptor 建议：`STAGEVIO` 或 `STAGEVIO STORE`（长度与
 ### 5.1 立刻可做（运营）
 
 1. 注册 **stagevio.com**（及建议的 `.store`）  
-2. 开通 `support@` / `noreply@` 邮箱  
+2. 开通 `support@` / `noreply@` 企业邮箱  
 3. 商标正式检索 → 提交 US / CN（按主体所在地）  
 4. Vercel **Domains** 绑定 `stagevio.com`（步骤见 [DEPLOYMENT.md §8](./DEPLOYMENT.md)）  
-5. 更新 `NEXT_PUBLIC_APP_URL`、Stripe/PayPal 回调与商户显示名 → Redeploy  
+5. **域名已生效后**，再把 `CONTACT_EMAIL` / `SMTP_FROM` 从 QQ（`517002650@qq.com`）改为 `@stagevio.com`，并更新 `NEXT_PUBLIC_APP_URL`、Stripe/PayPal → Redeploy  
+
+**未购买域名：**  
+- 勿改 `NEXT_PUBLIC_APP_URL`  
+- 联系与发信继续用 **QQ：`517002650@qq.com`**（见 §1.3）  
+- 可选：`STORE_NAME=Stagevio`  
+- 购买域名并开通企业邮后再改邮箱相关变量
 
 ### 5.2 代码与文案（已完成 2026-08-26）
 

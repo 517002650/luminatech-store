@@ -7,7 +7,7 @@ import type { Locale } from "@/i18n/routing";
 
 type Props = { params: Promise<{ locale: Locale }> };
 
-const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "support@stagevio.com";
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL ?? "517002650@qq.com";
 
 export async function generateMetadata({ params }: Props) {
   const { locale } = await params;

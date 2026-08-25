@@ -9,6 +9,7 @@
 
 - 日常运营：[TECHNICAL.md](./TECHNICAL.md)
 - **品牌与域名（首选 Stagevio）：** [BRAND.md](./BRAND.md)
+- **大陆访问 / 香港反向代理（宝塔）：** [HK-REVERSE-PROXY.md](./HK-REVERSE-PROXY.md)
 - 首次部署草稿（较简）：[../DEPLOY.md](../DEPLOY.md)
 
 ---
@@ -217,6 +218,7 @@ prisma generate && prisma db push --accept-data-loss && npm run db:seed && next 
 | 自己设的后台密码 | `ADMIN_PASSWORD` |
 | 自己编的随机串 | `USER_SESSION_SECRET` |
 | 网站完整 URL | `NEXT_PUBLIC_APP_URL` |
+| 香港 IP 后台（临时） | `SERVER_ACTIONS_ALLOWED_ORIGINS`、`ADMIN_COOKIE_SECURE` — 见 [HK-REVERSE-PROXY.md §12](./HK-REVERSE-PROXY.md) |
 
 改环境变量后必须 **Redeploy** 才生效。
 
@@ -226,7 +228,8 @@ prisma generate && prisma db push --accept-data-loss && npm run db:seed && next 
 
 | 环境 | 地址 | 密码 |
 |------|------|------|
-| 线上 | https://517002650-luminatech-store.vercel.app/admin | Vercel 中的 `ADMIN_PASSWORD`（[环境变量直达](https://vercel.com/dashan4/517002650-luminatech-store/settings/environment-variables)） |
+| 线上（VPN / 海外） | https://517002650-luminatech-store.vercel.app/admin | 管理员邮箱 + 密码 |
+| 线上（大陆经香港 IP） | http://150.109.71.243/admin | 同上；须先配 [HK-REVERSE-PROXY.md §12](./HK-REVERSE-PROXY.md) 环境变量并 Redeploy |
 | 本地 | http://localhost:3000/admin | `.env` 的 `ADMIN_PASSWORD`；未设时临时可用 `admin123` |
 
 登录后左侧有：商品列表、新增商品、分类、订单、退货、评价、**用户管理**、留言、优惠码、**推广员**、**推广提成**、运费、媒体清理、备份。
@@ -356,13 +359,69 @@ npx vercel --prod --yes
 
 **改环境变量后**：在 Vercel Environment Variables 保存后，必须再 **Redeploy** 或再跑一次 `npx vercel --prod --yes`，否则线上仍用旧 env。
 
+**Redeploy 入口（Deployments）：**  
+https://vercel.com/dashan4/517002650-luminatech-store/deployments  
+→ 最新一条右侧 **⋯** → **Redeploy** → 确认。
+
 **常见部署失败：**
 
 | 报错 | 含义 | 处理 |
 |------|------|------|
 | `Edge Function "_middleware" size ... limit is 1 MB` | middleware 打进了 Prisma 等重依赖 | middleware 只引用 Edge 安全小模块（如 `affiliate-cookie.ts`），禁止从含 `@prisma/client` 的文件再导出进 middleware |
 | `prisma db push` / DB 连接失败 | `DATABASE_URL` 无效或 Neon 休眠/限额 | 查 Vercel env 与 Neon 控制台 |
+| `Use the --accept-data-loss flag`（见下方 §5.1.1） | 构建跑的 `db push` **没有** `--accept-data-loss` | 按 §5.1.1 修复后 Redeploy |
 | Build 成功但线上路由 404 | 当前 Production 仍是旧 Deployment | 再跑 CLI 部署，或 Dashboard 把最新 Ready **Promote to Production** |
+
+#### 5.1.1 踩坑：`prisma db push` 要求 `--accept-data-loss`（已踩过，2026-08）
+
+**典型日志：**
+
+```text
+Error: Use the --accept-data-loss flag to ignore the data loss warnings
+  like prisma db push --accept-data-loss
+Error: Command "prisma generate && prisma db push && npm run db:seed && next build" exited with 1
+```
+
+注意失败命令里是 `prisma db push`（**没有** `--accept-data-loss`）。  
+仓库正确命令应是：
+
+```text
+prisma generate && prisma db push --accept-data-loss && npm run db:seed && next build
+```
+
+（已写在 `package.json` 的 `scripts.build` 与 `vercel.json` 的 `buildCommand`。）
+
+**为何会跑错命令？**
+
+| 情况 | 说明 |
+|------|------|
+| Build Command **Override 开着** 且填了旧命令 | 控制台覆盖仓库，最常见原因 |
+| Override **关着**（推荐） | 应走 `npm run build` → 用仓库带 flag 的命令；若仍失败，确认最新 commit 已含正确 `package.json` |
+
+**正确界面路径（不在 General）：**
+
+1. 打开 [Build and Deployment](https://vercel.com/dashan4/517002650-luminatech-store/settings/build-and-deployment)  
+   （Settings → 左侧 **Build and Deployment**，不是 General）  
+2. 找到 **Framework Settings → Build Command**  
+3. 看右侧 **Override**：  
+   - **关（默认，推荐）**：灰色开关在左。此时用仓库命令，**不用手填**。  
+   - **开**：必须把完整命令改成带 `--accept-data-loss` 的那一行，再 Save。  
+4. 去 [Deployments](https://vercel.com/dashan4/517002650-luminatech-store/deployments) → 最新一条 **⋯** → **Redeploy**  
+5. 新构建日志中应出现：`prisma db push --accept-data-loss`，最后 `status: Ready`
+
+**若加了 flag 仍失败（唯一约束冲突）：**
+
+可能是 `Affiliate.userId` 等字段有重复数据。到 Neon SQL 检查：
+
+```sql
+SELECT "userId", COUNT(*)
+FROM "Affiliate"
+WHERE "userId" IS NOT NULL
+GROUP BY "userId"
+HAVING COUNT(*) > 1;
+```
+
+有重复则先清理多余行，再 Redeploy。
 
 ### 5.2 部署后快速验收
 
@@ -385,7 +444,8 @@ npx vercel --prod --yes
 | 前台 500、后台登录页却正常 | 登录页不查库；进后台/首页才查库 → 就是数据库问题 |
 | Vercel 上本地上传图片 | 必须配 Cloudinary |
 | Token 发到聊天 | 用完立刻在 GitHub Settings → Tokens 删除 |
-| 改了环境变量网站没变 | 需要 Redeploy |
+| 改了环境变量网站没变 | 需要 Redeploy：https://vercel.com/dashan4/517002650-luminatech-store/deployments |
+| `Use the --accept-data-loss flag` 构建失败 | 见 **§5.1.1**：Build Command 在 **Build and Deployment**（不在 General）；Override 建议关；Redeploy |
 | 买家/后台下载报 `download_failed` | 见 **§7.2**；多数是 Cloudinary 密钥或 zip 签名方式问题 |
 | 直接打开 `res.cloudinary.com/...zip` 链接 | 会 401；必须走网站内「下载」按钮（`/api/downloads/...`） |
 | 本地备份同步后固件仍下不了 | 检查附件 URL 是否是 `/downloads/...` 本地路径，线上需重新上传到 Cloudinary |
@@ -539,11 +599,14 @@ npx tsx scripts/verify-cloudinary.ts
 
 目标品牌见 [BRAND.md](./BRAND.md)：首选 **`stagevio.com`**（备选 `plotnova.com` / `voxrig.com`）。
 
+> **未购买域名：跳过本节，勿改 `NEXT_PUBLIC_APP_URL`。**  
+> 继续用 `https://517002650-luminatech-store.vercel.app`。买好并解析生效后再做下面步骤。
+
 1. 在注册商购买并持有域名（先确认可注册）  
 2. Vercel → 项目 → **Settings** → **Domains** → 添加域名（如 `stagevio.com`、`www.stagevio.com`）  
 3. 按提示改 DNS（A / CNAME）  
-4. 把 `NEXT_PUBLIC_APP_URL` 改成 `https://stagevio.com`  
-5. 同步改 `STORE_NAME`、`CONTACT_EMAIL`、`SMTP_FROM`（见 BRAND.md §1.3）  
+4. 确认浏览器能打开新域名后，再把 `NEXT_PUBLIC_APP_URL` 改成 `https://stagevio.com`  
+5. 将 `CONTACT_EMAIL` / `SMTP_FROM` 从 QQ（`517002650@qq.com`）改为 `@stagevio.com`（企业邮已开通时；见 BRAND.md §1.3）；`STORE_NAME=Stagevio` 可提前改  
 6. Redeploy（`npx vercel --prod --yes` 或 Dashboard）  
 7. Stripe / PayPal 回调 URL 与商户显示名一并更新  
 8. 更新本文 §1 配置表与 [TECHNICAL.md](./TECHNICAL.md) 第 2 节网址  
@@ -590,7 +653,8 @@ npx tsx scripts/verify-cloudinary.ts
 
 | 文档 | 何时看 |
 |------|--------|
-| **本文 `docs/DEPLOYMENT.md`** | 部署 / **§5.1 触发重新部署** / 忘记上线步骤时 |
+| **本文 `docs/DEPLOYMENT.md`** | 部署 / **§5.1 触发重新部署** / **§5.1.1 accept-data-loss 构建失败** / 忘记上线步骤时 |
+| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、403 排查、Nginx 配置 |
 | `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `.cursor/rules/vercel-deploy.mdc` | AI：功能提交后必须生产部署的约定 |
 | `docs/TECHNICAL.md` | 日常改商品、订单、排错 |

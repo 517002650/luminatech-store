@@ -8,7 +8,8 @@
 本文档用于**上线后日常管理**：改商品、看订单、改密码、重新部署、排查故障。
 
 **部署上线完整步骤（防忘）：** [DEPLOYMENT.md](./DEPLOYMENT.md)（Vercel + Cloudinary + PostgreSQL）  
-**品牌与域名方案：** [BRAND.md](./BRAND.md)（首选 **Stagevio**；Plotnova / Voxrig 为备选）
+**品牌与域名方案：** [BRAND.md](./BRAND.md)（首选 **Stagevio**；Plotnova / Voxrig 为备选）  
+**大陆访问 / 香港反向代理：** [HK-REVERSE-PROXY.md](./HK-REVERSE-PROXY.md)（宝塔 Nginx 代理 Vercel）
 
 ---
 
@@ -17,7 +18,7 @@
 | 项目 | 说明 |
 |------|------|
 | 店铺名 | **Stagevio**（正式品牌，见 [BRAND.md](./BRAND.md)） |
-| 目标主域名 | `stagevio.com`（绑定后更新 §2 与 `NEXT_PUBLIC_APP_URL`） |
+| 目标主域名 | `stagevio.com`（**未购买则先不改** `NEXT_PUBLIC_APP_URL`；绑定生效后再更新 §2） |
 | 技术栈 | Next.js 16 + TypeScript + Tailwind + Prisma |
 | 前台语言 | 中文 `/zh`、英文 `/en` |
 | 托管 | Vercel |
@@ -107,13 +108,22 @@
 | 变量名 | 含义 | 获取位置 |
 |--------|------|----------|
 | `DATABASE_URL` | PostgreSQL 连接串 | Neon → Connection string（建议 Pooled，带 `sslmode=require`） |
-| `NEXT_PUBLIC_APP_URL` | 网站完整地址 | 如 `https://luminatech-store2.vercel.app` |
+| `NEXT_PUBLIC_APP_URL` | 网站完整地址 | 当前用 Vercel 生产 URL；**未买自定义域勿改成 stagevio.com** |
 | `ADMIN_PASSWORD` | 首次创建 Owner 的安装口令；也可作会话签名兜底 | 线上 ≥12 位强密码（禁止 `admin123`） |
 | `ADMIN_SECRET` | 后台会话签名（推荐） | ≥16 位随机串 |
 | `USER_SESSION_SECRET` | 用户登录会话密钥 | 自己设定一长串随机字符 |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary 云名称 | Cloudinary Dashboard |
 | `CLOUDINARY_API_KEY` | Cloudinary API Key | 同上 |
 | `CLOUDINARY_API_SECRET` | Cloudinary API Secret | 同上 |
+
+### 香港反向代理 — IP 访问后台（临时，见 [HK-REVERSE-PROXY.md §12](./HK-REVERSE-PROXY.md)）
+
+> 未买 `stagevio.com` 前，若要用 `http://香港IP/admin` 登录后台，需设下列变量并 **Redeploy**。买回域名 + HTTPS 后按 HK 文档 **§12.4 改回**。
+
+| 变量名 | IP 临时阶段 | 域名正式阶段 |
+|--------|-------------|--------------|
+| `SERVER_ACTIONS_ALLOWED_ORIGINS` | `150.109.71.243`（无 `http://`） | `stagevio.com,www.stagevio.com`（去掉 IP） |
+| `ADMIN_COOKIE_SECURE` | `false` | **删除**或 `true` |
 
 ### 支付（要收款时填）
 
@@ -126,15 +136,36 @@
 
 ### 邮件（要发确认/发货邮件时填）
 
-| 变量名 | 示例 |
-|--------|------|
-| `SMTP_HOST` | `smtp.gmail.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USER` | 你的邮箱 |
-| `SMTP_PASS` | 应用专用密码 |
-| `SMTP_FROM` | `"Stagevio <noreply@stagevio.com>"`（迁移前可用临时发件域） |
-| `STORE_NAME` | `Stagevio` |
-| `CONTACT_EMAIL` | 联系页展示邮箱 |
+发货/订单邮件**不是**只改 `CONTACT_EMAIL` 就能发。代码要求至少有 `SMTP_HOST` + `SMTP_FROM`；实际登录发信还要 `SMTP_USER` + `SMTP_PASS`。
+
+| 变量名 | 现阶段 QQ 示例 | 说明 |
+|--------|----------------|------|
+| `SMTP_HOST` | `smtp.qq.com` | **必填**，否则视为未配置 SMTP，发货不发信 |
+| `SMTP_PORT` | `465`（或 `587`） | 465 用 SSL；587 用 STARTTLS |
+| `SMTP_USER` | `517002650@qq.com` | QQ 邮箱完整地址 |
+| `SMTP_PASS` | （授权码，不是 QQ 登录密码） | 在 QQ 邮箱设置里开启 SMTP 后生成 |
+| `SMTP_FROM` | `"Stagevio <517002650@qq.com>"` | 发件人显示；地址须与 `SMTP_USER` 一致或被允许代发 |
+| `STORE_NAME` | `Stagevio` | 邮件正文店铺名 |
+| `CONTACT_EMAIL` | `517002650@qq.com` | 联系页/表单收件；**不负责发货发信** |
+
+#### QQ 邮箱开通 SMTP（必做）
+
+1. 电脑打开 https://mail.qq.com → **设置 → 账户**  
+2. 找到 **POP3/IMAP/SMTP** → 开启 **SMTP**  
+3. 按提示用手机验证，生成 **授权码**（一串字母，不是你的 QQ 密码）  
+4. 把授权码填进 Vercel 的 `SMTP_PASS`  
+5. 环境变量改完后必须 [Redeploy](https://vercel.com/dashan4/517002650-luminatech-store/deployments)
+
+#### 发货仍不发信时排查
+
+| 检查 | 说明 |
+|------|------|
+| 订单上有买家邮箱吗？ | `order.email` 为空则跳过发信（`no_email`） |
+| 是否从「非已发货」改为「已发货」？ | 仅**首次**变为 shipped 时触发；已经是 shipped 再保存不会重发 |
+| Vercel 是否配齐 5 个 SMTP 变量？ | 缺 `SMTP_HOST` 会直接 `smtp_not_configured` |
+| `SMTP_PASS` 是否为授权码？ | 填 QQ 登录密码会认证失败 |
+| 改 env 后是否 Redeploy？ | 未 Redeploy 线上仍用旧配置 |
+| Runtime Logs | Deployments → 该次部署 → **Logs**，搜 `Shipping email failed` |
 
 修改环境变量后，需要在 Vercel **Redeploy** 一次才会生效。
 
@@ -461,10 +492,11 @@ npx tsx scripts/seed-multi-variants.ts
 | 选规格后加购价格不对 | 旧购物车缓存 / 未保存规格 | 清空购物车再加；确认后台该规格售价已保存 |
 | 某规格无法点击 | 该规格库存为 0 或未启用 | 后台提高库存或勾选「启用」 |
 | 上传图片失败 | Cloudinary 未配或配错 | 检查三个 `CLOUDINARY_*`，Redeploy |
-| 改了环境变量不生效 | 未重新部署 | Vercel → Deployments → Redeploy |
+| 改了环境变量不生效 | 未重新部署 | [Deployments](https://vercel.com/dashan4/517002650-luminatech-store/deployments) → ⋯ → Redeploy |
+| 构建报 `Use the --accept-data-loss flag` | 跑的 `db push` 缺少该参数 | 见 [DEPLOYMENT.md §5.1.1](./DEPLOYMENT.md)：Settings → **Build and Deployment**（不在 General）；Build Command Override **建议关**；再 Redeploy |
 | 支付提示 `Stripe is not configured` | 未配置 `STRIPE_SECRET_KEY` | 见下方「配置 Stripe 密钥」 |
 | 支付按钮无效 | 未配 Stripe/PayPal | 同上 |
-| 收不到邮件 | 未配 SMTP 或邮箱拦截 | 检查 SMTP 变量；看垃圾箱 |
+| 收不到邮件 | 未配全 SMTP / QQ 未开授权码 / 未 Redeploy / 订单无邮箱 | 见 §4「邮件」QQ 配置；Runtime Logs 搜 `Shipping email failed`；查垃圾箱 |
 | 推送 Git 失败 | Token 无效/无 repo 权限 | 新建 Classic Token，勾选 `repo`，用完删除 |
 | 本地与线上数据不一致 | 本地/线上是不同数据库 | 正常现象；线上数据只在 Neon |
 | 买家/后台下载 `download_failed` | Cloudinary 密钥错、账号不一致、或附件为本地路径 | 见 [DEPLOYMENT.md §7.2](./DEPLOYMENT.md#72-固件文件下载失败download_failed快速修复) |
@@ -507,8 +539,8 @@ npx tsx scripts/seed-multi-variants.ts
 - [ ] 确认 GitHub Token 用完即删，勿长期放在聊天里  
 - [ ] `.env` 不要提交到 Git（已在 `.gitignore`）  
 - [ ] 正式营业前切换 Stripe/PayPal 为 Live 密钥  
-- [ ] 建议绑定自定义域名（目标 `stagevio.com`，见 [BRAND.md](./BRAND.md)），并更新 `NEXT_PUBLIC_APP_URL`  
-- [ ] 品牌迁移后：联系邮箱为 `@stagevio.com`（代码默认已改；Vercel 须同步 `CONTACT_EMAIL` / `STORE_NAME`）  
+- [ ] 建议绑定自定义域名（目标 `stagevio.com`，见 [BRAND.md](./BRAND.md)）；**未购买则先不改** `NEXT_PUBLIC_APP_URL`  
+- [ ] 品牌：`STORE_NAME=Stagevio` 可先改；`CONTACT_EMAIL` / `SMTP_FROM` 现阶段用 QQ `517002650@qq.com`，买域名企业邮后再改 
 - [ ] 定期到 Neon / Cloudinary 查看用量（免费额度）  
 
 ---
@@ -538,6 +570,7 @@ npx tsx scripts/seed-multi-variants.ts
 | `DEPLOY.md` | 首次部署补充说明 |
 | `docs/BRAND.md` | **品牌与域名**：首选 Stagevio，备选 Plotnova / Voxrig |
 | `docs/DEPLOYMENT.md` | **部署上线防忘手册**（Vercel + Cloudinary + PostgreSQL） |
+| `docs/HK-REVERSE-PROXY.md` | **香港宝塔反向代理**：大陆访问 Vercel、Nginx 配置、403 排查 |
 | `docs/TECHNICAL.md` | 日常运维与技术说明 |
 | `.env.example` | 环境变量模板 |
 
