@@ -1,6 +1,6 @@
 import Link from "next/link";
 import {
-  DatabaseBackup,
+  Database,
   LayoutDashboard,
   LogOut,
   Package,
@@ -12,6 +12,16 @@ import {
   Truck,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/actions";
+
+const NAV = [
+  { href: "/admin", label: "商品列表", icon: LayoutDashboard },
+  { href: "/admin/products/new", label: "新增商品", icon: Plus },
+  { href: "/admin/categories", label: "商品分类", icon: Tags },
+  { href: "/admin/orders", label: "订单管理", icon: ShoppingCart },
+  { href: "/admin/coupons", label: "优惠码", icon: Ticket },
+  { href: "/admin/shipping", label: "运费设置", icon: Truck },
+  { href: "/admin/backup", label: "数据备份", icon: Database },
+] as const;
 
 export function AdminShell({
   children,
@@ -32,55 +42,16 @@ export function AdminShell({
             </p>
             <p className="mt-1 text-xs text-stone-500">商店管理后台</p>
             <nav className="mt-6 space-y-1">
-              <Link
-                href="/admin"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                商品列表
-              </Link>
-              <Link
-                href="/admin/products/new"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <Plus className="h-4 w-4" />
-                新增商品
-              </Link>
-              <Link
-                href="/admin/categories"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <Tags className="h-4 w-4" />
-                商品分类
-              </Link>
-              <Link
-                href="/admin/orders"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                订单管理
-              </Link>
-              <Link
-                href="/admin/coupons"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <Ticket className="h-4 w-4" />
-                优惠码
-              </Link>
-              <Link
-                href="/admin/shipping"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <Truck className="h-4 w-4" />
-                运费设置
-              </Link>
-              <Link
-                href="/admin/backup"
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              >
-                <DatabaseBackup className="h-4 w-4" />
-                数据备份
-              </Link>
+              {NAV.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </Link>
+              ))}
               <Link
                 href="/en"
                 target="_blank"
@@ -103,6 +74,20 @@ export function AdminShell({
         </aside>
 
         <main className="min-w-0 flex-1">
+          <div className="mb-4 overflow-x-auto lg:hidden">
+            <nav className="flex min-w-max gap-2 pb-1">
+              {NAV.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="shrink-0 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
           <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-stone-900">{title}</h1>
