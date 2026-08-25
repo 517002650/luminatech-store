@@ -20,7 +20,7 @@ import {
 } from "@/lib/stripe-tax";
 import {
   AFFILIATE_COOKIE,
-  resolveAffiliateAttribution,
+  resolveCheckoutAttribution,
 } from "@/lib/affiliates";
 
 type CartRequestBody = {
@@ -59,11 +59,6 @@ export async function POST(req: NextRequest) {
     const body = (await req.json()) as CartRequestBody;
     const { locale = "en", shippingAddress, couponCode } = body;
 
-    const attribution = await resolveAffiliateAttribution(
-      req.cookies.get(AFFILIATE_COOKIE)?.value,
-      body.affiliateCode,
-    );
-
     const validationError = validateShippingAddress(shippingAddress ?? {});
     if (validationError) {
       return NextResponse.json({ error: "Invalid shipping address" }, { status: 400 });
@@ -87,6 +82,16 @@ export async function POST(req: NextRequest) {
     if (couponCode?.trim() && !couponResult.valid) {
       return NextResponse.json({ error: "Invalid coupon code" }, { status: 400 });
     }
+
+    const attribution = await resolveCheckoutAttribution({
+      couponAffiliateId: couponResult.affiliateId,
+      couponAffiliateCode: couponResult.affiliateCode,
+      couponCommissionRate: couponResult.commissionRate,
+      linkCandidates: [
+        req.cookies.get(AFFILIATE_COOKIE)?.value,
+        body.affiliateCode,
+      ],
+    });
 
     const address = shippingAddress!;
     const quote = await buildOrderQuote(

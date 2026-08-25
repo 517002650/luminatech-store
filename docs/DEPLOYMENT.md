@@ -233,7 +233,7 @@ prisma generate && prisma db push && npm run db:seed && next build
 
 商品 **多规格**：编辑页「规格与价格」可为同一商品设置多档 SKU / 价格 / 库存。操作细节见 [TECHNICAL.md §5.1](./TECHNICAL.md)。
 
-**链接推广提成**：后台创建推广员 → 发给对方 `?ref=CODE` 链接 → 买家 30 天内下单付款后产生提成。详见 [TECHNICAL.md §5.6](./TECHNICAL.md)。
+**链接 / 优惠券推广提成**：后台创建推广员；可用 `?ref=` 链接，或给优惠码**绑定推广员**。详见 [TECHNICAL.md §5.6](./TECHNICAL.md)。
 
 日常操作细节见 [TECHNICAL.md §2.1 / §5](./TECHNICAL.md)。
 

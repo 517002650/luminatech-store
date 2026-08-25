@@ -44,9 +44,11 @@ export type AffiliateAttribution = {
   affiliateId: string;
   affiliateCode: string;
   commissionRate: number;
+  /** How attribution was resolved */
+  source?: "coupon" | "link";
 };
 
-/** Resolve attribution from cookie / explicit code. First non-empty wins. */
+/** Resolve attribution from cookie / explicit ref code. First non-empty wins. */
 export async function resolveAffiliateAttribution(
   ...candidates: (string | null | undefined)[]
 ): Promise<AffiliateAttribution | null> {
@@ -59,10 +61,40 @@ export async function resolveAffiliateAttribution(
         affiliateId: affiliate.id,
         affiliateCode: affiliate.code,
         commissionRate: affiliate.commissionRate,
+        source: "link",
       };
     }
   }
   return null;
+}
+
+/**
+ * Checkout attribution priority:
+ * 1) Coupon bound to an active affiliate (when coupon applied)
+ * 2) Link cookie / explicit ref code
+ */
+export async function resolveCheckoutAttribution(options: {
+  couponAffiliateId?: string | null;
+  couponAffiliateCode?: string | null;
+  couponCommissionRate?: number | null;
+  linkCandidates?: (string | null | undefined)[];
+}): Promise<AffiliateAttribution | null> {
+  if (options.couponAffiliateId && options.couponAffiliateCode) {
+    const affiliate = await prisma.affiliate.findFirst({
+      where: { id: options.couponAffiliateId, active: true },
+    });
+    if (affiliate) {
+      return {
+        affiliateId: affiliate.id,
+        affiliateCode: affiliate.code,
+        commissionRate:
+          options.couponCommissionRate ?? affiliate.commissionRate,
+        source: "coupon",
+      };
+    }
+  }
+
+  return resolveAffiliateAttribution(...(options.linkCandidates ?? []));
 }
 
 export function commissionBaseFromOrder(order: {

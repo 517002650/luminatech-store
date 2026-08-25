@@ -35,17 +35,21 @@ model PasswordResetToken {
 }
 
 model Coupon {
-  id        String    @id @default(cuid())
-  code      String    @unique
-  type      String
-  value     Float
-  minOrder  Float     @default(0)
-  maxUses   Int?
-  usedCount Int       @default(0)
-  expiresAt DateTime?
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        String
+  value       Float
+  minOrder    Float      @default(0)
+  maxUses     Int?
+  usedCount   Int        @default(0)
+  expiresAt   DateTime?
+  active      Boolean    @default(true)
+  affiliateId String?
+  affiliate   Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([affiliateId])
 }
 
 model ShippingSettings {
@@ -208,6 +212,7 @@ model Affiliate {
   updatedAt      DateTime     @updatedAt
   orders         Order[]
   commissions    Commission[]
+  coupons        Coupon[]
 }
 
 model Commission {

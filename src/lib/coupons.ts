@@ -6,6 +6,10 @@ export type CouponValidation = {
   discountAmount: number;
   couponCode: string | null;
   error?: string;
+  /** When coupon is bound to an active affiliate */
+  affiliateId?: string | null;
+  affiliateCode?: string | null;
+  commissionRate?: number | null;
 };
 
 export async function validateCouponCode(
@@ -18,7 +22,10 @@ export async function validateCouponCode(
   }
 
   const normalized = code.trim().toUpperCase();
-  const coupon = await prisma.coupon.findUnique({ where: { code: normalized } });
+  const coupon = await prisma.coupon.findUnique({
+    where: { code: normalized },
+    include: { affiliate: true },
+  });
 
   if (!coupon || !coupon.active) {
     return { valid: false, discountAmount: 0, couponCode: null, error: "invalid" };
@@ -45,10 +52,24 @@ export async function validateCouponCode(
     return { valid: false, discountAmount: 0, couponCode: null, error: "invalid" };
   }
 
+  const bound =
+    coupon.affiliate && coupon.affiliate.active
+      ? {
+          affiliateId: coupon.affiliate.id,
+          affiliateCode: coupon.affiliate.code,
+          commissionRate: coupon.affiliate.commissionRate,
+        }
+      : {
+          affiliateId: null,
+          affiliateCode: null,
+          commissionRate: null,
+        };
+
   return {
     valid: true,
     discountAmount,
     couponCode: coupon.code,
+    ...bound,
   };
 }
 

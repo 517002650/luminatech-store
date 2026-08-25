@@ -16,7 +16,7 @@ import {
 import {
   AFFILIATE_COOKIE,
   createCommissionForOrder,
-  resolveAffiliateAttribution,
+  resolveCheckoutAttribution,
 } from "@/lib/affiliates";
 
 type CompleteOrderBody = {
@@ -131,10 +131,15 @@ export async function POST(req: NextRequest) {
         email = user.email;
       }
 
-      const attribution = await resolveAffiliateAttribution(
-        req.cookies.get(AFFILIATE_COOKIE)?.value,
-        body.affiliateCode,
-      );
+      const attribution = await resolveCheckoutAttribution({
+        couponAffiliateId: couponResult.affiliateId,
+        couponAffiliateCode: couponResult.affiliateCode,
+        couponCommissionRate: couponResult.commissionRate,
+        linkCandidates: [
+          req.cookies.get(AFFILIATE_COOKIE)?.value,
+          body.affiliateCode,
+        ],
+      });
 
       let order;
       try {

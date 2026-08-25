@@ -3,12 +3,20 @@
 import { useActionState } from "react";
 import { createCouponAction } from "@/app/admin/actions";
 
-export function CouponForm() {
+type AffiliateOption = { id: string; code: string; name: string; active: boolean };
+
+export function CouponForm({
+  affiliates = [],
+}: {
+  affiliates?: AffiliateOption[];
+}) {
   const [state, formAction, pending] = useActionState(
     async (_prev: { error?: string } | null, formData: FormData) =>
       (await createCouponAction(formData)) ?? null,
     null,
   );
+
+  const activeAffiliates = affiliates.filter((a) => a.active);
 
   return (
     <form action={formAction} className="max-w-lg space-y-4 rounded-2xl border border-stone-200 bg-white p-6">
@@ -74,6 +82,25 @@ export function CouponForm() {
           type="datetime-local"
           className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
         />
+      </div>
+      <div>
+        <label className="text-sm font-medium text-stone-700">绑定推广员（优惠券推广）</label>
+        <select
+          name="affiliateId"
+          defaultValue=""
+          className="mt-1 w-full rounded-lg border border-stone-300 px-3 py-2 text-sm"
+        >
+          <option value="">不绑定（仅折扣，不计推广提成）</option>
+          {activeAffiliates.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}（{a.code}）
+            </option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-stone-500">
+          绑定后：买家使用此优惠码下单并付款，订单归因到该推广员并产生提成（优先于链接
+          Cookie）。
+        </p>
       </div>
       <button
         type="submit"

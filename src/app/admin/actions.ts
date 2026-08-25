@@ -420,12 +420,18 @@ export async function createCouponAction(formData: FormData) {
   const maxUses = maxUsesRaw ? Number(maxUsesRaw) : null;
   const expiresRaw = String(formData.get("expiresAt") ?? "").trim();
   const expiresAt = expiresRaw ? new Date(expiresRaw) : null;
+  const affiliateIdRaw = String(formData.get("affiliateId") ?? "").trim();
+  const affiliateId = affiliateIdRaw || null;
 
   if (!code || !["percent", "fixed"].includes(type) || value <= 0) {
     return { error: "请填写有效的优惠码信息" };
   }
   if (type === "percent" && value > 100) {
     return { error: "百分比折扣不能超过 100%" };
+  }
+  if (affiliateId) {
+    const aff = await prisma.affiliate.findUnique({ where: { id: affiliateId } });
+    if (!aff) return { error: "所选推广员不存在" };
   }
 
   try {
@@ -438,6 +444,7 @@ export async function createCouponAction(formData: FormData) {
         maxUses: Number.isFinite(maxUses) ? maxUses : null,
         expiresAt,
         active: true,
+        affiliateId,
       },
     });
   } catch {
@@ -445,6 +452,7 @@ export async function createCouponAction(formData: FormData) {
   }
 
   revalidatePath("/admin/coupons");
+  revalidatePath("/admin/affiliates");
   redirect("/admin/coupons");
 }
 

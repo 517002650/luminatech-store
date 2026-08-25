@@ -11,13 +11,14 @@ type CouponRow = {
   usedCount: number;
   expiresAt: Date | null;
   active: boolean;
+  affiliate: { id: string; code: string; name: string } | null;
 };
 
 export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
   if (coupons.length === 0) {
     return (
       <p className="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-500">
-        暂无优惠码，点击「新增优惠码」创建。
+        暂无优惠码，点击「新增优惠码」创建。可绑定推广员做优惠券推广。
       </p>
     );
   }
@@ -32,6 +33,7 @@ export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
             <th className="px-4 py-3 font-medium">面值</th>
             <th className="px-4 py-3 font-medium">最低订单</th>
             <th className="px-4 py-3 font-medium">使用次数</th>
+            <th className="px-4 py-3 font-medium">推广员</th>
             <th className="px-4 py-3 font-medium">状态</th>
             <th className="px-4 py-3 font-medium">操作</th>
           </tr>
@@ -50,7 +52,23 @@ export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
                 {coupon.maxUses != null ? ` / ${coupon.maxUses}` : ""}
               </td>
               <td className="px-4 py-3">
-                <form action={toggleCouponAction.bind(null, coupon.id, !coupon.active)}>
+                {coupon.affiliate ? (
+                  <span className="text-stone-800">
+                    {coupon.affiliate.name}
+                    <span className="ml-1 font-mono text-xs text-stone-500">
+                      ({coupon.affiliate.code})
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-stone-400">—</span>
+                )}
+              </td>
+              <td className="px-4 py-3">
+                <form
+                  action={async () => {
+                    await toggleCouponAction(coupon.id, !coupon.active);
+                  }}
+                >
                   <button
                     type="submit"
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -64,7 +82,11 @@ export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
                 </form>
               </td>
               <td className="px-4 py-3">
-                <form action={deleteCouponAction.bind(null, coupon.id)}>
+                <form
+                  action={async () => {
+                    await deleteCouponAction(coupon.id);
+                  }}
+                >
                   <button type="submit" className="text-red-600 hover:underline">
                     删除
                   </button>
