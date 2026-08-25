@@ -18,6 +18,11 @@ import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { OrderTrackingForm } from "@/components/admin/OrderTrackingForm";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 import { OrderInvoicePanel } from "@/components/admin/OrderInvoicePanel";
+import { OrderCommercialInvoicePanel } from "@/components/admin/OrderCommercialInvoicePanel";
+import {
+  fulfillmentChannelLabel,
+  resolveFulfillmentChannel,
+} from "@/lib/fulfillment";
 
 type Props = {
   order: {
@@ -37,6 +42,7 @@ type Props = {
     paymentId: string | null;
     items: string;
     shippingAddress: string;
+    fulfillmentChannel?: string;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -57,6 +63,10 @@ export function OrderDetailPanel({
   const [force, setForce] = useState(false);
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress);
+  const channel = resolveFulfillmentChannel({
+    mode: order.fulfillmentChannel,
+    shippingAddressJson: order.shippingAddress,
+  });
 
   const nextStatuses = useMemo(
     () => getAllowedNextStatuses(order.status),
@@ -122,6 +132,14 @@ export function OrderDetailPanel({
           label="下单时间"
           value={new Date(order.createdAt).toLocaleString("zh-CN")}
         />
+        <Info
+          label="履约市场"
+          value={`${fulfillmentChannelLabel(channel)}${
+            !order.fulfillmentChannel || order.fulfillmentChannel === "auto"
+              ? "（自动）"
+              : "（手动）"
+          }`}
+        />
       </div>
 
       {shipping && (
@@ -174,6 +192,8 @@ export function OrderDetailPanel({
           shippingCarrier={order.shippingCarrier}
           trackingNumber={order.trackingNumber}
           status={order.status}
+          shippingAddress={order.shippingAddress}
+          fulfillmentChannel={order.fulfillmentChannel ?? "auto"}
         />
       </div>
 
@@ -190,6 +210,10 @@ export function OrderDetailPanel({
       </div>
 
       <OrderInvoicePanel order={order} />
+
+      {channel === "export" ? (
+        <OrderCommercialInvoicePanel order={order} />
+      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm print:hidden">
         <div className="border-b border-stone-200 px-6 py-4">

@@ -97,6 +97,10 @@ export default async function EditProductPage({ params }: Props) {
             stock: product.stock,
             featured: product.featured,
             requiresFreight: product.requiresFreight,
+            hsCode: product.hsCode,
+            originCountry: product.originCountry,
+            customsDescEn: product.customsDescEn,
+            weightGrams: product.weightGrams,
             active: product.active,
             warranty: product.warranty,
             variants: toPublicVariants(variants).map((v) => ({

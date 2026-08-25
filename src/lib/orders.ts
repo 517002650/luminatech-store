@@ -13,6 +13,11 @@ export type OrderItem = {
   variantSku?: string;
   variantNameEn?: string;
   variantNameZh?: string;
+  /** Snapshot at checkout for export commercial invoice. */
+  hsCode?: string;
+  originCountry?: string;
+  customsDescEn?: string;
+  weightGrams?: number;
 };
 
 export const ORDER_STATUSES = [

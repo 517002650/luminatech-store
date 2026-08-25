@@ -8,6 +8,11 @@ import {
   parseOrderItems,
   parseShippingAddress,
 } from "@/lib/orders";
+import {
+  fulfillmentChannelLabel,
+  getFulfillmentCarrierLabel,
+  resolveFulfillmentChannel,
+} from "@/lib/fulfillment";
 import { resolveFinanceDateRange } from "@/lib/finance-report";
 
 export async function GET(req: NextRequest) {
@@ -39,8 +44,13 @@ export async function GET(req: NextRequest) {
   const rows = orders.flatMap((order) => {
     const items = parseOrderItems(order.items);
     const shipping = parseShippingAddress(order.shippingAddress);
+    const channel = resolveFulfillmentChannel({
+      mode: order.fulfillmentChannel,
+      shippingAddressJson: order.shippingAddress,
+    });
     const base = {
       订单号: formatOrderId(order.id),
+      履约市场: fulfillmentChannelLabel(channel),
       邮箱: order.email || "",
       收件人: shipping?.name ?? "",
       电话: shipping?.phone ?? "",
@@ -56,6 +66,8 @@ export async function GET(req: NextRequest) {
             .filter(Boolean)
             .join(" ")
         : "",
+      承运商: getFulfillmentCarrierLabel(order.shippingCarrier || "", "zh"),
+      运单号: order.trackingNumber || "",
       商品小计: order.subtotal ?? 0,
       优惠金额: order.discountAmount ?? 0,
       运费: order.shippingFee ?? 0,

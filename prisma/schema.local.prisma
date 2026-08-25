@@ -143,6 +143,10 @@ model Product {
   stock         Int            @default(100)
   featured      Boolean        @default(false)
   requiresFreight Boolean      @default(false)
+  hsCode          String       @default("")
+  originCountry   String       @default("CN")
+  customsDescEn   String       @default("")
+  weightGrams     Int          @default(0)
   active        Boolean        @default(true)
   warranty      String
   createdAt     DateTime       @default(now())
@@ -212,6 +216,7 @@ model Order {
   shippingCarrier String   @default("")
   trackingNumber  String   @default("")
   shippedAt       DateTime?
+  fulfillmentChannel String @default("auto")
   paymentMethod   String
   paymentId       String?  @unique
   refundedAmount  Float    @default(0)

@@ -34,23 +34,36 @@ export function OrderInvoicePanel({ order }: Props) {
   const shipping = parseShippingAddress(order.shippingAddress);
   const orderNo = formatOrderId(order.id);
 
+  function printDoc() {
+    document
+      .querySelectorAll(".print-target")
+      .forEach((el) => el.classList.remove("print-target"));
+    document
+      .getElementById(`packing-slip-${order.id}`)
+      ?.classList.add("print-target");
+    window.print();
+  }
+
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-6 print:rounded-none print:border-0 print:p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <h2 className="text-lg font-semibold text-stone-900">发货单打印</h2>
+        <h2 className="text-lg font-semibold text-stone-900">发货单 / 装箱单</h2>
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={printDoc}
           className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-800 hover:bg-stone-50"
         >
           打印发货单
         </button>
       </div>
       <p className="mt-1 text-xs text-stone-500 print:hidden">
-        此为装箱/发货单，非正式税务发票。经营汇总请看后台「财务」。
+        Packing Slip · 仓库拣货装箱用；国内/跨境通用。非正式税票。
       </p>
 
-      <div className="invoice-print mt-4 space-y-6 text-stone-900">
+      <div
+        id={`packing-slip-${order.id}`}
+        className="mt-4 space-y-6 text-stone-900"
+      >
         <header className="border-b border-stone-200 pb-4">
           <p className="text-2xl font-bold tracking-tight">LuminaTech</p>
           <p className="mt-1 text-sm text-stone-600">Packing Slip / 发货单</p>
@@ -179,8 +192,8 @@ export function OrderInvoicePanel({ order }: Props) {
           __html: `
             @media print {
               body * { visibility: hidden !important; }
-              .invoice-print, .invoice-print * { visibility: visible !important; }
-              .invoice-print {
+              .print-target, .print-target * { visibility: visible !important; }
+              .print-target {
                 position: absolute;
                 left: 0;
                 top: 0;

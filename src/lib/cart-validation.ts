@@ -188,6 +188,10 @@ export async function resolveCartItemsFromDb(
       image: product.image,
       stock: variant.stock,
       requiresFreight: product.requiresFreight,
+      hsCode: product.hsCode || undefined,
+      originCountry: product.originCountry || "CN",
+      customsDescEn: product.customsDescEn || undefined,
+      weightGrams: product.weightGrams > 0 ? product.weightGrams : undefined,
     });
   }
 

@@ -146,6 +146,14 @@ model Product {
   stock         Int            @default(100)
   featured      Boolean        @default(false)
   requiresFreight Boolean      @default(false)
+  /** HS code for export commercial invoice (optional). */
+  hsCode          String       @default("")
+  /** ISO country of origin, e.g. CN. */
+  originCountry   String       @default("CN")
+  /** Short EN description for customs (falls back to nameEn). */
+  customsDescEn   String       @default("")
+  /** Product weight in grams (0 = unknown). */
+  weightGrams     Int          @default(0)
   active        Boolean        @default(true)
   warranty      String
   createdAt     DateTime       @default(now())
@@ -217,6 +225,11 @@ model Order {
   trackingNumber  String   @default("")
   /** Set once when status first becomes shipped (RMA window). */
   shippedAt       DateTime?
+  /**
+   * Fulfillment market: auto | domestic | export.
+   * auto = infer from ship-to country (CN → domestic, else export).
+   */
+  fulfillmentChannel String @default("auto")
   paymentMethod   String
   paymentId       String?  @unique
   /** True when inventory was decremented for this order (refund should restock). */

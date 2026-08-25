@@ -33,6 +33,10 @@ type ProductFormValues = {
   stock?: number;
   featured?: boolean;
   requiresFreight?: boolean;
+  hsCode?: string;
+  originCountry?: string;
+  customsDescEn?: string;
+  weightGrams?: number;
   active?: boolean;
   warranty?: string;
   variants?: VariantFormInput[];
@@ -162,6 +166,53 @@ export function ProductForm({
             <label htmlFor="requiresFreight" className="text-sm text-stone-700">
               重货 / 需货运报价（结账时禁止在线支付，引导联系客服）
             </label>
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-stone-200 bg-white p-6">
+        <h2 className="text-lg font-semibold text-stone-900">海关 / 跨境申报</h2>
+        <p className="mt-1 text-sm text-stone-500">
+          跨境出口打印商业发票时使用；国内履约可不填。下单时会快照到订单行。
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>HS 编码</label>
+            <input
+              name="hsCode"
+              defaultValue={initialValues.hsCode ?? ""}
+              placeholder="例如 9405.42"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>原产国</label>
+            <input
+              name="originCountry"
+              defaultValue={initialValues.originCountry ?? "CN"}
+              placeholder="CN"
+              className={inputClass}
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className={labelClass}>海关英文品名（可选）</label>
+            <input
+              name="customsDescEn"
+              defaultValue={initialValues.customsDescEn ?? ""}
+              placeholder="留空则用商品英文名"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>重量（克）</label>
+            <input
+              name="weightGrams"
+              type="number"
+              min={0}
+              step={1}
+              defaultValue={initialValues.weightGrams ?? 0}
+              className={inputClass}
+            />
           </div>
         </div>
       </section>

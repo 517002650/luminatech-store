@@ -410,14 +410,25 @@ export async function updateOrderTrackingAction(id: string, formData: FormData) 
   const shippingCarrier = String(formData.get("shippingCarrier") ?? "other").trim();
   const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
   const notifyBuyer = formData.get("notifyBuyer") === "on";
+  const channelMode = String(formData.get("fulfillmentChannel") ?? "").trim();
 
   if (notifyBuyer && !trackingNumber) {
     return { error: "通知买家前请先填写运单号" };
   }
 
+  const data: {
+    shippingCarrier: string;
+    trackingNumber: string;
+    fulfillmentChannel?: string;
+  } = { shippingCarrier, trackingNumber };
+
+  if (channelMode === "auto" || channelMode === "domestic" || channelMode === "export") {
+    data.fulfillmentChannel = channelMode;
+  }
+
   await prisma.order.update({
     where: { id },
-    data: { shippingCarrier, trackingNumber },
+    data,
   });
 
   let notified = false;
@@ -442,6 +453,82 @@ export async function updateOrderTrackingAction(id: string, formData: FormData) 
   revalidatePath(`/en/account/orders/${id}`);
 
   return { success: true as const, notified };
+}
+
+/**
+ * One-step fulfill: save logistics → mark shipped → email buyer.
+ * Allowed from paid / processing (skips intermediate processing if still paid).
+ */
+export async function confirmShipOrderAction(id: string, formData: FormData) {
+  await requirePermission("orders");
+
+  const order = await prisma.order.findUnique({ where: { id } });
+  if (!order) return { error: "订单不存在" };
+
+  if (order.status === "cancelled") {
+    return { error: "已取消订单不能发货" };
+  }
+
+  const shippingCarrier = String(formData.get("shippingCarrier") ?? "other").trim();
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  const channelMode = String(formData.get("fulfillmentChannel") ?? "").trim();
+
+  if (!trackingNumber) {
+    return { error: "确认发货前请填写运单号" };
+  }
+
+  const data: {
+    shippingCarrier: string;
+    trackingNumber: string;
+    status?: string;
+    shippedAt?: Date;
+    fulfillmentChannel?: string;
+  } = { shippingCarrier, trackingNumber };
+
+  if (channelMode === "auto" || channelMode === "domestic" || channelMode === "export") {
+    data.fulfillmentChannel = channelMode;
+  }
+
+  const shouldMarkShipped = ["paid", "processing"].includes(order.status);
+  if (shouldMarkShipped) {
+    data.status = "shipped";
+    if (!order.shippedAt) data.shippedAt = new Date();
+  }
+
+  await prisma.order.update({
+    where: { id },
+    data,
+  });
+
+  let notified = false;
+  try {
+    const updated = await prisma.order.findUnique({ where: { id } });
+    if (updated) {
+      await sendShippingEmail(updated);
+      notified = true;
+    }
+  } catch (err) {
+    console.error("Shipping email failed:", err);
+    return {
+      error: shouldMarkShipped
+        ? "已标记发货并保存物流，但通知邮件发送失败"
+        : "物流已更新，但通知邮件发送失败",
+      shipped: shouldMarkShipped,
+    };
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/zh/account/orders");
+  revalidatePath("/en/account/orders");
+  revalidatePath(`/zh/account/orders/${id}`);
+  revalidatePath(`/en/account/orders/${id}`);
+
+  return {
+    success: true as const,
+    notified,
+    shipped: shouldMarkShipped || order.status === "shipped",
+  };
 }
 
 export async function generateCouponCodeAction() {

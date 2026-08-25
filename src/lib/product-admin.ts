@@ -32,6 +32,10 @@ export type ProductFormInput = {
   stock: number;
   featured: boolean;
   requiresFreight: boolean;
+  hsCode: string;
+  originCountry: string;
+  customsDescEn: string;
+  weightGrams: number;
   active: boolean;
   warranty: string;
   variants: VariantFormInput[];
@@ -125,6 +129,16 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     stock: mirrors.stock,
     featured: formData.get("featured") === "on",
     requiresFreight: formData.get("requiresFreight") === "on",
+    hsCode: String(formData.get("hsCode") ?? "").trim().slice(0, 32),
+    originCountry: String(formData.get("originCountry") ?? "CN")
+      .trim()
+      .toUpperCase()
+      .slice(0, 8) || "CN",
+    customsDescEn: String(formData.get("customsDescEn") ?? "").trim().slice(0, 120),
+    weightGrams: (() => {
+      const n = Math.floor(Number(formData.get("weightGrams") ?? 0));
+      return Number.isFinite(n) && n > 0 ? n : 0;
+    })(),
     active: formData.get("active") === "on",
     warranty: String(formData.get("warranty") ?? "").trim(),
     variants,
@@ -174,6 +188,10 @@ export function productInputToDbData(input: ProductFormInput) {
     stock: input.stock,
     featured: input.featured,
     requiresFreight: input.requiresFreight,
+    hsCode: input.hsCode,
+    originCountry: input.originCountry,
+    customsDescEn: input.customsDescEn,
+    weightGrams: input.weightGrams,
     active: input.active,
     warranty: input.warranty,
   };
