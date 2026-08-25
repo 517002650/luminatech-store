@@ -6,7 +6,6 @@ import { prisma } from "@/lib/db";
 import { localizeProduct } from "@/lib/product-i18n";
 import { getProductRatingMap } from "@/lib/reviews";
 import { ProductCard } from "@/components/ProductCard";
-import { SearchBar } from "@/components/SearchBar";
 import { StageHeroVisual } from "@/components/StageHeroVisual";
 import type { Locale } from "@/i18n/routing";
 
@@ -26,7 +25,6 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const tSearch = await getTranslations("search");
 
   let featured: ReturnType<typeof localizeProduct>[] = [];
   let ratingMap = new Map<string, { avg: number; count: number }>();
@@ -78,17 +76,6 @@ export default async function HomePage({ params }: Props) {
             </div>
           </div>
           <StageHeroVisual />
-        </div>
-      </section>
-
-      <section className="relative border-b border-zinc-800/80 bg-zinc-950">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(34,211,238,0.06)_0%,_transparent_65%)]" />
-        <div className="relative mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-16">
-          <h2 className="text-2xl font-bold text-zinc-50 sm:text-3xl">{tSearch("title")}</h2>
-          <p className="mt-2 text-zinc-500">{tSearch("subtitle")}</p>
-          <div className="mt-8">
-            <SearchBar variant="hero" />
-          </div>
         </div>
       </section>
 
