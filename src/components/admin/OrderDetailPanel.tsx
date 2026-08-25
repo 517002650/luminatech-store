@@ -19,10 +19,12 @@ import { OrderTrackingForm } from "@/components/admin/OrderTrackingForm";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 import { OrderInvoicePanel } from "@/components/admin/OrderInvoicePanel";
 import { OrderCommercialInvoicePanel } from "@/components/admin/OrderCommercialInvoicePanel";
+import { TrackingLink } from "@/components/TrackingLink";
 import {
   fulfillmentChannelLabel,
   resolveFulfillmentChannel,
 } from "@/lib/fulfillment";
+import { hasTrackingInfo } from "@/lib/shipping-tracking";
 
 type Props = {
   order: {
@@ -196,6 +198,21 @@ export function OrderDetailPanel({
           fulfillmentChannel={order.fulfillmentChannel ?? "auto"}
         />
       </div>
+
+      {hasTrackingInfo(order) ? (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 print:hidden">
+          <h2 className="text-lg font-semibold text-stone-900">物流查询</h2>
+          <p className="mt-1 text-sm text-stone-500">
+            点击下方按钮在承运商或 17TRACK 官网查看轨迹（免费，无需付费接口）。
+          </p>
+          <div className="mt-4">
+            <TrackingLink
+              shippingCarrier={order.shippingCarrier}
+              trackingNumber={order.trackingNumber}
+            />
+          </div>
+        </div>
+      ) : null}
 
       <div className="print:hidden">
         <OrderRefundPanel

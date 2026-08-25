@@ -23,6 +23,7 @@ export default async function AdminOrdersPage() {
       0,
     ),
     trackingNumber: order.trackingNumber,
+    shippingCarrier: order.shippingCarrier,
     channel: resolveFulfillmentChannel({
       mode: order.fulfillmentChannel,
       shippingAddressJson: order.shippingAddress,

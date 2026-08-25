@@ -35,7 +35,11 @@ export function OrderTrackingInfo({
 
   if (!showBlock) return null;
 
-  const trackingUrl = getTrackingUrl(shippingCarrier, trackingNumber);
+  const trackingUrl = getTrackingUrl(
+    shippingCarrier,
+    trackingNumber,
+    locale === "zh" ? "zh" : "en",
+  );
   const hasNumber = hasTrackingInfo({ trackingNumber });
 
   return (
@@ -58,7 +62,18 @@ export function OrderTrackingInfo({
               <div>
                 <dt className={darkLabelClass}>{labels.trackingNumber}</dt>
                 <dd className="mt-1 break-all font-mono text-zinc-100">
-                  {trackingNumber}
+                  {trackingUrl ? (
+                    <a
+                      href={trackingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-300 underline-offset-2 hover:underline"
+                    >
+                      {trackingNumber}
+                    </a>
+                  ) : (
+                    trackingNumber
+                  )}
                 </dd>
               </div>
             </dl>

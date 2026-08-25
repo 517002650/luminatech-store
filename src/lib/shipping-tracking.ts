@@ -25,9 +25,25 @@ export function getCarrierLabel(carrier: string, locale: "zh" | "en" = "zh") {
   return locale === "zh" ? row.labelZh : row.labelEn;
 }
 
-export function getTrackingUrl(carrier: string, trackingNumber: string) {
+/** Free public tracking page (17TRACK) — no API key / fee. */
+function track17(trackingNumber: string, locale: "zh" | "en" = "zh") {
   const num = encodeURIComponent(trackingNumber.trim());
-  if (!num) return null;
+  const lang = locale === "zh" ? "zh-cn" : "en";
+  return `https://t.17track.net/${lang}#nums=${num}`;
+}
+
+/**
+ * Deep-link to carrier or aggregator tracking pages.
+ * Free for end users (opens public websites). No paid tracking API.
+ */
+export function getTrackingUrl(
+  carrier: string,
+  trackingNumber: string,
+  locale: "zh" | "en" = "zh",
+) {
+  const raw = trackingNumber.trim();
+  if (!raw) return null;
+  const num = encodeURIComponent(raw);
 
   switch (carrier) {
     case "dhl":
@@ -39,23 +55,25 @@ export function getTrackingUrl(carrier: string, trackingNumber: string) {
     case "usps":
       return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${num}`;
     case "sf":
-      return `https://www.sf-express.com/chn/sc/dynamic_function/waybill/#search/bill-number/${num}`;
+      return locale === "zh"
+        ? `https://www.sf-express.com/chn/sc/dynamic_function/waybill/#search/bill-number/${num}`
+        : `https://www.sf-express.com/us/en/dynamic_function/waybill/#search/bill-number/${num}`;
     case "ems":
       return `https://www.ems.post/en/global-network/tracking?q=${num}`;
+    // Domestic CN carriers: use 17TRACK deep link (official sites often lack stable public query URLs)
     case "yto":
-      return `https://www.yto.net.cn/`;
     case "zto":
-      return `https://www.zto.com/`;
     case "yunda":
-      return `https://www.yundaex.com/`;
     case "sto":
-      return `https://www.sto.cn/`;
     case "jd":
-      return `https://www.jdl.com/`;
     case "china_post":
-      return `https://www.chinapost.com.cn/`;
+    case "yunexpress":
+    case "4px":
+    case "yanwen":
+    case "other":
+      return track17(raw, locale);
     default:
-      return `https://t.17track.net/en#nums=${num}`;
+      return track17(raw, locale);
   }
 }
 
