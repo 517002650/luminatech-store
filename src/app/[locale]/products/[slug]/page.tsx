@@ -8,6 +8,7 @@ import {
   getProductRatingMap,
   getProductReviews,
 } from "@/lib/reviews";
+import { getSiteSettings } from "@/lib/site-settings";
 import { getCurrentUser } from "@/lib/user-auth";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import { ProductGallery } from "@/components/ProductGallery";
@@ -80,7 +81,8 @@ export default async function ProductDetailPage({ params }: Props) {
   const p = localizeProduct(product, locale);
   const user = await getCurrentUser();
 
-  const [ratingMap, reviews, wishlistItem, userReview, purchased] = await Promise.all([
+  const [ratingMap, reviews, wishlistItem, userReview, purchased, siteSettings] =
+    await Promise.all([
     getProductRatingMap([product.id]),
     getProductReviews(product.id),
     user
@@ -94,6 +96,7 @@ export default async function ProductDetailPage({ params }: Props) {
         })
       : null,
     userHasPurchasedProduct(user, product.id),
+    getSiteSettings(),
   ]);
 
   const downloads = purchased
@@ -284,6 +287,8 @@ export default async function ProductDetailPage({ params }: Props) {
             slug={p.slug}
             isLoggedIn={Boolean(user)}
             hasPurchased={purchased}
+            reviewBanned={Boolean(user?.bannedFromReviews)}
+            moderationEnabled={siteSettings.reviewModerationEnabled}
             userReview={
               userReview
                 ? {

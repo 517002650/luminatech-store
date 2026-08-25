@@ -96,6 +96,10 @@ export async function submitReviewAction(formData: FormData) {
     return { error: "login_required" as const };
   }
 
+  if (user.bannedFromReviews) {
+    return { error: "review_banned" as const };
+  }
+
   const productId = String(formData.get("productId") ?? "");
   const slug = String(formData.get("slug") ?? "");
   const rating = Number(formData.get("rating") ?? 0);
@@ -111,6 +115,10 @@ export async function submitReviewAction(formData: FormData) {
     return { error: "purchase_required" as const };
   }
 
+  const { isReviewModerationEnabled } = await import("@/lib/site-settings");
+  const moderation = await isReviewModerationEnabled();
+  const approved = !moderation;
+
   await prisma.review.upsert({
     where: { userId_productId: { userId: user.id, productId } },
     create: {
@@ -120,14 +128,14 @@ export async function submitReviewAction(formData: FormData) {
       title,
       content,
       verifiedPurchase: true,
-      approved: false,
+      approved,
     },
     update: {
       rating,
       title,
       content,
       verifiedPurchase: true,
-      approved: false,
+      approved,
     },
   });
 
@@ -136,7 +144,10 @@ export async function submitReviewAction(formData: FormData) {
   revalidatePath("/en/products");
   revalidatePath("/zh/products");
   revalidatePath("/admin/reviews");
-  return { success: true as const, pending: true as const };
+  return {
+    success: true as const,
+    pending: moderation,
+  };
 }
 
 export async function removeWishlistItemAction(productId: string) {

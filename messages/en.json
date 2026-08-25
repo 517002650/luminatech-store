@@ -431,7 +431,9 @@
     "writeReview": "Write a review",
     "editReview": "Edit your review",
     "purchaseRequired": "Only customers who purchased this product can leave a review.",
+    "reviewBanned": "Your account is not allowed to post reviews. Contact support if you need help.",
     "verifiedHint": "Verified purchase required. Reviews are published after moderation.",
+    "verifiedHintOpen": "Verified purchase required. Your review will be published immediately.",
     "verifiedPurchase": "Verified purchase",
     "rating": "Rating",
     "title": "Title",
@@ -443,7 +445,8 @@
     "awaitingModeration": "Your review is waiting for moderation.",
     "errors": {
       "purchase_required": "Please purchase this product before reviewing.",
-      "incomplete": "Please complete the rating, title, and review text."
+      "incomplete": "Please complete the rating, title, and review text.",
+      "review_banned": "Your account is not allowed to post reviews."
     }
   }
 }

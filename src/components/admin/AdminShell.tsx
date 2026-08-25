@@ -14,6 +14,7 @@ import {
   Tags,
   Ticket,
   Truck,
+  Users,
 } from "lucide-react";
 import { logoutAction } from "@/app/admin/actions";
 
@@ -24,6 +25,7 @@ const NAV = [
   { href: "/admin/orders", label: "订单管理", icon: ShoppingCart },
   { href: "/admin/returns", label: "退货申请", icon: RotateCcw },
   { href: "/admin/reviews", label: "评价审核", icon: Star },
+  { href: "/admin/users", label: "用户管理", icon: Users },
   { href: "/admin/inbox", label: "客户留言", icon: MessageSquare },
   { href: "/admin/coupons", label: "优惠码", icon: Ticket },
   { href: "/admin/shipping", label: "运费设置", icon: Truck },

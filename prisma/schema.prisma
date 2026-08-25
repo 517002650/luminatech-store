@@ -8,16 +8,17 @@ datasource db {
 }
 
 model User {
-  id           String               @id @default(cuid())
-  email        String               @unique
-  passwordHash String
-  name         String               @default("")
-  createdAt    DateTime             @default(now())
-  updatedAt    DateTime             @updatedAt
-  orders       Order[]
-  wishlist     WishlistItem[]
-  reviews      Review[]
-  resetTokens  PasswordResetToken[]
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  passwordHash       String
+  name               String               @default("")
+  bannedFromReviews  Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  orders             Order[]
+  wishlist           WishlistItem[]
+  reviews            Review[]
+  resetTokens        PasswordResetToken[]
 }
 
 model PasswordResetToken {
@@ -52,6 +53,12 @@ model ShippingSettings {
   euRate                Float    @default(12.99)
   countryRates          String   @default("{}")
   updatedAt             DateTime @updatedAt
+}
+
+model SiteSettings {
+  id                      String   @id @default("default")
+  reviewModerationEnabled Boolean  @default(true)
+  updatedAt               DateTime @updatedAt
 }
 
 model Category {

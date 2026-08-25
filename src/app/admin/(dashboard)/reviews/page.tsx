@@ -1,18 +1,24 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ReviewModerationTable } from "@/components/admin/ReviewModerationTable";
+import { ReviewModerationToggle } from "@/components/admin/ReviewModerationToggle";
 import { prisma } from "@/lib/db";
+import { getSiteSettings } from "@/lib/site-settings";
 
 export default async function AdminReviewsPage() {
-  const reviews = await prisma.review.findMany({
-    orderBy: [{ approved: "asc" }, { createdAt: "desc" }],
-    include: {
-      user: { select: { name: true, email: true } },
-      product: { select: { nameZh: true, nameEn: true, slug: true } },
-    },
-    take: 100,
-  });
+  const [settings, reviews] = await Promise.all([
+    getSiteSettings(),
+    prisma.review.findMany({
+      orderBy: [{ approved: "asc" }, { createdAt: "desc" }],
+      include: {
+        user: { select: { name: true, email: true } },
+        product: { select: { nameZh: true, nameEn: true, slug: true } },
+      },
+      take: 100,
+    }),
+  ]);
 
   const pendingCount = reviews.filter((r) => !r.approved).length;
+  const moderation = settings.reviewModerationEnabled;
 
   const rows = reviews.map((r) => ({
     id: r.id,
@@ -31,12 +37,17 @@ export default async function AdminReviewsPage() {
     <AdminShell
       title="评价审核"
       subtitle={
-        pendingCount > 0
-          ? `${pendingCount} 条待审核 · 仅已购用户可提交，通过后才会展示在商品页`
-          : "仅已购用户可提交评价，通过后才会展示在商品页"
+        moderation
+          ? pendingCount > 0
+            ? `${pendingCount} 条待审核 · 仅已购用户可提交，通过后才展示`
+            : "审核已开启 · 仅已购用户可提交，通过后才展示"
+          : "审核已关闭 · 已购用户提交后立即展示（仍可手动下架）"
       }
     >
-      <ReviewModerationTable reviews={rows} />
+      <div className="space-y-6">
+        <ReviewModerationToggle enabled={moderation} />
+        <ReviewModerationTable reviews={rows} />
+      </div>
     </AdminShell>
   );
 }

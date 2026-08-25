@@ -671,3 +671,32 @@ export async function deleteOrphanMediaAction(
   return deleteOrphanMediaItems(items);
 }
 
+export async function setReviewModerationEnabledAction(enabled: boolean) {
+  await requireAdmin();
+  const { updateSiteSettings } = await import("@/lib/site-settings");
+  await updateSiteSettings({ reviewModerationEnabled: enabled });
+  revalidatePath("/admin/reviews");
+  revalidatePath("/admin/users");
+  return { success: true as const };
+}
+
+export async function setUserBannedFromReviewsAction(
+  userId: string,
+  banned: boolean,
+) {
+  await requireAdmin();
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  if (!user) return { error: "用户不存在" };
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { bannedFromReviews: banned },
+  });
+
+  revalidatePath("/admin/users");
+  return { success: true as const };
+}
+

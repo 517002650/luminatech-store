@@ -12,6 +12,8 @@ type Props = {
   slug: string;
   isLoggedIn: boolean;
   hasPurchased: boolean;
+  reviewBanned?: boolean;
+  moderationEnabled?: boolean;
   userReview?: {
     rating: number;
     title: string;
@@ -25,6 +27,8 @@ export function ReviewForm({
   slug,
   isLoggedIn,
   hasPurchased,
+  reviewBanned = false,
+  moderationEnabled = true,
   userReview,
 }: Props) {
   const t = useTranslations("reviews");
@@ -54,6 +58,14 @@ export function ReviewForm({
     );
   }
 
+  if (reviewBanned) {
+    return (
+      <div className={`${lightPanelDashedClass} text-center text-sm text-stone-600`}>
+        {t("reviewBanned")}
+      </div>
+    );
+  }
+
   if (!hasPurchased) {
     return (
       <div className={`${lightPanelDashedClass} text-center text-sm text-stone-600`}>
@@ -62,24 +74,33 @@ export function ReviewForm({
     );
   }
 
+  const showPending =
+    (state?.success && state.pending) ||
+    (userReview && userReview.approved === false && !state?.success);
+
   return (
     <form action={formAction} className={`${lightPanelClass} space-y-4`}>
       <h3 className="font-semibold">
         {userReview ? t("editReview") : t("writeReview")}
       </h3>
-      <p className="text-xs text-stone-500">{t("verifiedHint")}</p>
+      <p className="text-xs text-stone-500">
+        {moderationEnabled ? t("verifiedHint") : t("verifiedHintOpen")}
+      </p>
       {state?.error && state.error !== "login_required" && (
         <p className="text-sm text-red-600">
           {state.error === "purchase_required" ||
-          state.error === "incomplete"
+          state.error === "incomplete" ||
+          state.error === "review_banned"
             ? t(`errors.${state.error}`)
             : state.error}
         </p>
       )}
       {state?.success && (
-        <p className="text-sm text-green-600">{t("submittedPending")}</p>
+        <p className="text-sm text-green-600">
+          {state.pending ? t("submittedPending") : t("submitted")}
+        </p>
       )}
-      {userReview && userReview.approved === false && !state?.success ? (
+      {showPending && !state?.success ? (
         <p className="text-sm text-amber-700">{t("awaitingModeration")}</p>
       ) : null}
       <div>

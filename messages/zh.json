@@ -431,7 +431,9 @@
     "writeReview": "写评价",
     "editReview": "修改评价",
     "purchaseRequired": "仅购买过本商品的用户可以评价。",
+    "reviewBanned": "您的账号已被限制评价，如有疑问请联系客服。",
     "verifiedHint": "需已购验证；评价经审核后才会公开展示。",
+    "verifiedHintOpen": "需已购验证；提交后将立即公开展示。",
     "verifiedPurchase": "已购验证",
     "rating": "评分",
     "title": "标题",
@@ -443,7 +445,8 @@
     "awaitingModeration": "您的评价正在等待审核。",
     "errors": {
       "purchase_required": "请先购买本商品后再评价。",
-      "incomplete": "请完整填写评分、标题和评价内容。"
+      "incomplete": "请完整填写评分、标题和评价内容。",
+      "review_banned": "您的账号已被限制评价。"
     }
   }
 }
