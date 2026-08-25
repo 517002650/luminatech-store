@@ -283,7 +283,21 @@
       "hoursLabel": "Support Hours",
       "hoursValue": "Mon–Fri, 9:00–18:00 (UTC+8)",
       "regionLabel": "Service Region",
-      "regionValue": "Worldwide shipping"
+      "regionValue": "Worldwide shipping",
+      "formTitle": "Send a message",
+      "formSubtitle": "Orders, returns, and product questions — we usually reply in 1–2 business days.",
+      "formName": "Name",
+      "formEmail": "Email",
+      "formSubject": "Subject",
+      "formMessage": "Message",
+      "formSubmit": "Send message",
+      "formSending": "Sending...",
+      "formSuccess": "Thanks — your message was received.",
+      "formStoredOnly": "Email delivery is not configured yet; our team can still see your message in the admin inbox.",
+      "formErrors": {
+        "incomplete": "Please fill in all fields.",
+        "email_invalid": "Please enter a valid email."
+      }
     }
   },
   "auth": {
@@ -378,11 +392,20 @@
     "login": "Sign in",
     "writeReview": "Write a review",
     "editReview": "Edit your review",
+    "purchaseRequired": "Only customers who purchased this product can leave a review.",
+    "verifiedHint": "Verified purchase required. Reviews are published after moderation.",
+    "verifiedPurchase": "Verified purchase",
     "rating": "Rating",
     "title": "Title",
     "content": "Review",
     "submit": "Submit review",
     "submitting": "Submitting...",
-    "submitted": "Thank you! Your review has been published."
+    "submitted": "Thank you! Your review has been published.",
+    "submittedPending": "Thanks! Your review was submitted and will appear after approval.",
+    "awaitingModeration": "Your review is waiting for moderation.",
+    "errors": {
+      "purchase_required": "Please purchase this product before reviewing.",
+      "incomplete": "Please complete the rating, title, and review text."
+    }
   }
 }

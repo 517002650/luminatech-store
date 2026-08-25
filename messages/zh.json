@@ -283,7 +283,21 @@
       "hoursLabel": "客服时间",
       "hoursValue": "周一至周五 9:00–18:00（UTC+8）",
       "regionLabel": "服务范围",
-      "regionValue": "全球配送"
+      "regionValue": "全球配送",
+      "formTitle": "在线留言",
+      "formSubtitle": "订单、退换货或产品咨询，我们通常在 1–2 个工作日内回复。",
+      "formName": "姓名",
+      "formEmail": "邮箱",
+      "formSubject": "主题",
+      "formMessage": "留言内容",
+      "formSubmit": "发送留言",
+      "formSending": "发送中...",
+      "formSuccess": "已收到您的留言，感谢联系。",
+      "formStoredOnly": "发信服务尚未配置，留言已保存到后台收件箱，我们仍可查看并回复。",
+      "formErrors": {
+        "incomplete": "请完整填写所有字段。",
+        "email_invalid": "请输入有效邮箱。"
+      }
     }
   },
   "auth": {
@@ -378,11 +392,20 @@
     "login": "登录",
     "writeReview": "写评价",
     "editReview": "修改评价",
+    "purchaseRequired": "仅购买过本商品的用户可以评价。",
+    "verifiedHint": "需已购验证；评价经审核后才会公开展示。",
+    "verifiedPurchase": "已购验证",
     "rating": "评分",
     "title": "标题",
     "content": "评价内容",
     "submit": "提交评价",
     "submitting": "提交中...",
-    "submitted": "感谢！您的评价已发布。"
+    "submitted": "感谢！您的评价已发布。",
+    "submittedPending": "感谢！评价已提交，审核通过后会显示在商品页。",
+    "awaitingModeration": "您的评价正在等待审核。",
+    "errors": {
+      "purchase_required": "请先购买本商品后再评价。",
+      "incomplete": "请完整填写评分、标题和评价内容。"
+    }
   }
 }

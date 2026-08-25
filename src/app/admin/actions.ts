@@ -507,3 +507,35 @@ export async function deleteCategoryAction(id: string) {
   return { success: true as const };
 }
 
+export async function setReviewApprovedAction(id: string, approved: boolean) {
+  await requireAdmin();
+
+  const review = await prisma.review.findUnique({
+    where: { id },
+    include: { product: { select: { slug: true } } },
+  });
+  if (!review) return { error: "评价不存在" };
+
+  await prisma.review.update({
+    where: { id },
+    data: { approved },
+  });
+
+  revalidatePath("/admin/reviews");
+  revalidatePath(`/en/products/${review.product.slug}`);
+  revalidatePath(`/zh/products/${review.product.slug}`);
+  revalidatePath("/en/products");
+  revalidatePath("/zh/products");
+  return { success: true as const };
+}
+
+export async function setContactHandledAction(id: string, handled: boolean) {
+  await requireAdmin();
+  await prisma.contactInquiry.update({
+    where: { id },
+    data: { handled },
+  });
+  revalidatePath("/admin/inbox");
+  return { success: true as const };
+}
+

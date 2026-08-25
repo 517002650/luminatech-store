@@ -5,7 +5,7 @@ export async function getProductRatingMap(productIds: string[]) {
 
   const groups = await prisma.review.groupBy({
     by: ["productId"],
-    where: { productId: { in: productIds } },
+    where: { productId: { in: productIds }, approved: true },
     _avg: { rating: true },
     _count: { rating: true },
   });
@@ -20,7 +20,7 @@ export async function getProductRatingMap(productIds: string[]) {
 
 export async function getProductReviews(productId: string) {
   return prisma.review.findMany({
-    where: { productId },
+    where: { productId, approved: true },
     orderBy: { createdAt: "desc" },
     include: {
       user: { select: { name: true, email: true } },

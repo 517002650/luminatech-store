@@ -11,21 +11,36 @@ type Props = {
   productId: string;
   slug: string;
   isLoggedIn: boolean;
-  userReview?: { rating: number; title: string; content: string } | null;
+  hasPurchased: boolean;
+  userReview?: {
+    rating: number;
+    title: string;
+    content: string;
+    approved?: boolean;
+  } | null;
 };
 
-export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
+export function ReviewForm({
+  productId,
+  slug,
+  isLoggedIn,
+  hasPurchased,
+  userReview,
+}: Props) {
   const t = useTranslations("reviews");
   const [rating, setRating] = useState(userReview?.rating ?? 5);
 
   const [state, formAction, pending] = useActionState(
-    async (_prev: { error?: string; success?: boolean } | null, formData: FormData) => {
+    async (
+      _prev: { error?: string; success?: boolean; pending?: boolean } | null,
+      formData: FormData,
+    ): Promise<{ error?: string; success?: boolean; pending?: boolean } | null> => {
       formData.set("productId", productId);
       formData.set("slug", slug);
       formData.set("rating", String(rating));
       return (await submitReviewAction(formData)) ?? null;
     },
-    null,
+    null as { error?: string; success?: boolean; pending?: boolean } | null,
   );
 
   if (!isLoggedIn) {
@@ -39,17 +54,34 @@ export function ReviewForm({ productId, slug, isLoggedIn, userReview }: Props) {
     );
   }
 
+  if (!hasPurchased) {
+    return (
+      <div className={`${lightPanelDashedClass} text-center text-sm text-stone-600`}>
+        {t("purchaseRequired")}
+      </div>
+    );
+  }
+
   return (
     <form action={formAction} className={`${lightPanelClass} space-y-4`}>
       <h3 className="font-semibold">
         {userReview ? t("editReview") : t("writeReview")}
       </h3>
+      <p className="text-xs text-stone-500">{t("verifiedHint")}</p>
       {state?.error && state.error !== "login_required" && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <p className="text-sm text-red-600">
+          {state.error === "purchase_required" ||
+          state.error === "incomplete"
+            ? t(`errors.${state.error}`)
+            : state.error}
+        </p>
       )}
       {state?.success && (
-        <p className="text-sm text-green-600">{t("submitted")}</p>
+        <p className="text-sm text-green-600">{t("submittedPending")}</p>
       )}
+      {userReview && userReview.approved === false && !state?.success ? (
+        <p className="text-sm text-amber-700">{t("awaitingModeration")}</p>
+      ) : null}
       <div>
         <label className="text-sm font-medium text-stone-700">{t("rating")}</label>
         <div className="mt-2 flex gap-1">

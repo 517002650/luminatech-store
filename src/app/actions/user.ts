@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { userHasPurchasedProduct } from "@/lib/product-downloads";
 import {
   clearUserSession,
   getCurrentUser,
@@ -98,24 +99,44 @@ export async function submitReviewAction(formData: FormData) {
   const productId = String(formData.get("productId") ?? "");
   const slug = String(formData.get("slug") ?? "");
   const rating = Number(formData.get("rating") ?? 0);
-  const title = String(formData.get("title") ?? "").trim();
-  const content = String(formData.get("content") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim().slice(0, 120);
+  const content = String(formData.get("content") ?? "").trim().slice(0, 4000);
 
   if (!productId || rating < 1 || rating > 5 || !title || !content) {
-    return { error: "请完整填写评分和评论" };
+    return { error: "incomplete" as const };
+  }
+
+  const purchased = await userHasPurchasedProduct(user, productId);
+  if (!purchased) {
+    return { error: "purchase_required" as const };
   }
 
   await prisma.review.upsert({
     where: { userId_productId: { userId: user.id, productId } },
-    create: { userId: user.id, productId, rating, title, content },
-    update: { rating, title, content },
+    create: {
+      userId: user.id,
+      productId,
+      rating,
+      title,
+      content,
+      verifiedPurchase: true,
+      approved: false,
+    },
+    update: {
+      rating,
+      title,
+      content,
+      verifiedPurchase: true,
+      approved: false,
+    },
   });
 
   revalidatePath(`/en/products/${slug}`);
   revalidatePath(`/zh/products/${slug}`);
   revalidatePath("/en/products");
   revalidatePath("/zh/products");
-  return { success: true };
+  revalidatePath("/admin/reviews");
+  return { success: true as const, pending: true as const };
 }
 
 export async function removeWishlistItemAction(productId: string) {

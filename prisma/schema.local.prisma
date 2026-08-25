@@ -151,15 +151,31 @@ model WishlistItem {
 }
 
 model Review {
-  id        String   @id @default(cuid())
-  productId String
-  userId    String
-  rating    Int
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  productId        String
+  userId           String
+  rating           Int
+  title            String
+  content          String
+  verifiedPurchase Boolean  @default(false)
+  approved         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
+  @@index([approved, createdAt])
+}
+
+model ContactInquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  locale    String   @default("en")
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([handled, createdAt])
 }

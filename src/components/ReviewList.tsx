@@ -9,15 +9,17 @@ type ReviewItem = {
   content: string;
   createdAt: Date;
   authorName: string;
+  verifiedPurchase?: boolean;
 };
 
 type Props = {
   reviews: ReviewItem[];
   avg: number;
   count: number;
+  verifiedLabel?: string;
 };
 
-export function ReviewList({ reviews, avg, count }: Props) {
+export function ReviewList({ reviews, avg, count, verifiedLabel }: Props) {
   if (count === 0) {
     return null;
   }
@@ -34,7 +36,7 @@ export function ReviewList({ reviews, avg, count }: Props) {
             className={lightReviewCardClass}
           >
             <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="flex">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Star
@@ -44,6 +46,11 @@ export function ReviewList({ reviews, avg, count }: Props) {
                   ))}
                 </div>
                 <span className="font-medium">{review.authorName}</span>
+                {review.verifiedPurchase && verifiedLabel ? (
+                  <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-[11px] font-medium text-cyan-700 ring-1 ring-cyan-500/20">
+                    {verifiedLabel}
+                  </span>
+                ) : null}
               </div>
               <time className="text-xs text-stone-400">
                 {new Date(review.createdAt).toLocaleDateString()}

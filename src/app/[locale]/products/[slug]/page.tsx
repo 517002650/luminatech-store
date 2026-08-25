@@ -72,6 +72,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("product");
+  const tReviews = await getTranslations("reviews");
 
   const product = await prisma.product.findUnique({ where: { slug } });
   if (!product) notFound();
@@ -110,6 +111,7 @@ export default async function ProductDetailPage({ params }: Props) {
     content: review.content,
     createdAt: review.createdAt,
     authorName: displayReviewerName(review.user.name, review.user.email),
+    verifiedPurchase: review.verifiedPurchase,
   }));
 
   const appUrl =
@@ -281,7 +283,17 @@ export default async function ProductDetailPage({ params }: Props) {
             productId={p.id}
             slug={p.slug}
             isLoggedIn={Boolean(user)}
-            userReview={userReview}
+            hasPurchased={purchased}
+            userReview={
+              userReview
+                ? {
+                    rating: userReview.rating,
+                    title: userReview.title,
+                    content: userReview.content,
+                    approved: userReview.approved,
+                  }
+                : null
+            }
           />
           <div>
             {rating && rating.count > 0 ? (
@@ -289,6 +301,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 reviews={reviewItems}
                 avg={rating.avg}
                 count={rating.count}
+                verifiedLabel={tReviews("verifiedPurchase")}
               />
             ) : (
               <p className="rounded-xl border border-dashed border-zinc-700 bg-zinc-900/40 p-6 text-sm text-zinc-500">

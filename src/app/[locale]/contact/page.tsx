@@ -1,6 +1,7 @@
 import { Mail, Clock, MapPin } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ContentPage } from "@/components/ContentPage";
+import { ContactForm } from "@/components/ContactForm";
 import { lightSurfaceClass } from "@/lib/form-styles";
 import type { Locale } from "@/i18n/routing";
 
@@ -47,6 +48,10 @@ export default async function ContactPage({ params }: Props) {
           <p className="mt-3 text-sm font-medium">{t("regionLabel")}</p>
           <p className="mt-1 text-sm text-stone-600">{t("regionValue")}</p>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <ContactForm />
       </div>
     </ContentPage>
   );

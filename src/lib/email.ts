@@ -231,3 +231,55 @@ Thank you for shopping at ${storeName}!`;
 
   return { sent: true as const };
 }
+
+export async function sendContactInquiryEmail(input: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  locale?: string;
+}) {
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const to =
+    process.env.CONTACT_EMAIL?.trim() ||
+    process.env.SMTP_FROM?.replace(/.*<([^>]+)>.*/, "$1").trim() ||
+    process.env.SMTP_USER;
+
+  if (!to) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const mailSubject = `[${storeName} Contact] ${input.subject}`;
+  const text = `New contact form message
+
+From: ${input.name} <${input.email}>
+Locale: ${input.locale ?? "en"}
+Subject: ${input.subject}
+
+${input.message}
+`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1917">
+      <h2 style="color:#d97706">New contact message</h2>
+      <p><strong>From:</strong> ${input.name} &lt;${input.email}&gt;</p>
+      <p><strong>Subject:</strong> ${input.subject}</p>
+      <p style="white-space:pre-wrap">${input.message}</p>
+    </div>
+  `;
+
+  await createTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to,
+    replyTo: input.email,
+    subject: mailSubject,
+    text,
+    html,
+  });
+
+  return { sent: true as const };
+}
