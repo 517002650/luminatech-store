@@ -65,9 +65,7 @@ export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
               </td>
               <td className="px-4 py-3">
                 <form
-                  action={async () => {
-                    await toggleCouponAction(coupon.id, !coupon.active);
-                  }}
+                  action={toggleCouponAction.bind(null, coupon.id, !coupon.active)}
                 >
                   <button
                     type="submit"
@@ -82,11 +80,7 @@ export function CouponTable({ coupons }: { coupons: CouponRow[] }) {
                 </form>
               </td>
               <td className="px-4 py-3">
-                <form
-                  action={async () => {
-                    await deleteCouponAction(coupon.id);
-                  }}
-                >
+                <form action={deleteCouponAction.bind(null, coupon.id)}>
                   <button type="submit" className="text-red-600 hover:underline">
                     删除
                   </button>

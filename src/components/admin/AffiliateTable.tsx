@@ -74,9 +74,11 @@ export function AffiliateTable({ affiliates }: { affiliates: AffiliateRow[] }) {
                       编辑
                     </Link>
                     <form
-                      action={async () => {
-                        await setAffiliateActiveAction(row.id, !row.active);
-                      }}
+                      action={setAffiliateActiveAction.bind(
+                        null,
+                        row.id,
+                        !row.active,
+                      )}
                     >
                       <button
                         type="submit"

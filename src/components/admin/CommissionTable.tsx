@@ -107,11 +107,7 @@ function StatusButton({
   label: string;
 }) {
   return (
-    <form
-      action={async () => {
-        await setCommissionStatusAction(id, status);
-      }}
-    >
+    <form action={setCommissionStatusAction.bind(null, id, status)}>
       <button type="submit" className="text-stone-600 hover:underline">
         {label}
       </button>
