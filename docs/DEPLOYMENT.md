@@ -327,10 +327,48 @@ cd "e:\项目\独立站\web"
 & "C:\Program Files\Git\bin\git.exe" push origin main
 ```
 
-3. Vercel 自动重新部署  
-4. 打开线上网站验证  
+3. **触发生产重新部署**（见下方 §5.1；仅改文档/规则可不部署）  
+4. 打开线上网站验证关键页面  
 
 不需要重新创建 Neon / Cloudinary，环境变量一般也不用重填。
+
+### 5.1 如何触发重新部署（生产生效）
+
+线上站点只跑 **Vercel Production** 上的构建产物。`git push` 有时不会自动部署（Hobby 账号、作者邮箱、Webhook 等），**功能改动要上线时请主动触发部署**，不要假设 push 一定生效。
+
+| 方式 | 命令 / 操作 | 何时用 |
+|------|-------------|--------|
+| **推荐：CLI 生产部署** | 见下方 PowerShell | 功能已 commit，要立刻上线；或 push 后线上仍是旧版 |
+| Dashboard Redeploy | [Deployments](https://vercel.com/dashan4/517002650-luminatech-store) → 选一次 → **Redeploy**（改 env 后勾选 Clear Cache 更稳） | 只改了环境变量、或 CLI 不便时 |
+| 仅靠 `git push` | `git push origin main` | 可能自动部署，**不可依赖**；上线后务必用 §5.2 验收 |
+
+**CLI 一键生产部署（本机已 `npx vercel login` 过）：**
+
+```powershell
+cd "e:\项目\独立站\web"
+npx vercel --prod --yes
+```
+
+成功标志：输出含 `Aliased` 与生产域名 `https://517002650-luminatech-store.vercel.app`，`status: ok`。  
+构建日志 / 详情：https://vercel.com/dashan4/517002650-luminatech-store  
+
+**改环境变量后**：在 Vercel Environment Variables 保存后，必须再 **Redeploy** 或再跑一次 `npx vercel --prod --yes`，否则线上仍用旧 env。
+
+**常见部署失败：**
+
+| 报错 | 含义 | 处理 |
+|------|------|------|
+| `Edge Function "_middleware" size ... limit is 1 MB` | middleware 打进了 Prisma 等重依赖 | middleware 只引用 Edge 安全小模块（如 `affiliate-cookie.ts`），禁止从含 `@prisma/client` 的文件再导出进 middleware |
+| `prisma db push` / DB 连接失败 | `DATABASE_URL` 无效或 Neon 休眠/限额 | 查 Vercel env 与 Neon 控制台 |
+| Build 成功但线上路由 404 | 当前 Production 仍是旧 Deployment | 再跑 CLI 部署，或 Dashboard 把最新 Ready **Promote to Production** |
+
+### 5.2 部署后快速验收
+
+| 检查 | 期望 |
+|------|------|
+| `https://517002650-luminatech-store.vercel.app/zh` | 200 |
+| 新后台路径（如 `/admin/affiliates`） | 未登录应为 **307→登录**，不是 **404** |
+| Vercel Deployments 最新一条 | **Ready** 且已挂到 Production 别名 |
 
 ---
 
@@ -531,12 +569,13 @@ npx tsx scripts/verify-cloudinary.ts
 - [ ] GitHub Token 已删除  
 - [ ] **已设置 ≥12 位强密码 `ADMIN_PASSWORD`**（见 §4.1）并 Redeploy 验证 
 
-### 每次更新
+### 每次更新（功能需上线时）
 
 - [ ] 本地改完已 commit  
 - [ ] `git push origin main` 成功  
-- [ ] Vercel 新 Deployment 显示 Ready  
-- [ ] 打开线上点验关键页面  
+- [ ] 已触发重新部署：`npx vercel --prod --yes` 或 Dashboard Redeploy（见 §5.1）  
+- [ ] Vercel 新 Deployment 显示 **Ready** 且已是 Production  
+- [ ] 打开线上点验关键页面（新路由勿为 404）  
 
 ---
 
@@ -544,7 +583,8 @@ npx tsx scripts/verify-cloudinary.ts
 
 | 文档 | 何时看 |
 |------|--------|
-| **本文 `docs/DEPLOYMENT.md`** | 部署 / 重部署 / 忘记上线步骤时 |
+| **本文 `docs/DEPLOYMENT.md`** | 部署 / **§5.1 触发重新部署** / 忘记上线步骤时 |
+| `.cursor/rules/vercel-deploy.mdc` | AI：功能提交后必须生产部署的约定 |
 | `docs/TECHNICAL.md` | 日常改商品、订单、排错 |
 | `DEPLOY.md` | 补充说明与安全提醒 |
 | `README.md` | 功能介绍与本地启动 |
