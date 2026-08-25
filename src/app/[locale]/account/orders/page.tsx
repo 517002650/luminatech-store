@@ -23,6 +23,7 @@ import {
   darkEmptyStateClass,
   darkHeadingClass,
   darkMetaClass,
+  darkThumbStackClass,
 } from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
@@ -102,22 +103,22 @@ export default async function AccountOrdersPage({ params }: Props) {
               <Link
                 key={order.id}
                 href={`/account/orders/${order.id}`}
-                className={`block p-5 ${darkCardClass} ${darkCardHoverClass}`}
+                className={`block p-5 sm:p-6 ${darkCardClass} ${darkCardHoverClass}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-mono text-sm font-semibold text-zinc-50">
+                      <p className="font-mono text-base font-semibold tracking-wide text-zinc-50">
                         #{formatOrderId(order.id)}
                       </p>
                       {downloadFileCount > 0 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs font-medium text-cyan-100 ring-1 ring-cyan-400/40">
-                          <Download className="h-3 w-3" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2.5 py-1 text-xs font-semibold text-cyan-100 ring-1 ring-cyan-400/40">
+                          <Download className="h-3.5 w-3.5" />
                           {t("hasDownloads", { count: downloadFileCount })}
                         </span>
                       ) : null}
                     </div>
-                    <p className={`mt-1 text-xs ${darkMetaClass}`}>
+                    <p className={`mt-1.5 text-sm font-medium ${darkMetaClass}`}>
                       {new Date(order.createdAt).toLocaleString(
                         locale === "zh" ? "zh-CN" : "en-US",
                       )}
@@ -126,7 +127,7 @@ export default async function AccountOrdersPage({ params }: Props) {
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <p className="text-lg font-bold text-zinc-50">
+                    <p className="text-xl font-bold text-zinc-50">
                       {formatPrice(order.total)}
                     </p>
                     <OrderStatusBadge
@@ -136,12 +137,12 @@ export default async function AccountOrdersPage({ params }: Props) {
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-zinc-800 pt-4">
-                  <div className="flex -space-x-2">
+                <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-zinc-700/80 pt-5">
+                  <div className="flex -space-x-2.5">
                     {preview.map((item) => (
                       <div
                         key={item.productId}
-                        className="relative h-12 w-12 overflow-hidden rounded-xl border-2 border-zinc-900 bg-zinc-800"
+                        className={`h-14 w-14 ${darkThumbStackClass}`}
                       >
                         <SafeImage
                           src={item.image}
@@ -152,19 +153,21 @@ export default async function AccountOrdersPage({ params }: Props) {
                       </div>
                     ))}
                     {extra > 0 ? (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl border-2 border-zinc-900 bg-zinc-800 text-xs font-medium text-zinc-300">
+                      <div
+                        className={`flex h-14 w-14 items-center justify-center text-sm font-semibold text-zinc-700 ${darkThumbStackClass}`}
+                      >
                         +{extra}
                       </div>
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-zinc-200">
+                    <p className="truncate text-base font-medium text-zinc-50">
                       {names}
                       {moreNames}
                     </p>
-                    <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-cyan-300">
+                    <p className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-cyan-300 underline-offset-2 hover:underline">
                       {downloadFileCount > 0 ? t("viewOrderDownloads") : t("viewDetails")}
-                      <ChevronRight className="h-3.5 w-3.5" />
+                      <ChevronRight className="h-4 w-4" />
                     </p>
                   </div>
                 </div>

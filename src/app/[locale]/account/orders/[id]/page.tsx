@@ -27,6 +27,7 @@ import {
   darkLabelClass,
   darkMetaClass,
   darkPanelClass,
+  darkThumbClass,
 } from "@/lib/dark-surface-styles";
 import type { Locale } from "@/i18n/routing";
 
@@ -165,7 +166,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
             const fileCount = downloads.filter((d) => d.productId === item.productId).length;
             return (
               <div key={item.productId} className="flex gap-4 p-5">
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
+                <div className={`h-20 w-20 shrink-0 ${darkThumbClass}`}>
                   <SafeImage
                     src={item.image}
                     alt={item.name}
@@ -177,21 +178,21 @@ export default async function AccountOrderDetailPage({ params }: Props) {
                   <div className="min-w-0">
                     <Link
                       href={`/products/${item.slug}`}
-                      className="font-semibold text-zinc-100 hover:text-cyan-300 hover:underline"
+                      className="text-base font-semibold text-zinc-50 hover:text-cyan-300 hover:underline"
                     >
                       {item.name}
                     </Link>
-                    <p className={`text-sm ${darkMetaClass}`}>
+                    <p className={`mt-1 text-sm font-medium ${darkMetaClass}`}>
                       {formatPrice(item.price)} × {item.quantity}
                     </p>
                     {fileCount > 0 ? (
-                      <p className="mt-1 inline-flex items-center gap-1 text-xs text-cyan-400">
-                        <Download className="h-3 w-3" />
+                      <p className="mt-1.5 inline-flex items-center gap-1 text-sm font-medium text-cyan-300">
+                        <Download className="h-3.5 w-3.5" />
                         {t("itemHasDownloads", { count: fileCount })}
                       </p>
                     ) : null}
                   </div>
-                  <p className="shrink-0 text-base font-semibold text-zinc-50">
+                  <p className="shrink-0 text-lg font-semibold text-zinc-50">
                     {formatPrice(item.price * item.quantity)}
                   </p>
                 </div>

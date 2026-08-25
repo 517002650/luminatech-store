@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/format";
 import { getCartItemName } from "@/lib/product-i18n";
 import type { Locale } from "@/i18n/routing";
 import { useCartStore } from "@/store/cart";
+import { darkThumbClass } from "@/lib/dark-surface-styles";
 
 export function CartItemList() {
   const t = useTranslations("cart");
@@ -34,18 +35,18 @@ export function CartItemList() {
             key={item.productId}
             className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:flex-row sm:items-center"
           >
-            <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
+            <div className={`h-24 w-24 shrink-0 ${darkThumbClass}`}>
               <SafeImage src={item.image} alt={name} fill className="object-cover" />
             </div>
 
             <div className="min-w-0 flex-1">
               <Link
                 href={`/products/${item.slug}`}
-                className="font-semibold text-zinc-100 hover:text-cyan-400"
+                className="text-base font-semibold text-zinc-50 hover:text-cyan-300"
               >
                 {name}
               </Link>
-              <p className="mt-1 text-sm text-zinc-500">{formatPrice(item.price)}</p>
+              <p className="mt-1 text-sm font-medium text-zinc-400">{formatPrice(item.price)}</p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">

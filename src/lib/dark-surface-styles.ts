@@ -23,3 +23,10 @@ export const accountNavActiveClass =
 
 export const accountNavInactiveClass =
   "bg-zinc-900 text-zinc-300 ring-1 ring-zinc-700 hover:bg-zinc-800 hover:text-zinc-100";
+
+/** Product thumbs on dark cards — light frame so dark products stay visible. */
+export const darkThumbClass =
+  "relative overflow-hidden rounded-xl bg-zinc-100 ring-2 ring-zinc-500/60 shadow-md shadow-black/40";
+
+export const darkThumbStackClass =
+  "relative overflow-hidden rounded-xl border-2 border-zinc-950 bg-zinc-100 ring-1 ring-zinc-400/50 shadow-md shadow-black/30";

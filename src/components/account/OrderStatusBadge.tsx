@@ -21,7 +21,7 @@ export function OrderStatusBadge({
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${style}`}
+      className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold ring-1 ${style}`}
     >
       {label}
     </span>
