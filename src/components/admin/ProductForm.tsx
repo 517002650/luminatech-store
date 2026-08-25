@@ -21,6 +21,7 @@ type ProductFormValues = {
   categoryEn?: string;
   categoryZh?: string;
   price?: number;
+  compareAtPrice?: number | null;
   image?: string;
   galleryText?: string;
   specsEnText?: string;
@@ -127,7 +128,7 @@ export function ProductForm({
             />
           </div>
           <div>
-            <label className={labelClass}>价格 (USD) *</label>
+            <label className={labelClass}>售价 (USD) *</label>
             <input
               name="price"
               type="number"
@@ -135,6 +136,18 @@ export function ProductForm({
               min="0"
               required
               defaultValue={initialValues.price}
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>划线价 (USD，可选)</label>
+            <input
+              name="compareAtPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={initialValues.compareAtPrice ?? ""}
+              placeholder="原价，须大于售价"
               className={inputClass}
             />
           </div>

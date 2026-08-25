@@ -15,6 +15,7 @@ export type ProductFormInput = {
   categoryEn: string;
   categoryZh: string;
   price: number;
+  compareAtPrice: number | null;
   image: string;
   galleryText: string;
   specsEnText: string;
@@ -87,6 +88,12 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     categoryEn: "",
     categoryZh: "",
     price: Number(formData.get("price") ?? 0),
+    compareAtPrice: (() => {
+      const raw = String(formData.get("compareAtPrice") ?? "").trim();
+      if (!raw) return null;
+      const n = Number(raw);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    })(),
     image: String(formData.get("image") ?? "").trim(),
     galleryText: String(formData.get("galleryText") ?? ""),
     specsEnText: String(formData.get("specsEnText") ?? ""),
@@ -134,6 +141,7 @@ export function productInputToDbData(input: ProductFormInput) {
     categoryEn: input.categoryEn,
     categoryZh: input.categoryZh,
     price: input.price,
+    compareAtPrice: input.compareAtPrice,
     image: input.image,
     images: JSON.stringify(images),
     specsEn: JSON.stringify(textToSpecs(input.specsEnText)),
@@ -158,6 +166,12 @@ export function validateProductInput(input: ProductFormInput) {
   if (!input.brand) errors.push("品牌不能为空");
   if (!input.image) errors.push("主图 URL 不能为空");
   if (Number.isNaN(input.price) || input.price <= 0) errors.push("价格必须大于 0");
+  if (
+    input.compareAtPrice != null &&
+    (Number.isNaN(input.compareAtPrice) || input.compareAtPrice <= input.price)
+  ) {
+    errors.push("划线价须大于售价（留空表示无促销划线）");
+  }
   if (Number.isNaN(input.stock) || input.stock < 0) errors.push("库存不能为负数");
 
   return errors;

@@ -170,9 +170,17 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           )}
           <p className="mt-3 text-lg text-zinc-400">{p.shortDesc}</p>
-          <p className="mt-4 text-3xl font-bold text-zinc-50">
-            {formatPrice(p.price)}
-          </p>
+          <div className="mt-4 flex flex-wrap items-baseline gap-3">
+            <p className="text-3xl font-bold text-zinc-50">
+              {formatPrice(p.price)}
+            </p>
+            {typeof product.compareAtPrice === "number" &&
+            product.compareAtPrice > p.price ? (
+              <p className="text-lg text-zinc-500 line-through">
+                {formatPrice(product.compareAtPrice)}
+              </p>
+            ) : null}
+          </div>
 
           <dl className="mt-6 grid grid-cols-2 gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 text-sm">
             <div>

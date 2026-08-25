@@ -11,6 +11,10 @@ import {
   loadCouponFromSession,
   clearCouponSession,
 } from "@/components/ShippingAddressForm";
+import {
+  trackGa4Purchase,
+  type Ga4PurchasePayload,
+} from "@/lib/analytics";
 
 type Props = {
   isLoggedIn: boolean;
@@ -26,17 +30,18 @@ export function SuccessContent({ isLoggedIn }: Props) {
   const clearCart = useCartStore((s) => s.clearCart);
   const [processing, setProcessing] = useState(true);
   const completedRef = useRef(false);
+  const purchaseTrackedRef = useRef(false);
 
   useEffect(() => {
     if (completedRef.current) return;
 
     async function completeOrder() {
       const shippingAddress = loadShippingFromSession();
+      let purchase: Ga4PurchasePayload | undefined;
 
       try {
         if (provider === "stripe" && sessionId) {
-          // Stripe: order data lives on the server (session metadata + webhook).
-          await fetch("/api/orders/complete", {
+          const res = await fetch("/api/orders/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -44,10 +49,14 @@ export function SuccessContent({ isLoggedIn }: Props) {
               sessionId,
             }),
           });
+          if (res.ok) {
+            const data = (await res.json()) as { purchase?: Ga4PurchasePayload };
+            purchase = data.purchase;
+          }
         } else if (provider === "paypal") {
           if (items.length === 0) return;
           const couponCode = loadCouponFromSession();
-          await fetch("/api/orders/complete", {
+          const res = await fetch("/api/orders/complete", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -61,6 +70,16 @@ export function SuccessContent({ isLoggedIn }: Props) {
               couponCode: couponCode || undefined,
             }),
           });
+          if (res.ok) {
+            const data = (await res.json()) as { purchase?: Ga4PurchasePayload };
+            purchase = data.purchase;
+          }
+        }
+
+        if (purchase && !purchaseTrackedRef.current) {
+          purchaseTrackedRef.current = true;
+          // GA script may load slightly after success page paints.
+          window.setTimeout(() => trackGa4Purchase(purchase!), 400);
         }
       } catch {
         // Payment succeeded; order recording failure shouldn't block the user.

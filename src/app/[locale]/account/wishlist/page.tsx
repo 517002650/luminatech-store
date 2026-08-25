@@ -67,6 +67,7 @@ export default async function WishlistPage({ params }: Props) {
                   slug={p.slug}
                   name={p.name}
                   price={p.price}
+                  compareAtPrice={p.compareAtPrice}
                   image={p.image}
                   category={p.category}
                   avgRating={rating?.avg}

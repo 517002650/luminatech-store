@@ -145,6 +145,9 @@
     "taxAtCheckoutValue": "Calculated by Stripe Tax at payment",
     "shippingNote": "Free shipping on orders over ${amount}. With Stripe Tax enabled, tax is finalized at checkout; otherwise an estimate by destination is shown.",
     "shippingTitle": "Shipping Address",
+    "savedAddresses": "Saved addresses",
+    "manageAddresses": "Manage address book",
+    "defaultAddress": "Default",
     "paymentTitle": "Payment",
     "countryPlaceholder": "Select country / region",
     "couponTitle": "Coupon Code",
@@ -344,6 +347,8 @@
   "account": {
     "myAccount": "My Account",
     "orders": "Orders",
+    "addresses": "Addresses",
+    "addressesHint": "Save shipping addresses for faster checkout.",
     "downloads": "Order Files",
     "wishlist": "Wishlist",
     "noOrders": "You haven't placed any orders yet.",

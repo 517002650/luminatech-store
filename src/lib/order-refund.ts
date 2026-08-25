@@ -2,20 +2,33 @@ import { getStripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { restockItems } from "@/lib/cart-validation";
 import { parseOrderItems } from "@/lib/orders";
+import { roundMoney } from "@/lib/pricing";
 
 const REFUNDABLE = new Set(["paid", "processing", "shipped", "completed"]);
 
 export type RefundOrderResult =
-  | { ok: true; stripeRefundId?: string; alreadyCancelled?: boolean }
+  | {
+      ok: true;
+      stripeRefundId?: string;
+      alreadyCancelled?: boolean;
+      partial?: boolean;
+      refundedAmount?: number;
+    }
   | { ok: false; error: string };
 
 /**
- * Cancel order, optionally refund via Stripe, and restock if stock was applied.
- * Idempotent if already cancelled.
+ * Cancel order (full) or issue a partial Stripe refund.
+ * Full cancel restocks when stockApplied. Partial refund does not restock
+ * (use for price adjustments / goodwill; return physical goods via RMA full refund).
  */
 export async function refundAndCancelOrder(
   orderId: string,
-  options?: { skipStripe?: boolean; reason?: string },
+  options?: {
+    skipStripe?: boolean;
+    reason?: string;
+    /** USD amount for partial refund. Omit or >= remaining → full refund + cancel. */
+    amount?: number;
+  },
 ): Promise<RefundOrderResult> {
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) return { ok: false, error: "订单不存在" };
@@ -28,6 +41,28 @@ export async function refundAndCancelOrder(
     return { ok: false, error: "当前订单状态不可退款" };
   }
 
+  const alreadyRefunded = roundMoney(order.refundedAmount ?? 0);
+  const remaining = roundMoney(order.total - alreadyRefunded);
+  if (remaining <= 0) {
+    return { ok: false, error: "订单可退余额为 0" };
+  }
+
+  const requested =
+    typeof options?.amount === "number" && Number.isFinite(options.amount)
+      ? roundMoney(options.amount)
+      : remaining;
+
+  if (requested <= 0) {
+    return { ok: false, error: "退款金额必须大于 0" };
+  }
+  if (requested > remaining + 0.001) {
+    return {
+      ok: false,
+      error: `退款金额不能超过可退余额 ${remaining.toFixed(2)}`,
+    };
+  }
+
+  const isFull = requested >= remaining - 0.001;
   let stripeRefundId: string | undefined;
 
   if (
@@ -53,10 +88,12 @@ export async function refundAndCancelOrder(
 
       const refund = await stripe.refunds.create({
         payment_intent: paymentIntentId,
+        amount: Math.round(requested * 100),
         reason: "requested_by_customer",
         metadata: {
           orderId: order.id,
           note: options?.reason?.slice(0, 200) ?? "",
+          partial: isFull ? "false" : "true",
         },
       });
       stripeRefundId = refund.id;
@@ -72,22 +109,37 @@ export async function refundAndCancelOrder(
     }
   }
 
+  const newRefunded = roundMoney(alreadyRefunded + requested);
   const items = parseOrderItems(order.items);
 
-  await prisma.$transaction(async (tx) => {
-    if (order.stockApplied) {
-      await restockItems(items, tx);
-    }
-    await tx.order.update({
-      where: { id: order.id },
-      data: {
-        status: "cancelled",
-        stockApplied: false,
-      },
+  if (isFull) {
+    await prisma.$transaction(async (tx) => {
+      if (order.stockApplied) {
+        await restockItems(items, tx);
+      }
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: "cancelled",
+          stockApplied: false,
+          refundedAmount: newRefunded,
+        },
+      });
     });
+    return { ok: true, stripeRefundId, refundedAmount: newRefunded };
+  }
+
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { refundedAmount: newRefunded },
   });
 
-  return { ok: true, stripeRefundId };
+  return {
+    ok: true,
+    stripeRefundId,
+    partial: true,
+    refundedAmount: newRefunded,
+  };
 }
 
 /**

@@ -231,3 +231,57 @@ export async function resetPasswordAction(formData: FormData) {
 
   redirect(`/${locale}/login`);
 }
+
+export async function saveUserAddressAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "login_required" as const };
+
+  const { upsertUserAddress } = await import("@/lib/user-addresses");
+  const result = await upsertUserAddress(user.id, {
+    id: String(formData.get("id") ?? "").trim() || undefined,
+    label: String(formData.get("label") ?? "Default"),
+    isDefault: formData.get("isDefault") === "on",
+    name: String(formData.get("name") ?? ""),
+    phone: String(formData.get("phone") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    line1: String(formData.get("line1") ?? ""),
+    line2: String(formData.get("line2") ?? ""),
+    city: String(formData.get("city") ?? ""),
+    state: String(formData.get("state") ?? ""),
+    country: String(formData.get("country") ?? ""),
+    postalCode: String(formData.get("postalCode") ?? ""),
+  });
+
+  if ("error" in result && result.error) {
+    return { error: result.error };
+  }
+
+  revalidatePath("/account/addresses");
+  revalidatePath("/en/account/addresses");
+  revalidatePath("/zh/account/addresses");
+  revalidatePath("/checkout");
+  return { success: true as const };
+}
+
+export async function deleteUserAddressAction(id: string) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "login_required" as const };
+  const { deleteUserAddress } = await import("@/lib/user-addresses");
+  const result = await deleteUserAddress(user.id, id);
+  if ("error" in result && result.error) return { error: result.error };
+  revalidatePath("/account/addresses");
+  revalidatePath("/checkout");
+  return { success: true as const };
+}
+
+export async function setDefaultUserAddressAction(id: string) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "login_required" as const };
+  const { setDefaultUserAddress } = await import("@/lib/user-addresses");
+  const result = await setDefaultUserAddress(user.id, id);
+  if ("error" in result && result.error) return { error: result.error };
+  revalidatePath("/account/addresses");
+  revalidatePath("/checkout");
+  return { success: true as const };
+}
+

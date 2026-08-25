@@ -70,6 +70,7 @@ export default async function EditProductPage({ params }: Props) {
             categoryEn: product.categoryEn,
             categoryZh: product.categoryZh,
             price: product.price,
+            compareAtPrice: product.compareAtPrice,
             image: product.image,
             galleryText: gallery.join("\n"),
             specsEnText: specsToText(parseJsonSpecs(product.specsEn)),

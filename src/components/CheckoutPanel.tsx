@@ -17,14 +17,23 @@ import {
 } from "@/components/ShippingAddressForm";
 import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
+import {
+  savedToShipping,
+  type SavedAddress,
+} from "@/lib/user-addresses";
 import { lightCardClass, lightCardMutedClass, lightInputInlineClass } from "@/lib/form-styles";
 
 type Props = {
   initialEmail?: string;
   initialName?: string;
+  savedAddresses?: SavedAddress[];
 };
 
-export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
+export function CheckoutPanel({
+  initialEmail = "",
+  initialName = "",
+  savedAddresses = [],
+}: Props) {
   const t = useTranslations("checkout");
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -37,10 +46,26 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   const [couponError, setCouponError] = useState("");
   const [quote, setQuote] = useState<OrderQuote | null>(null);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("100");
-  const [shipping, setShipping] = useState<ShippingAddress>(() =>
-    emptyShippingAddress(initialEmail, initialName),
-  );
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(() => {
+    const d = savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0];
+    return d?.id ?? "";
+  });
+  const [shipping, setShipping] = useState<ShippingAddress>(() => {
+    const d = savedAddresses.find((a) => a.isDefault) ?? savedAddresses[0];
+    return d
+      ? savedToShipping(d)
+      : emptyShippingAddress(initialEmail, initialName);
+  });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  function applySavedAddress(id: string) {
+    setSelectedAddressId(id);
+    const addr = savedAddresses.find((a) => a.id === id);
+    if (addr) {
+      setShipping(savedToShipping(addr));
+      setFieldErrors({});
+    }
+  }
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
   const paypalEnabled =
@@ -189,9 +214,55 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
 
   return (
     <div className="space-y-6">
+      {savedAddresses.length > 0 ? (
+        <div className={lightCardClass}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">{t("savedAddresses")}</h2>
+            <Link
+              href="/account/addresses"
+              className="text-sm text-amber-700 hover:underline"
+            >
+              {t("manageAddresses")}
+            </Link>
+          </div>
+          <div className="mt-3 space-y-2">
+            {savedAddresses.map((addr) => (
+              <label
+                key={addr.id}
+                className={`flex cursor-pointer gap-3 rounded-xl border px-3 py-3 text-sm ${
+                  selectedAddressId === addr.id
+                    ? "border-amber-500 bg-amber-50"
+                    : "border-stone-200 hover:bg-stone-50"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="savedAddress"
+                  className="mt-1"
+                  checked={selectedAddressId === addr.id}
+                  onChange={() => applySavedAddress(addr.id)}
+                />
+                <span>
+                  <span className="font-medium text-stone-900">
+                    {addr.label}
+                    {addr.isDefault ? ` · ${t("defaultAddress")}` : ""}
+                  </span>
+                  <span className="mt-0.5 block text-stone-600">
+                    {addr.name} · {addr.line1}, {addr.city}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <ShippingAddressForm
         value={shipping}
-        onChange={setShipping}
+        onChange={(next) => {
+          setSelectedAddressId("");
+          setShipping(next);
+        }}
         errors={fieldErrors}
       />
 

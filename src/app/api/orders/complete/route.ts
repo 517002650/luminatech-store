@@ -7,6 +7,7 @@ import { fulfillStripeCheckoutSession } from "@/lib/stripe-order";
 import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
 import { buildOrderQuote } from "@/lib/pricing";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { orderToGa4Purchase } from "@/lib/analytics";
 import {
   CartValidationError,
   decrementStockForItems,
@@ -44,9 +45,14 @@ export async function POST(req: NextRequest) {
         userId: user?.id,
       });
 
+      const order = await prisma.order.findUnique({
+        where: { id: result.orderId },
+      });
+
       return NextResponse.json({
         orderId: result.orderId,
         duplicate: result.duplicate,
+        purchase: order ? orderToGa4Purchase(order) : undefined,
       });
     }
 
@@ -71,7 +77,11 @@ export async function POST(req: NextRequest) {
       const paymentId = paypalOrderId;
       const existing = await prisma.order.findUnique({ where: { paymentId } });
       if (existing) {
-        return NextResponse.json({ orderId: existing.id, duplicate: true });
+        return NextResponse.json({
+          orderId: existing.id,
+          duplicate: true,
+          purchase: orderToGa4Purchase(existing),
+        });
       }
 
       const resolvedShipping = shippingAddress ?? null;
@@ -161,7 +171,10 @@ export async function POST(req: NextRequest) {
         console.error("Order confirmation email failed:", err);
       }
 
-      return NextResponse.json({ orderId: order.id });
+      return NextResponse.json({
+        orderId: order.id,
+        purchase: orderToGa4Purchase(order),
+      });
     }
 
     return NextResponse.json({ error: "未知支付方式" }, { status: 400 });

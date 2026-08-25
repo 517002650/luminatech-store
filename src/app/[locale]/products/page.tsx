@@ -127,6 +127,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
                   slug={product.slug}
                   name={product.name}
                   price={product.price}
+                  compareAtPrice={product.compareAtPrice}
                   image={product.image}
                   category={product.category}
                   avgRating={rating?.avg}

@@ -20,6 +20,7 @@ model User {
   wishlist          WishlistItem[]
   reviews           Review[]
   resetTokens       PasswordResetToken[]
+  addresses         UserAddress[]
 }
 
 model PasswordResetToken {
@@ -88,6 +89,7 @@ model Product {
   categoryZh    String
   categoryKey   String         @default("fixtures")
   price         Float
+  compareAtPrice Float?
   image         String
   images        String
   specsEn       String
@@ -142,11 +144,33 @@ model Order {
   trackingNumber  String   @default("")
   paymentMethod   String
   paymentId       String?  @unique
+  refundedAmount  Float    @default(0)
   stockApplied    Boolean  @default(true)
   items           String
   shippingAddress String   @default("")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model UserAddress {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label      String   @default("Default")
+  isDefault  Boolean  @default(false)
+  name       String
+  phone      String   @default("")
+  email      String   @default("")
+  line1      String
+  line2      String   @default("")
+  city       String
+  state      String   @default("")
+  country    String
+  postalCode String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model WishlistItem {

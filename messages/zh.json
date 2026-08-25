@@ -145,6 +145,9 @@
     "taxAtCheckoutValue": "支付时由 Stripe Tax 计算",
     "shippingNote": "订单满 ${amount} 包邮。启用 Stripe Tax 时税费在收银台计算；否则按收货国家估算。",
     "shippingTitle": "收货地址",
+    "savedAddresses": "常用地址",
+    "manageAddresses": "管理地址簿",
+    "defaultAddress": "默认",
     "paymentTitle": "支付方式",
     "countryPlaceholder": "请选择国家/地区",
     "couponTitle": "优惠码",
@@ -344,6 +347,8 @@
   "account": {
     "myAccount": "我的账户",
     "orders": "我的订单",
+    "addresses": "收货地址",
+    "addressesHint": "保存常用地址，结算时可一键填入。",
     "downloads": "订单资料",
     "wishlist": "收藏夹",
     "noOrders": "您还没有下过订单。",

@@ -16,6 +16,7 @@ import {
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { OrderTrackingForm } from "@/components/admin/OrderTrackingForm";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
+import { OrderInvoicePanel } from "@/components/admin/OrderInvoicePanel";
 
 type Props = {
   order: {
@@ -27,6 +28,7 @@ type Props = {
     discountAmount?: number;
     couponCode?: string;
     total: number;
+    refundedAmount?: number;
     status: string;
     shippingCarrier: string;
     trackingNumber: string;
@@ -54,7 +56,7 @@ export function OrderDetailPanel({ order }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 rounded-2xl border border-stone-200 bg-white p-6 sm:grid-cols-2 lg:grid-cols-3 print:hidden">
         <Info label="订单号" value={`#${formatOrderId(order.id)}`} />
         <Info label="客户邮箱" value={order.email || "—"} />
         <Info label="商品小计" value={formatPrice(order.subtotal ?? order.total)} />
@@ -72,6 +74,9 @@ export function OrderDetailPanel({ order }: Props) {
           <Info label="税费" value={formatPrice(order.taxAmount!)} />
         )}
         <Info label="订单总额" value={formatPrice(order.total)} />
+        {(order.refundedAmount ?? 0) > 0 && (
+          <Info label="已退款" value={formatPrice(order.refundedAmount!)} />
+        )}
         <Info label="支付方式" value={order.paymentMethod.toUpperCase()} />
         <Info label="支付 ID" value={order.paymentId ?? "—"} />
         <Info
@@ -81,10 +86,12 @@ export function OrderDetailPanel({ order }: Props) {
       </div>
 
       {shipping && (
-        <ShippingAddressDisplay address={shipping} title="收货地址" variant="admin" />
+        <div className="print:hidden">
+          <ShippingAddressDisplay address={shipping} title="收货地址" variant="admin" />
+        </div>
       )}
 
-      <div className="rounded-2xl border border-stone-200 bg-white p-6">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-stone-900">订单状态</h2>
           <select
@@ -102,21 +109,28 @@ export function OrderDetailPanel({ order }: Props) {
         </div>
       </div>
 
-      <OrderTrackingForm
-        orderId={order.id}
-        shippingCarrier={order.shippingCarrier}
-        trackingNumber={order.trackingNumber}
-        status={order.status}
-      />
+      <div className="print:hidden">
+        <OrderTrackingForm
+          orderId={order.id}
+          shippingCarrier={order.shippingCarrier}
+          trackingNumber={order.trackingNumber}
+          status={order.status}
+        />
+      </div>
 
-      <OrderRefundPanel
-        orderId={order.id}
-        status={order.status}
-        paymentMethod={order.paymentMethod}
-        totalLabel={formatPrice(order.total)}
-      />
+      <div className="print:hidden">
+        <OrderRefundPanel
+          orderId={order.id}
+          status={order.status}
+          paymentMethod={order.paymentMethod}
+          total={order.total}
+          refundedAmount={order.refundedAmount ?? 0}
+        />
+      </div>
 
-      <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+      <OrderInvoicePanel order={order} />
+
+      <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm print:hidden">
         <div className="border-b border-stone-200 px-6 py-4">
           <h2 className="text-lg font-semibold text-stone-900">商品明细</h2>
         </div>

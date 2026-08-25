@@ -350,8 +350,14 @@ export async function refundOrderAction(id: string, formData: FormData) {
 
   const reason = String(formData.get("reason") ?? "").trim();
   const skipStripe = formData.get("skipStripe") === "on";
+  const amountRaw = String(formData.get("amount") ?? "").trim();
+  const amount = amountRaw ? Number(amountRaw) : undefined;
 
-  const result = await refundAndCancelOrder(id, { skipStripe, reason });
+  const result = await refundAndCancelOrder(id, {
+    skipStripe,
+    reason,
+    amount: Number.isFinite(amount) ? amount : undefined,
+  });
   if (!result.ok) {
     return { error: result.error };
   }
@@ -366,6 +372,7 @@ export async function refundOrderAction(id: string, formData: FormData) {
   return {
     success: true as const,
     stripeRefundId: result.stripeRefundId,
+    partial: Boolean(result.partial),
   };
 }
 
