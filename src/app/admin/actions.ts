@@ -456,13 +456,17 @@ export async function createCouponAction(formData: FormData) {
   redirect("/admin/coupons");
 }
 
-export async function toggleCouponAction(id: string, active: boolean) {
+export async function toggleCouponAction(
+  id: string,
+  active: boolean,
+  _formData?: FormData,
+) {
   await requireAdmin();
   await prisma.coupon.update({ where: { id }, data: { active } });
   revalidatePath("/admin/coupons");
 }
 
-export async function deleteCouponAction(id: string) {
+export async function deleteCouponAction(id: string, _formData?: FormData) {
   await requireAdmin();
   await prisma.coupon.delete({ where: { id } });
   revalidatePath("/admin/coupons");
@@ -784,24 +788,27 @@ export async function updateAffiliateAction(id: string, formData: FormData) {
   return { success: true as const };
 }
 
-export async function setAffiliateActiveAction(id: string, active: boolean) {
+export async function setAffiliateActiveAction(
+  id: string,
+  active: boolean,
+  _formData?: FormData,
+) {
   await requireAdmin();
   await prisma.affiliate.update({ where: { id }, data: { active } });
   revalidatePath("/admin/affiliates");
-  return { success: true as const };
 }
 
 export async function setCommissionStatusAction(
   id: string,
   status: "pending" | "approved" | "paid" | "void",
+  _formData?: FormData,
 ) {
   await requireAdmin();
   const { COMMISSION_STATUSES } = await import("@/lib/affiliates");
   if (!(COMMISSION_STATUSES as readonly string[]).includes(status)) {
-    return { error: "无效状态" };
+    return;
   }
   await prisma.commission.update({ where: { id }, data: { status } });
   revalidatePath("/admin/commissions");
-  return { success: true as const };
 }
 
