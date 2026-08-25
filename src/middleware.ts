@@ -4,7 +4,7 @@ import {
   AFFILIATE_COOKIE,
   AFFILIATE_COOKIE_MAX_AGE,
   normalizeAffiliateCode,
-} from "./lib/affiliates";
+} from "./lib/affiliate-cookie";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);

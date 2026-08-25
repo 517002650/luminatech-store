@@ -1,10 +1,17 @@
+import {
+  AFFILIATE_COOKIE,
+  AFFILIATE_COOKIE_MAX_AGE,
+  normalizeAffiliateCode,
+} from "@/lib/affiliate-cookie";
 import { prisma } from "@/lib/db";
 import { roundMoney } from "@/lib/pricing";
 import type { Prisma } from "@prisma/client";
 
-export const AFFILIATE_COOKIE = "lt_affiliate_ref";
-/** 30 days */
-export const AFFILIATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+export {
+  AFFILIATE_COOKIE,
+  AFFILIATE_COOKIE_MAX_AGE,
+  normalizeAffiliateCode,
+};
 
 export const COMMISSION_STATUSES = [
   "pending",
@@ -23,14 +30,6 @@ export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
 };
 
 type TxClient = Prisma.TransactionClient;
-
-export function normalizeAffiliateCode(raw: string | null | undefined) {
-  return String(raw ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9_-]/g, "")
-    .slice(0, 32);
-}
 
 export async function findActiveAffiliateByCode(code: string) {
   const normalized = normalizeAffiliateCode(code);
