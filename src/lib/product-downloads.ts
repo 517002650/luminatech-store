@@ -20,6 +20,40 @@ export const DOWNLOAD_TYPE_LABELS: Record<
   plugin: { en: "Plugin", zh: "插件" },
 };
 
+export function orderStatusAllowsDownloads(status: string) {
+  return VALID_ORDER_STATUSES.has(status);
+}
+
+/** productId → download file count */
+export async function getDownloadCountByProductId(productIds: string[]) {
+  const map = new Map<string, number>();
+  if (productIds.length === 0) return map;
+
+  const rows = await prisma.productDownload.groupBy({
+    by: ["productId"],
+    where: { productId: { in: productIds } },
+    _count: { _all: true },
+  });
+
+  for (const row of rows) {
+    map.set(row.productId, row._count._all);
+  }
+  return map;
+}
+
+export async function getDownloadsForProductIds(productIds: string[]) {
+  if (productIds.length === 0) return [];
+  return prisma.productDownload.findMany({
+    where: { productId: { in: productIds } },
+    orderBy: [
+      { productId: "asc" },
+      { type: "asc" },
+      { isLatest: "desc" },
+      { createdAt: "desc" },
+    ],
+  });
+}
+
 /** Paid (non-cancelled) product IDs owned by this user. */
 export async function getPurchasedProductIds(
   user: { id: string; email: string } | null,

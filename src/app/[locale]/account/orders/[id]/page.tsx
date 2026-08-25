@@ -1,7 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Download } from "lucide-react";
 import { AccountNav } from "@/components/account/AccountNav";
 import { OrderStatusBadge } from "@/components/account/OrderStatusBadge";
+import { ProductDownloadsSection } from "@/components/ProductDownloadsSection";
 import { RepurchaseButton } from "@/components/RepurchaseButton";
 import { SafeImage } from "@/components/SafeImage";
 import { Link } from "@/i18n/routing";
@@ -13,6 +15,10 @@ import {
   parseShippingAddress,
   type OrderStatus,
 } from "@/lib/orders";
+import {
+  getDownloadsForProductIds,
+  orderStatusAllowsDownloads,
+} from "@/lib/product-downloads";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { prisma } from "@/lib/db";
 import type { Locale } from "@/i18n/routing";
@@ -43,6 +49,35 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     ...item,
     name: locale === "zh" ? item.nameZh : item.nameEn,
   }));
+
+  const canDownload = orderStatusAllowsDownloads(order.status);
+  const productIds = [...new Set(items.map((i) => i.productId))];
+  const downloads = canDownload ? await getDownloadsForProductIds(productIds) : [];
+  const productNameById = new Map(
+    localizedItems.map((item) => [item.productId, item.name]),
+  );
+
+  const downloadsByProduct = productIds
+    .map((productId) => {
+      const rows = downloads.filter((d) => d.productId === productId);
+      if (rows.length === 0) return null;
+      return {
+        productId,
+        productName: productNameById.get(productId) ?? productId,
+        items: rows.map((d) => ({
+          id: d.id,
+          type: d.type,
+          version: d.version,
+          title: locale === "zh" ? d.titleZh : d.titleEn,
+          notes: locale === "zh" ? d.notesZh : d.notesEn,
+          fileName: d.fileName,
+          fileSize: d.fileSize,
+          isLatest: d.isLatest,
+          createdAt: d.createdAt.toISOString(),
+        })),
+      };
+    })
+    .filter((g): g is NonNullable<typeof g> => g !== null);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
@@ -119,36 +154,71 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           {t("orderItems")}
         </h2>
         <div className="divide-y divide-zinc-800 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/70">
-          {localizedItems.map((item) => (
-            <div key={item.productId} className="flex gap-4 p-5">
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
-                <SafeImage
-                  src={item.image}
-                  alt={item.name}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                <div className="min-w-0">
-                  <Link
-                    href={`/products/${item.slug}`}
-                    className="font-semibold text-zinc-100 hover:text-cyan-300 hover:underline"
-                  >
-                    {item.name}
-                  </Link>
-                  <p className="text-sm text-zinc-500">
-                    {formatPrice(item.price)} × {item.quantity}
+          {localizedItems.map((item) => {
+            const fileCount = downloads.filter((d) => d.productId === item.productId).length;
+            return (
+              <div key={item.productId} className="flex gap-4 p-5">
+                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-800">
+                  <SafeImage
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/products/${item.slug}`}
+                      className="font-semibold text-zinc-100 hover:text-cyan-300 hover:underline"
+                    >
+                      {item.name}
+                    </Link>
+                    <p className="text-sm text-zinc-500">
+                      {formatPrice(item.price)} × {item.quantity}
+                    </p>
+                    {fileCount > 0 ? (
+                      <p className="mt-1 inline-flex items-center gap-1 text-xs text-cyan-400">
+                        <Download className="h-3 w-3" />
+                        {t("itemHasDownloads", { count: fileCount })}
+                      </p>
+                    ) : null}
+                  </div>
+                  <p className="shrink-0 text-base font-semibold text-zinc-50">
+                    {formatPrice(item.price * item.quantity)}
                   </p>
                 </div>
-                <p className="shrink-0 text-base font-semibold text-zinc-50">
-                  {formatPrice(item.price * item.quantity)}
-                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {downloadsByProduct.length > 0 ? (
+        <div className="mt-10 space-y-8">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-zinc-50">{t("orderDownloads")}</h2>
+              <p className="mt-1 text-sm text-zinc-500">{t("orderDownloadsHint")}</p>
+            </div>
+            <Link
+              href="/account/downloads"
+              className="text-sm text-cyan-400 hover:underline"
+            >
+              {t("allDownloads")}
+            </Link>
+          </div>
+
+          {downloadsByProduct.map((group) => (
+              <div key={group.productId}>
+                <h3 className="mb-2 text-sm font-medium text-zinc-300">
+                  {group.productName}
+                </h3>
+                <ProductDownloadsSection items={group.items} compact />
+              </div>
+            ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Download } from "lucide-react";
 import { AccountNav } from "@/components/account/AccountNav";
 import { OrderStatusBadge } from "@/components/account/OrderStatusBadge";
 import { SafeImage } from "@/components/SafeImage";
@@ -12,6 +12,10 @@ import {
   parseOrderItems,
   type OrderStatus,
 } from "@/lib/orders";
+import {
+  getDownloadCountByProductId,
+  orderStatusAllowsDownloads,
+} from "@/lib/product-downloads";
 import { prisma } from "@/lib/db";
 import type { Locale } from "@/i18n/routing";
 
@@ -43,6 +47,13 @@ export default async function AccountOrdersPage({ params }: Props) {
     data: { userId: user.id },
   });
 
+  const allProductIds = [
+    ...new Set(
+      orders.flatMap((order) => parseOrderItems(order.items).map((i) => i.productId)),
+    ),
+  ];
+  const downloadCounts = await getDownloadCountByProductId(allProductIds);
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
       <h1 className="text-2xl font-bold text-zinc-50">{t("myAccount")}</h1>
@@ -73,6 +84,12 @@ export default async function AccountOrdersPage({ params }: Props) {
               .map((i) => (locale === "zh" ? i.nameZh : i.nameEn))
               .join(locale === "zh" ? "、" : ", ");
             const moreNames = items.length > 2 ? (locale === "zh" ? " 等" : "…") : "";
+            const downloadFileCount = orderStatusAllowsDownloads(order.status)
+              ? items.reduce(
+                  (sum, item) => sum + (downloadCounts.get(item.productId) ?? 0),
+                  0,
+                )
+              : 0;
 
             return (
               <Link
@@ -82,9 +99,17 @@ export default async function AccountOrdersPage({ params }: Props) {
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-mono text-sm font-semibold text-zinc-100">
-                      #{formatOrderId(order.id)}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-mono text-sm font-semibold text-zinc-100">
+                        #{formatOrderId(order.id)}
+                      </p>
+                      {downloadFileCount > 0 ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/15 px-2 py-0.5 text-xs font-medium text-cyan-300 ring-1 ring-cyan-500/30">
+                          <Download className="h-3 w-3" />
+                          {t("hasDownloads", { count: downloadFileCount })}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="mt-1 text-xs text-zinc-500">
                       {new Date(order.createdAt).toLocaleString(
                         locale === "zh" ? "zh-CN" : "en-US",
@@ -131,7 +156,7 @@ export default async function AccountOrdersPage({ params }: Props) {
                       {moreNames}
                     </p>
                     <p className="mt-1 inline-flex items-center gap-1 text-xs text-cyan-400">
-                      {t("viewDetails")}
+                      {downloadFileCount > 0 ? t("viewOrderDownloads") : t("viewDetails")}
                       <ChevronRight className="h-3.5 w-3.5" />
                     </p>
                   </div>
