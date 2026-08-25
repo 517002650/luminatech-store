@@ -40,18 +40,6 @@ export function parseCloudinaryUrl(url: string): CloudinaryRef | null {
   };
 }
 
-/** Split `folder/file.zip` → public id + format for Cloudinary download helpers. */
-export function splitPublicIdAndFormat(fullPublicId: string) {
-  const dot = fullPublicId.lastIndexOf(".");
-  if (dot <= 0 || dot === fullPublicId.length - 1) {
-    return { publicId: fullPublicId, format: "" };
-  }
-  return {
-    publicId: fullPublicId.slice(0, dot),
-    format: fullPublicId.slice(dot + 1),
-  };
-}
-
 function assertCloudinaryAccount(ref: CloudinaryRef) {
   const configured = process.env.CLOUDINARY_CLOUD_NAME;
   if (configured && ref.cloudName !== configured) {
@@ -61,49 +49,33 @@ function assertCloudinaryAccount(ref: CloudinaryRef) {
   }
 }
 
-async function resolveCloudinaryDeliveryType(ref: CloudinaryRef) {
+async function resolveCloudinaryResource(ref: CloudinaryRef) {
   configureCloudinary(ref.cloudName);
-  const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
-  const lookupId = format ? publicId : ref.publicId;
-
-  for (const type of [ref.deliveryType, "upload", "authenticated", "private"] as const) {
-    try {
-      const resource = await cloudinary.api.resource(lookupId, {
-        resource_type: ref.resourceType,
-        type,
-      });
-      if (resource?.public_id) {
-        return type;
-      }
-    } catch {
-      // try next delivery type
-    }
-  }
-
-  return ref.deliveryType;
+  return { deliveryType: ref.deliveryType, publicId: ref.publicId };
 }
 
-function buildSignedCloudinaryUrls(ref: CloudinaryRef, deliveryType: CloudinaryRef["deliveryType"]) {
+function buildSignedCloudinaryUrls(
+  ref: CloudinaryRef,
+  deliveryType: CloudinaryRef["deliveryType"],
+  publicId: string,
+) {
   configureCloudinary(ref.cloudName);
-  const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
-  const fmt = format || "bin";
   const expiresAt = Math.floor(Date.now() / 1000) + 3600;
   const urls: string[] = [];
 
+  // Raw uploads keep extension in public_id (e.g. "..._.zip"). Empty format works reliably.
   urls.push(
-    cloudinary.utils.private_download_url(publicId, fmt, {
+    cloudinary.utils.private_download_url(publicId, "", {
       resource_type: ref.resourceType,
       type: deliveryType,
       expires_at: expiresAt,
-      attachment: true,
     }),
   );
 
   urls.push(
-    cloudinary.url(format ? publicId : ref.publicId, {
+    cloudinary.url(publicId, {
       resource_type: ref.resourceType,
       type: deliveryType,
-      format: fmt,
       sign_url: true,
       secure: true,
       flags: "attachment",
@@ -111,7 +83,7 @@ function buildSignedCloudinaryUrls(ref: CloudinaryRef, deliveryType: CloudinaryR
   );
 
   urls.push(
-    cloudinary.url(format ? publicId : ref.publicId, {
+    cloudinary.url(publicId, {
       resource_type: ref.resourceType,
       type: deliveryType,
       sign_url: true,
@@ -133,17 +105,30 @@ export async function fetchAssetResponse(fileUrl: string) {
     const ref = parseCloudinaryUrl(fileUrl);
     if (ref && isCloudinaryConfigured()) {
       assertCloudinaryAccount(ref);
-      const deliveryType = await resolveCloudinaryDeliveryType(ref);
-      const candidates = buildSignedCloudinaryUrls(ref, deliveryType);
+      const resolved = await resolveCloudinaryResource(ref);
+      const candidates = buildSignedCloudinaryUrls(
+        ref,
+        resolved.deliveryType,
+        resolved.publicId,
+      );
 
       let lastStatus = 0;
+      let lastError = "";
       for (const url of candidates) {
-        const res = await fetch(url);
-        lastStatus = res.status;
-        if (res.ok) return res;
+        try {
+          const res = await fetch(url);
+          lastStatus = res.status;
+          if (res.ok) return res;
+        } catch (err) {
+          lastError = err instanceof Error ? err.message : "fetch_failed";
+        }
       }
 
-      throw new Error(`cloudinary_fetch_failed:${lastStatus}`);
+      throw new Error(
+        lastError
+          ? `cloudinary_fetch_failed:${lastError}`
+          : `cloudinary_fetch_failed:${lastStatus}`,
+      );
     }
 
     const res = await fetch(fileUrl);
