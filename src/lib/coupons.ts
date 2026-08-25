@@ -1,5 +1,66 @@
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { calcSubtotal, roundMoney, type CartLine } from "@/lib/pricing";
+
+/** Uppercase trim for coupon codes (stored and matched in uppercase). */
+export function normalizeCouponCode(code: string | null | undefined): string {
+  return String(code ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g, "");
+}
+
+const COUPON_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function randomCouponSuffix(length = 8): string {
+  const bytes = randomBytes(length);
+  let out = "";
+  for (let i = 0; i < length; i++) {
+    out += COUPON_CODE_CHARS[bytes[i]! % COUPON_CODE_CHARS.length];
+  }
+  return out;
+}
+
+/** Build a random coupon code candidate (not guaranteed unique). */
+export function generateRandomCouponCode(prefix = "CP"): string {
+  return `${prefix}${randomCouponSuffix(8)}`;
+}
+
+export async function isCouponCodeAvailable(code: string): Promise<boolean> {
+  const normalized = normalizeCouponCode(code);
+  if (!normalized) return false;
+  const existing = await prisma.coupon.findUnique({
+    where: { code: normalized },
+    select: { id: true },
+  });
+  return !existing;
+}
+
+/**
+ * Allocate a unique coupon code.
+ * - preferred: use if free after normalize
+ * - otherwise generate random codes until unique
+ */
+export async function allocateCouponCode(options?: {
+  preferred?: string | null;
+}): Promise<string> {
+  const preferred = normalizeCouponCode(options?.preferred);
+  if (preferred && (await isCouponCodeAvailable(preferred))) {
+    return preferred;
+  }
+
+  for (let i = 0; i < 30; i++) {
+    const candidate = generateRandomCouponCode();
+    if (await isCouponCodeAvailable(candidate)) return candidate;
+  }
+
+  const fallback = normalizeCouponCode(
+    `CP${Date.now().toString(36).toUpperCase()}${randomCouponSuffix(4)}`,
+  );
+  if (await isCouponCodeAvailable(fallback)) return fallback;
+
+  throw new Error("Unable to allocate unique coupon code");
+}
 
 export type CouponValidation = {
   valid: boolean;

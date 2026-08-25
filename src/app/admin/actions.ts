@@ -409,10 +409,38 @@ export async function updateOrderTrackingAction(id: string, formData: FormData) 
   return { success: true as const, notified };
 }
 
+export async function generateCouponCodeAction() {
+  await requireAdmin();
+  const { allocateCouponCode } = await import("@/lib/coupons");
+  const code = await allocateCouponCode();
+  return { code };
+}
+
+export async function checkCouponCodeAction(code: string) {
+  await requireAdmin();
+  const { isCouponCodeAvailable, normalizeCouponCode } = await import(
+    "@/lib/coupons"
+  );
+  const normalized = normalizeCouponCode(code);
+  if (!normalized) {
+    return { available: false as const, error: "优惠码不能为空" };
+  }
+  const available = await isCouponCodeAvailable(normalized);
+  return {
+    available,
+    error: available ? undefined : "该优惠码已存在",
+  };
+}
+
 export async function createCouponAction(formData: FormData) {
   await requireAdmin();
+  const {
+    allocateCouponCode,
+    isCouponCodeAvailable,
+    normalizeCouponCode,
+  } = await import("@/lib/coupons");
 
-  const code = String(formData.get("code") ?? "").trim().toUpperCase();
+  const codeMode = String(formData.get("codeMode") ?? "auto");
   const type = String(formData.get("type") ?? "percent");
   const value = Number(formData.get("value") ?? 0);
   const minOrder = Number(formData.get("minOrder") ?? 0);
@@ -423,7 +451,7 @@ export async function createCouponAction(formData: FormData) {
   const affiliateIdRaw = String(formData.get("affiliateId") ?? "").trim();
   const affiliateId = affiliateIdRaw || null;
 
-  if (!code || !["percent", "fixed"].includes(type) || value <= 0) {
+  if (!["percent", "fixed"].includes(type) || value <= 0) {
     return { error: "请填写有效的优惠码信息" };
   }
   if (type === "percent" && value > 100) {
@@ -432,6 +460,22 @@ export async function createCouponAction(formData: FormData) {
   if (affiliateId) {
     const aff = await prisma.affiliate.findUnique({ where: { id: affiliateId } });
     if (!aff) return { error: "所选推广员不存在" };
+  }
+
+  let code: string;
+  if (codeMode === "manual") {
+    code = normalizeCouponCode(String(formData.get("code") ?? ""));
+    if (!code) return { error: "请填写优惠码" };
+    if (!(await isCouponCodeAvailable(code))) {
+      return { error: "该优惠码已存在，请换一个或使用自动生成" };
+    }
+  } else {
+    const preferred = normalizeCouponCode(String(formData.get("code") ?? ""));
+    try {
+      code = await allocateCouponCode({ preferred: preferred || null });
+    } catch {
+      return { error: "无法生成唯一优惠码，请重试" };
+    }
   }
 
   try {
