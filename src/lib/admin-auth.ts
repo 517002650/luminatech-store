@@ -3,6 +3,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/user-auth";
+import {
+  DEFAULT_ADMIN_PERMISSIONS,
+  OWNER_PERMISSIONS,
+  type AdminPermission,
+} from "@/lib/admin-permissions";
+import { getRoleTypePermissions } from "@/lib/admin-role-types";
 
 const COOKIE_NAME = "admin_session";
 const PENDING_2FA_COOKIE = "admin_2fa_pending";
@@ -17,15 +23,31 @@ const WEAK_PASSWORDS = new Set([
   "change-me-in-production",
 ]);
 
+/** @deprecated Prefer roleType key; kept for Owner checks. */
 export type AdminRole = "owner" | "admin";
 
 export type AdminSession = {
   id: string;
   email: string;
   name: string;
-  role: AdminRole;
+  /** Role type key: owner | admin | custom_* */
+  role: string;
+  roleTypeId: string | null;
+  permissions: AdminPermission[];
   totpEnabled: boolean;
 };
+
+export function isOwnerSession(admin: Pick<AdminSession, "role">) {
+  return admin.role === "owner";
+}
+
+export function hasPermission(
+  admin: Pick<AdminSession, "role" | "permissions">,
+  permission: AdminPermission,
+) {
+  if (admin.role === "owner") return true;
+  return admin.permissions.includes(permission);
+}
 
 function isProductionLike() {
   return (
@@ -112,7 +134,10 @@ export async function hasAnyAdmin(): Promise<boolean> {
 
 export async function countActiveOwners(): Promise<number> {
   return prisma.adminAccount.count({
-    where: { role: "owner", active: true },
+    where: {
+      active: true,
+      OR: [{ role: "owner" }, { roleType: { key: "owner" } }],
+    },
   });
 }
 
@@ -221,19 +246,32 @@ export async function getCurrentAdmin(): Promise<AdminSession | null> {
       email: true,
       name: true,
       role: true,
+      roleTypeId: true,
       active: true,
       totpEnabled: true,
     },
   });
 
   if (!row || !row.active) return null;
-  if (row.role !== "owner" && row.role !== "admin") return null;
+
+  let resolved;
+  try {
+    resolved = await getRoleTypePermissions(row.roleTypeId, row.role);
+  } catch {
+    // Schema not migrated yet — fall back to legacy roles
+    resolved =
+      row.role === "owner"
+        ? { key: "owner", permissions: OWNER_PERMISSIONS, isOwner: true }
+        : { key: "admin", permissions: DEFAULT_ADMIN_PERMISSIONS, isOwner: false };
+  }
 
   return {
     id: row.id,
     email: row.email,
     name: row.name,
-    role: row.role,
+    role: resolved.key,
+    roleTypeId: row.roleTypeId,
+    permissions: resolved.isOwner ? OWNER_PERMISSIONS : resolved.permissions,
     totpEnabled: row.totpEnabled,
   };
 }
@@ -254,6 +292,23 @@ export async function requireOwner(): Promise<AdminSession> {
   return admin;
 }
 
+export async function requirePermission(
+  permission: AdminPermission,
+): Promise<AdminSession> {
+  const admin = await requireAdmin();
+  if (!hasPermission(admin, permission)) redirect("/admin");
+  return admin;
+}
+
+/** For API routes: null if missing permission. */
+export async function getAdminWithPermission(
+  permission: AdminPermission,
+): Promise<AdminSession | null> {
+  const admin = await getCurrentAdmin();
+  if (!admin || !hasPermission(admin, permission)) return null;
+  return admin;
+}
+
 export function validateNewAdminPassword(password: string): string | null {
   if (password.length < 12) return "密码至少 12 位";
   if (WEAK_PASSWORDS.has(password)) return "密码过弱，请更换";
@@ -264,7 +319,8 @@ export async function createAdminAccount(input: {
   email: string;
   name: string;
   password: string;
-  role: AdminRole;
+  role?: AdminRole | string;
+  roleTypeId?: string | null;
 }) {
   const email = input.email.trim().toLowerCase();
   if (!email || !email.includes("@")) {
@@ -276,12 +332,25 @@ export async function createAdminAccount(input: {
   const existing = await prisma.adminAccount.findUnique({ where: { email } });
   if (existing) return { error: "该邮箱已存在" as const };
 
+  let roleKey = (input.role ?? "admin").trim() || "admin";
+  let roleTypeId = input.roleTypeId ?? null;
+
+  if (roleTypeId) {
+    const rt = await prisma.adminRoleType.findUnique({ where: { id: roleTypeId } });
+    if (!rt) return { error: "账号类型不存在" as const };
+    roleKey = rt.key;
+  } else {
+    const rt = await prisma.adminRoleType.findUnique({ where: { key: roleKey } });
+    if (rt) roleTypeId = rt.id;
+  }
+
   const row = await prisma.adminAccount.create({
     data: {
       email,
       name: input.name.trim().slice(0, 80),
       passwordHash: await hashPassword(input.password),
-      role: input.role,
+      role: roleKey,
+      roleTypeId,
       active: true,
     },
   });
@@ -305,7 +374,7 @@ export async function authenticateAdminPassword(
       id: row.id,
       email: row.email,
       name: row.name,
-      role: row.role as AdminRole,
+      role: row.role,
       totpEnabled: row.totpEnabled,
       totpSecret: row.totpSecret,
     },

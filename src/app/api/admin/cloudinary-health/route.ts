@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminWithPermission } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { parseCloudinaryUrl } from "@/lib/asset-delivery";
 
 export async function GET() {
-  if (!(await isAdminAuthenticated())) {
+  if (!(await getAdminWithPermission("media"))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

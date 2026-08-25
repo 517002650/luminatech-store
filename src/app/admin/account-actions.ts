@@ -20,7 +20,6 @@ import {
   setTotpSetupSecret,
   validateNewAdminPassword,
   verifyBootstrapPassphrase,
-  type AdminRole,
 } from "@/lib/admin-auth";
 import {
   generateTotpSecret,
@@ -62,6 +61,19 @@ export async function bootstrapOwnerAction(formData: FormData) {
     role: "owner",
   });
   if ("error" in result && result.error) return { error: result.error };
+
+  try {
+    const { ensureAdminRoleTypes } = await import("@/lib/admin-role-types");
+    const { owner } = await ensureAdminRoleTypes();
+    if (result.id) {
+      await prisma.adminAccount.update({
+        where: { id: result.id },
+        data: { role: "owner", roleTypeId: owner.id },
+      });
+    }
+  } catch (err) {
+    console.error("ensureAdminRoleTypes after bootstrap:", err);
+  }
 
   await setAdminSession(result.id!);
   redirect("/admin");
@@ -205,10 +217,16 @@ export async function createAdminAction(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const name = String(formData.get("name") ?? "");
   const password = String(formData.get("password") ?? "");
-  const roleRaw = String(formData.get("role") ?? "admin");
-  const role: AdminRole = roleRaw === "owner" ? "owner" : "admin";
+  const roleTypeId = String(formData.get("roleTypeId") ?? "").trim();
 
-  const result = await createAdminAccount({ email, name, password, role });
+  if (!roleTypeId) return { error: "请选择账号类型" };
+
+  const result = await createAdminAccount({
+    email,
+    name,
+    password,
+    roleTypeId,
+  });
   if ("error" in result && result.error) return { error: result.error };
 
   revalidateAdminAccountPaths();
@@ -219,10 +237,15 @@ export async function setAdminActiveAction(id: string, active: boolean) {
   const me = await requireOwner();
   if (id === me.id && !active) return { error: "不能停用自己的账号" };
 
-  const target = await prisma.adminAccount.findUnique({ where: { id } });
+  const target = await prisma.adminAccount.findUnique({
+    where: { id },
+    include: { roleType: { select: { key: true } } },
+  });
   if (!target) return { error: "账号不存在" };
 
-  if (target.role === "owner" && target.active && !active) {
+  const isOwner =
+    target.role === "owner" || target.roleType?.key === "owner";
+  if (isOwner && target.active && !active) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能停用最后一个 Owner" };
   }
@@ -249,27 +272,125 @@ export async function resetAdminTotpAction(id: string) {
   return { success: true as const };
 }
 
-export async function updateAdminRoleAction(id: string, role: AdminRole) {
+export async function updateAdminRoleAction(id: string, roleTypeId: string) {
   const me = await requireOwner();
-  if (role !== "owner" && role !== "admin") return { error: "无效角色" };
 
-  const target = await prisma.adminAccount.findUnique({ where: { id } });
+  const target = await prisma.adminAccount.findUnique({
+    where: { id },
+    include: { roleType: { select: { key: true } } },
+  });
   if (!target) return { error: "账号不存在" };
 
-  if (target.role === "owner" && role === "admin") {
+  const rt = await prisma.adminRoleType.findUnique({ where: { id: roleTypeId } });
+  if (!rt) return { error: "账号类型不存在" };
+
+  const wasOwner =
+    target.role === "owner" || target.roleType?.key === "owner";
+  const willBeOwner = rt.key === "owner";
+
+  if (wasOwner && !willBeOwner) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能降级最后一个 Owner" };
   }
 
-  if (id === me.id && role === "admin") {
+  if (id === me.id && !willBeOwner) {
     const owners = await countActiveOwners();
     if (owners <= 1) return { error: "不能降级最后一个 Owner" };
   }
 
   await prisma.adminAccount.update({
     where: { id },
-    data: { role },
+    data: { role: rt.key, roleTypeId: rt.id },
   });
+  revalidateAdminAccountPaths();
+  return { success: true as const };
+}
+
+export async function createRoleTypeAction(formData: FormData) {
+  await requireOwner();
+  const { sanitizeAssignablePermissions, serializePermissions, isAdminPermission } =
+    await import("@/lib/admin-permissions");
+  const { slugifyRoleTypeKey } = await import("@/lib/admin-role-types");
+
+  const name = String(formData.get("name") ?? "").trim().slice(0, 40);
+  if (!name) return { error: "请填写类型名称" };
+
+  const rawPerms = formData.getAll("permissions").map(String);
+  const perms = sanitizeAssignablePermissions(
+    rawPerms.filter(isAdminPermission),
+  );
+  // Always keep security for any staff type
+  if (!perms.includes("security")) perms.push("security");
+
+  const key = slugifyRoleTypeKey(name);
+  await prisma.adminRoleType.create({
+    data: {
+      key,
+      name,
+      description: String(formData.get("description") ?? "").trim().slice(0, 200),
+      isSystem: false,
+      permissions: serializePermissions(perms),
+    },
+  });
+  revalidateAdminAccountPaths();
+  return { success: true as const };
+}
+
+export async function updateRoleTypePermissionsAction(
+  id: string,
+  formData: FormData,
+) {
+  await requireOwner();
+  const {
+    sanitizeAssignablePermissions,
+    serializePermissions,
+    isAdminPermission,
+    OWNER_PERMISSIONS,
+  } = await import("@/lib/admin-permissions");
+
+  const rt = await prisma.adminRoleType.findUnique({ where: { id } });
+  if (!rt) return { error: "类型不存在" };
+  if (rt.key === "owner") return { error: "Owner 权限不可修改" };
+
+  const name = String(formData.get("name") ?? rt.name).trim().slice(0, 40);
+  const rawPerms = formData.getAll("permissions").map(String);
+  let perms = sanitizeAssignablePermissions(
+    rawPerms.filter(isAdminPermission),
+  );
+  if (!perms.includes("security")) perms.push("security");
+
+  // Owner type forced full — already blocked above
+  if (rt.key === "owner") {
+    perms = [...OWNER_PERMISSIONS];
+  }
+
+  await prisma.adminRoleType.update({
+    where: { id },
+    data: {
+      name: name || rt.name,
+      description: String(formData.get("description") ?? rt.description)
+        .trim()
+        .slice(0, 200),
+      permissions: serializePermissions(perms),
+    },
+  });
+  revalidateAdminAccountPaths();
+  return { success: true as const };
+}
+
+export async function deleteRoleTypeAction(id: string) {
+  await requireOwner();
+  const rt = await prisma.adminRoleType.findUnique({
+    where: { id },
+    include: { _count: { select: { accounts: true } } },
+  });
+  if (!rt) return { error: "类型不存在" };
+  if (rt.isSystem) return { error: "系统内置类型不可删除" };
+  if (rt._count.accounts > 0) {
+    return { error: "仍有成员使用此类型，请先更换后再删除" };
+  }
+
+  await prisma.adminRoleType.delete({ where: { id } });
   revalidateAdminAccountPaths();
   return { success: true as const };
 }

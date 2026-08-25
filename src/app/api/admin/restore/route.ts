@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminWithPermission } from "@/lib/admin-auth";
 import {
   parseBackupJson,
   restoreFullBackup,
@@ -13,8 +13,8 @@ import {
  * - mode=full: wipe & restore everything (requires confirm=确认恢复)
  */
 export async function POST(req: NextRequest) {
-  if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "未登录后台" }, { status: 401 });
+  if (!(await getAdminWithPermission("backup"))) {
+    return NextResponse.json({ error: "未登录后台或无备份权限" }, { status: 401 });
   }
 
   try {

@@ -23,8 +23,10 @@ import {
 import { logoutAction } from "@/app/admin/account-actions";
 import {
   getCurrentAdmin,
+  hasPermission,
   type AdminSession,
 } from "@/lib/admin-auth";
+import { NAV_PERMISSION, type AdminPermission } from "@/lib/admin-permissions";
 
 const BASE_NAV = [
   { href: "/admin", label: "商品列表", icon: LayoutDashboard },
@@ -42,7 +44,15 @@ const BASE_NAV = [
   { href: "/admin/media", label: "媒体清理", icon: Images },
   { href: "/admin/backup", label: "数据备份", icon: Database },
   { href: "/admin/security", label: "安全设置", icon: KeyRound },
+  { href: "/admin/team", label: "团队账号", icon: UserCog },
 ] as const;
+
+function navAllowed(admin: AdminSession | null, href: string) {
+  if (!admin) return false;
+  const perm = NAV_PERMISSION[href] as AdminPermission | undefined;
+  if (!perm) return true;
+  return hasPermission(admin, perm);
+}
 
 export async function AdminShell({
   children,
@@ -56,12 +66,14 @@ export async function AdminShell({
   admin?: AdminSession | null;
 }) {
   const admin = adminProp ?? (await getCurrentAdmin());
-  const nav = [
-    ...BASE_NAV,
-    ...(admin?.role === "owner"
-      ? ([{ href: "/admin/team", label: "团队账号", icon: UserCog }] as const)
-      : []),
-  ];
+  const nav = BASE_NAV.filter((item) => navAllowed(admin, item.href));
+
+  const roleLabel =
+    admin?.role === "owner"
+      ? "Owner"
+      : admin?.role === "admin"
+        ? "Admin"
+        : admin?.role ?? "";
 
   return (
     <div className="min-h-screen bg-stone-100">
@@ -75,10 +87,7 @@ export async function AdminShell({
             {admin ? (
               <p className="mt-2 truncate text-xs text-stone-600" title={admin.email}>
                 {admin.email}
-                <span className="text-stone-400">
-                  {" "}
-                  · {admin.role === "owner" ? "Owner" : "Admin"}
-                </span>
+                <span className="text-stone-400"> · {roleLabel}</span>
               </p>
             ) : null}
             <nav className="mt-6 space-y-1">
@@ -134,13 +143,15 @@ export async function AdminShell({
               <p className="mt-1 text-sm text-stone-500">{subtitle}</p>
             </div>
             <div className="flex gap-2 lg:hidden">
-              <Link
-                href="/admin/products/new"
-                className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white"
-              >
-                <Package className="h-4 w-4" />
-                新增
-              </Link>
+              {navAllowed(admin, "/admin/products/new") ? (
+                <Link
+                  href="/admin/products/new"
+                  className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white"
+                >
+                  <Package className="h-4 w-4" />
+                  新增
+                </Link>
+              ) : null}
             </div>
           </div>
           {children}

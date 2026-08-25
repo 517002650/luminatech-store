@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin, requirePermission } from "@/lib/admin-auth";
 import { sendShippingEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
 import { refundAndCancelOrder } from "@/lib/order-refund";
@@ -523,7 +523,7 @@ export async function deleteCouponAction(id: string, _formData?: FormData) {
 }
 
 export async function updateShippingSettingsAction(formData: FormData) {
-  await requireAdmin();
+  await requirePermission("shipping");
 
   const freeShippingThreshold = Number(formData.get("freeShippingThreshold") ?? 0);
   const flatRate = Number(formData.get("flatRate") ?? 0);
@@ -730,7 +730,7 @@ export async function setReturnRequestStatusAction(id: string, status: string) {
 }
 
 export async function scanOrphanMediaAction(includeOrders = true) {
-  await requireAdmin();
+  await requirePermission("media");
   const { scanOrphanMedia } = await import("@/lib/orphan-media");
   return scanOrphanMedia({ includeOrders });
 }
@@ -738,7 +738,7 @@ export async function scanOrphanMediaAction(includeOrders = true) {
 export async function deleteOrphanMediaAction(
   items: Array<{ publicId: string; resourceType: "image" | "raw" | "video" }>,
 ) {
-  await requireAdmin();
+  await requirePermission("media");
   const { deleteOrphanMediaItems } = await import("@/lib/orphan-media");
   return deleteOrphanMediaItems(items);
 }

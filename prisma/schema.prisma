@@ -79,17 +79,35 @@ model SiteSettings {
 
 /** Back-office staff (not storefront customers). */
 model AdminAccount {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String   @default("")
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String         @default("")
   passwordHash String
-  /** owner | admin — only owner manages team accounts */
-  role         String   @default("admin")
-  active       Boolean  @default(true)
+  /** Legacy / sync: owner | admin | custom role type key */
+  role         String         @default("admin")
+  roleTypeId   String?
+  roleType     AdminRoleType? @relation(fields: [roleTypeId], references: [id], onDelete: SetNull)
+  active       Boolean        @default(true)
   totpSecret   String?
-  totpEnabled  Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  totpEnabled  Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([roleTypeId])
+}
+
+/** Named permission template for team accounts (Owner / Admin / custom). */
+model AdminRoleType {
+  id          String         @id @default(cuid())
+  key         String         @unique
+  name        String
+  description String         @default("")
+  isSystem    Boolean        @default(false)
+  /** JSON string[] of AdminPermission keys */
+  permissions String         @default("[]")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  accounts    AdminAccount[]
 }
 
 model Category {

@@ -1,9 +1,9 @@
 import { AdminShell } from "@/components/admin/AdminShell";
 import { SecurityPanel } from "@/components/admin/SecurityPanel";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 
 export default async function AdminSecurityPage() {
-  const admin = await requireAdmin();
+  const admin = await requirePermission("security");
 
   return (
     <AdminShell

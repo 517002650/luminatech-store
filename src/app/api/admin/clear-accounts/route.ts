@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminWithPermission } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 
 /** Admin-only: wipe buyer accounts/orders (keeps products & downloads). */
 export async function POST(req: Request) {
-  if (!(await isAdminAuthenticated())) {
+  if (!(await getAdminWithPermission("backup"))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

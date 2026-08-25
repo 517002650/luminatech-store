@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getAdminWithPermission } from "@/lib/admin-auth";
 import { backupFileStamp, buildDbBackupPayload } from "@/lib/db-backup";
 
 /** Admin-only: download a full JSON database backup. */
 export async function GET() {
-  if (!(await isAdminAuthenticated())) {
+  if (!(await getAdminWithPermission("backup"))) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
