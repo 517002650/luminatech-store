@@ -272,3 +272,27 @@ export function buildAffiliateLink(code: string, appUrl?: string) {
     );
   return `${base}/zh?ref=${encodeURIComponent(normalizeAffiliateCode(code))}`;
 }
+
+/** Split affiliate link for human-friendly display. */
+export function parseAffiliateLinkForDisplay(link: string) {
+  try {
+    const url = new URL(link);
+    const ref = url.searchParams.get("ref") ?? "";
+    const path = url.pathname || "/zh";
+    return {
+      host: url.host,
+      path,
+      ref,
+      sitePath: `${url.host}${path}`,
+      full: link,
+    };
+  } catch {
+    return {
+      host: "",
+      path: "/zh",
+      ref: "",
+      sitePath: link,
+      full: link,
+    };
+  }
+}

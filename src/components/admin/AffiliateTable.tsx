@@ -3,6 +3,7 @@ import {
   setAffiliateActiveAction,
 } from "@/app/admin/actions";
 import { buildAffiliateLink } from "@/lib/affiliates";
+import { AffiliateLinkCopy } from "@/components/AffiliateLinkCopy";
 
 type AffiliateRow = {
   id: string;
@@ -65,7 +66,7 @@ export function AffiliateTable({ affiliates }: { affiliates: AffiliateRow[] }) {
                   {row._count.orders} / {row._count.commissions}
                 </td>
                 <td className="max-w-xs px-4 py-3">
-                  <code className="break-all text-xs text-stone-600">{link}</code>
+                  <AffiliateLinkCopy link={link} code={row.code} variant="compact" />
                 </td>
                 <td className="px-4 py-3">
                   {row.active ? (

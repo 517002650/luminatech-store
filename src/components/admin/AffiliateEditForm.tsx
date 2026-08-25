@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { updateAffiliateAction } from "@/app/admin/actions";
 import { buildAffiliateLink } from "@/lib/affiliates";
+import { AffiliateLinkCopy } from "@/components/AffiliateLinkCopy";
 import { AffiliateCodeField } from "@/components/admin/AffiliateCodeField";
 import {
   AffiliateUserPicker,
@@ -49,9 +50,19 @@ export function AffiliateEditForm({ affiliate }: Props) {
           已保存
         </div>
       ) : null}
-      <div className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-stone-600">
-        推广链接：<code className="break-all">{link}</code>
-      </div>
+      <AffiliateLinkCopy
+        link={link}
+        code={affiliate.code}
+        variant="inline"
+        labels={{
+          title: "推广链接",
+          hint: "复制后发给合作方；买家通过链接访问并下单付款后计入该推广员提成。",
+          copyLink: "一键复制链接",
+          copyCode: "复制推广码",
+          copied: "已复制到剪贴板",
+          codeLabel: "推广码",
+        }}
+      />
 
       <AffiliateUserPicker initialUser={affiliate.user} required />
       <AffiliateCodeField defaultCode={affiliate.code} defaultManual />

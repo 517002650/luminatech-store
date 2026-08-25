@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { AccountNav } from "@/components/account/AccountNav";
 import { AffiliateRegisterPanel } from "@/components/account/AffiliateRegisterPanel";
+import { AffiliateLinkCopy } from "@/components/AffiliateLinkCopy";
 import { formatPrice } from "@/lib/format";
 import { getCurrentUser } from "@/lib/user-auth";
 import { buildAffiliateLink } from "@/lib/affiliates";
@@ -164,6 +165,20 @@ export default async function AccountAffiliatePage({ params }: Props) {
           </span>
         </div>
 
+        <AffiliateLinkCopy
+          link={link}
+          code={affiliate.code}
+          variant="prominent"
+          labels={{
+            title: t("affiliateLinkTitle"),
+            hint: t("affiliateLinkHint"),
+            copyLink: t("affiliateCopyLink"),
+            copyCode: t("affiliateCopyCode"),
+            copied: t("affiliateCopied"),
+            codeLabel: t("affiliateCode"),
+          }}
+        />
+
         <dl className="grid gap-4 sm:grid-cols-2">
           <div>
             <dt className={darkMetaClass}>{t("affiliateCode")}</dt>
@@ -175,12 +190,6 @@ export default async function AccountAffiliatePage({ params }: Props) {
             <dt className={darkMetaClass}>{t("affiliateRate")}</dt>
             <dd className="mt-1 text-lg font-semibold text-zinc-50">
               {affiliate.commissionRate}%
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className={darkMetaClass}>{t("affiliateLink")}</dt>
-            <dd className="mt-1 break-all font-mono text-sm text-cyan-300">
-              {link}
             </dd>
           </div>
         </dl>
