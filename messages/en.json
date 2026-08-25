@@ -97,6 +97,7 @@
     "stockLabel": "Stock",
     "inStock": "{count} available",
     "outOfStock": "Out of stock",
+    "selectOption": "Select option",
     "addToCart": "Add to Cart",
     "addedToCart": "Added to Cart ✓",
     "highlights": "Highlights",

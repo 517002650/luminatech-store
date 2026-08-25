@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db";
 import type { OrderItem } from "@/lib/orders";
+import { ensureDefaultVariant } from "@/lib/product-variants";
 import type { Prisma } from "@prisma/client";
 
 export type CartRequestItem = {
   productId: string;
   quantity: number;
+  variantId?: string;
 };
 
 export type ValidatedCartItem = OrderItem & {
@@ -24,13 +26,21 @@ export class CartValidationError extends Error {
 }
 
 export class StockDecrementError extends Error {
-  constructor(public productId: string) {
-    super(`Insufficient stock for product ${productId}`);
+  constructor(public productId: string, public variantId?: string) {
+    super(
+      `Insufficient stock for product ${productId}${variantId ? ` variant ${variantId}` : ""}`,
+    );
     this.name = "StockDecrementError";
   }
 }
 
 type TxClient = Prisma.TransactionClient;
+
+type LineKey = string;
+
+function lineKey(productId: string, variantId?: string) {
+  return variantId ? `${productId}:${variantId}` : productId;
+}
 
 /**
  * Resolve cart lines from the database. Never trust client prices.
@@ -43,39 +53,42 @@ export async function resolveCartItemsFromDb(
     throw new CartValidationError("Cart is empty", "empty");
   }
 
-  const quantities = new Map<string, number>();
+  const quantities = new Map<LineKey, { productId: string; variantId?: string; quantity: number }>();
   for (const item of rawItems) {
-    const id = String(item.productId ?? "").trim();
+    const productId = String(item.productId ?? "").trim();
+    const variantId = String(item.variantId ?? "").trim() || undefined;
     const qty = Math.floor(Number(item.quantity));
-    if (!id || !Number.isFinite(qty) || qty < 1) {
+    if (!productId || !Number.isFinite(qty) || qty < 1) {
       throw new CartValidationError("Invalid cart quantity", "invalid_qty");
     }
-    quantities.set(id, (quantities.get(id) ?? 0) + qty);
+    const key = lineKey(productId, variantId);
+    const prev = quantities.get(key);
+    quantities.set(key, {
+      productId,
+      variantId,
+      quantity: (prev?.quantity ?? 0) + qty,
+    });
   }
 
-  const ids = [...quantities.keys()];
+  const productIds = [...new Set([...quantities.values()].map((q) => q.productId))];
+  for (const id of productIds) {
+    await ensureDefaultVariant(id);
+  }
+
   const products = await prisma.product.findMany({
-    where: { id: { in: ids } },
+    where: { id: { in: productIds } },
+    include: { variants: true },
   });
 
-  if (products.length !== ids.length) {
+  if (products.length !== productIds.length) {
     throw new CartValidationError("One or more products are unavailable", "not_found");
   }
 
   const byId = new Map(products.map((p) => [p.id, p]));
   const resolved: ValidatedCartItem[] = [];
 
-  for (const id of ids) {
-    const product = byId.get(id)!;
-    const quantity = quantities.get(id)!;
-
-    if (product.stock < quantity) {
-      const name = locale === "zh" ? product.nameZh : product.nameEn;
-      throw new CartValidationError(
-        `Insufficient stock for “${name}” (available: ${product.stock})`,
-        "out_of_stock",
-      );
-    }
+  for (const { productId, variantId, quantity } of quantities.values()) {
+    const product = byId.get(productId)!;
 
     if (!product.active) {
       const name = locale === "zh" ? product.nameZh : product.nameEn;
@@ -85,16 +98,49 @@ export async function resolveCartItemsFromDb(
       );
     }
 
+    const activeVariants = product.variants.filter((v) => v.active);
+    let variant =
+      (variantId
+        ? product.variants.find((v) => v.id === variantId)
+        : null) ??
+      activeVariants.find((v) => v.isDefault) ??
+      activeVariants[0] ??
+      product.variants[0];
+
+    if (!variant || (variantId && variant.id !== variantId) || !variant.active) {
+      const name = locale === "zh" ? product.nameZh : product.nameEn;
+      throw new CartValidationError(
+        `Selected option for “${name}” is unavailable`,
+        "not_found",
+      );
+    }
+
+    if (variant.stock < quantity) {
+      const name = locale === "zh" ? product.nameZh : product.nameEn;
+      const option =
+        locale === "zh"
+          ? variant.nameZh || variant.sku
+          : variant.nameEn || variant.sku;
+      throw new CartValidationError(
+        `Insufficient stock for “${name}${option ? ` (${option})` : ""}” (available: ${variant.stock})`,
+        "out_of_stock",
+      );
+    }
+
     resolved.push({
       productId: product.id,
+      variantId: variant.id,
+      variantSku: variant.sku,
+      variantNameEn: variant.nameEn,
+      variantNameZh: variant.nameZh,
       slug: product.slug,
       nameEn: product.nameEn,
       nameZh: product.nameZh,
       name: locale === "zh" ? product.nameZh : product.nameEn,
-      price: product.price,
+      price: variant.price,
       quantity,
       image: product.image,
-      stock: product.stock,
+      stock: variant.stock,
       requiresFreight: product.requiresFreight,
     });
   }
@@ -106,52 +152,111 @@ export function cartRequiresFreightQuote(items: { requiresFreight?: boolean }[])
   return items.some((item) => item.requiresFreight);
 }
 
+async function syncProductStockMirror(
+  productId: string,
+  db: TxClient | typeof prisma,
+) {
+  const variants = await db.productVariant.findMany({
+    where: { productId, active: true },
+    select: { stock: true },
+  });
+  const stock = variants.reduce((sum, v) => sum + v.stock, 0);
+  await db.product.update({
+    where: { id: productId },
+    data: { stock },
+  });
+}
+
 /**
  * Decrement stock only when enough units remain.
  * Pass a transaction client for atomic checkout fulfillment.
  */
 export async function decrementStockForItems(
-  items: Pick<OrderItem, "productId" | "quantity">[],
+  items: Pick<OrderItem, "productId" | "variantId" | "quantity">[],
   db: TxClient | typeof prisma = prisma,
 ): Promise<boolean> {
+  const touched = new Set<string>();
   for (const item of items) {
     if (!item.productId || item.productId === "unknown") continue;
-    const result = await db.product.updateMany({
-      where: { id: item.productId, stock: { gte: item.quantity } },
-      data: { stock: { decrement: item.quantity } },
-    });
-    if (result.count === 0) return false;
+    if (item.variantId) {
+      const result = await db.productVariant.updateMany({
+        where: { id: item.variantId, productId: item.productId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
+      });
+      if (result.count === 0) return false;
+      touched.add(item.productId);
+    } else {
+      await ensureDefaultVariant(item.productId, db);
+      const def = await db.productVariant.findFirst({
+        where: { productId: item.productId, isDefault: true },
+      });
+      if (def) {
+        const result = await db.productVariant.updateMany({
+          where: { id: def.id, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (result.count === 0) return false;
+        touched.add(item.productId);
+      } else {
+        const result = await db.product.updateMany({
+          where: { id: item.productId, stock: { gte: item.quantity } },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (result.count === 0) return false;
+      }
+    }
+  }
+  for (const productId of touched) {
+    await syncProductStockMirror(productId, db);
   }
   return true;
 }
 
 /** Like decrementStockForItems but throws StockDecrementError on failure. */
 export async function decrementStockForItemsOrThrow(
-  items: Pick<OrderItem, "productId" | "quantity">[],
+  items: Pick<OrderItem, "productId" | "variantId" | "quantity">[],
   db: TxClient | typeof prisma = prisma,
 ) {
-  for (const item of items) {
-    if (!item.productId || item.productId === "unknown") continue;
-    const result = await db.product.updateMany({
-      where: { id: item.productId, stock: { gte: item.quantity } },
-      data: { stock: { decrement: item.quantity } },
-    });
-    if (result.count === 0) {
-      throw new StockDecrementError(item.productId);
-    }
+  const ok = await decrementStockForItems(items, db);
+  if (!ok) {
+    const first = items.find((i) => i.productId && i.productId !== "unknown");
+    throw new StockDecrementError(first?.productId ?? "unknown", first?.variantId);
   }
 }
 
 export async function restockItems(
-  items: Pick<OrderItem, "productId" | "quantity">[],
+  items: Pick<OrderItem, "productId" | "variantId" | "quantity">[],
   db: TxClient | typeof prisma = prisma,
 ): Promise<void> {
+  const touched = new Set<string>();
   for (const item of items) {
     if (!item.productId || item.productId === "unknown") continue;
     if (item.quantity < 1) continue;
-    await db.product.updateMany({
-      where: { id: item.productId },
-      data: { stock: { increment: item.quantity } },
-    });
+    if (item.variantId) {
+      await db.productVariant.updateMany({
+        where: { id: item.variantId, productId: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+      touched.add(item.productId);
+    } else {
+      const def = await db.productVariant.findFirst({
+        where: { productId: item.productId, isDefault: true },
+      });
+      if (def) {
+        await db.productVariant.updateMany({
+          where: { id: def.id },
+          data: { stock: { increment: item.quantity } },
+        });
+        touched.add(item.productId);
+      } else {
+        await db.product.updateMany({
+          where: { id: item.productId },
+          data: { stock: { increment: item.quantity } },
+        });
+      }
+    }
+  }
+  for (const productId of touched) {
+    await syncProductStockMirror(productId, db);
   }
 }

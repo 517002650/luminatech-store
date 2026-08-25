@@ -142,7 +142,7 @@ export default async function AccountOrdersPage({ params }: Props) {
                   <div className="flex -space-x-2.5">
                     {preview.map((item) => (
                       <div
-                        key={item.productId}
+                        key={`${item.productId}-${item.variantId ?? "base"}`}
                         className={`h-14 w-14 ${darkThumbStackClass}`}
                       >
                         <SafeImage

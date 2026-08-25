@@ -8,6 +8,11 @@ export type OrderItem = {
   price: number;
   quantity: number;
   image: string;
+  /** Present when the line was sold as a specific variant. */
+  variantId?: string;
+  variantSku?: string;
+  variantNameEn?: string;
+  variantNameZh?: string;
 };
 
 export const ORDER_STATUSES = [

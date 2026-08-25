@@ -136,14 +136,30 @@ export function OrderDetailPanel({ order }: Props) {
         </div>
         <div className="divide-y divide-stone-100">
           {items.map((item) => (
-            <div key={`${item.productId}-${item.slug}`} className="flex gap-4 px-6 py-4">
+            <div
+              key={`${item.productId}-${item.variantId ?? "base"}-${item.slug}`}
+              className="flex gap-4 px-6 py-4"
+            >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-stone-100">
                 <SafeImage src={item.image} alt={item.nameZh} fill className="object-cover" />
               </div>
               <div className="flex flex-1 items-center justify-between gap-4">
                 <div>
-                  <p className="font-medium text-stone-900">{item.nameZh}</p>
-                  <p className="text-xs text-stone-500">{item.nameEn}</p>
+                  <p className="font-medium text-stone-900">
+                    {item.nameZh}
+                    {item.variantNameZh || item.variantNameEn || item.variantSku
+                      ? ` (${item.variantNameZh || item.variantNameEn || item.variantSku})`
+                      : ""}
+                  </p>
+                  <p className="text-xs text-stone-500">
+                    {item.nameEn}
+                    {item.variantNameEn || item.variantSku
+                      ? ` (${item.variantNameEn || item.variantSku})`
+                      : ""}
+                  </p>
+                  {item.variantSku ? (
+                    <p className="mt-0.5 text-xs text-stone-400">SKU: {item.variantSku}</p>
+                  ) : null}
                   <p className="mt-1 text-sm text-stone-500">× {item.quantity}</p>
                 </div>
                 <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>

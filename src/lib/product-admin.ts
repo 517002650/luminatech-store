@@ -1,5 +1,12 @@
 import type { ProductSpec } from "@/lib/product-i18n";
 import { getCategoryByKey, resolveCategoryKey } from "@/lib/categories";
+import {
+  defaultVariantFromProduct,
+  mirrorsFromVariants,
+  parseVariantsJson,
+  validateVariants,
+  type VariantFormInput,
+} from "@/lib/product-variants";
 
 export type ProductFormInput = {
   slug: string;
@@ -27,6 +34,7 @@ export type ProductFormInput = {
   requiresFreight: boolean;
   active: boolean;
   warranty: string;
+  variants: VariantFormInput[];
 };
 
 function linesToList(text: string) {
@@ -74,9 +82,28 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     slug: slugInput || slugify(nameEn),
   });
 
+  const sku = String(formData.get("sku") ?? "").trim();
+  const price = Number(formData.get("price") ?? 0);
+  const compareAtPrice = (() => {
+    const raw = String(formData.get("compareAtPrice") ?? "").trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  })();
+  const stock = Number(formData.get("stock") ?? 0);
+
+  let variants = parseVariantsJson(String(formData.get("variantsJson") ?? ""));
+  if (variants.length === 0) {
+    variants = [
+      defaultVariantFromProduct({ sku, price, compareAtPrice, stock }),
+    ];
+  }
+
+  const mirrors = mirrorsFromVariants(variants);
+
   return {
     slug: slugInput || slugify(nameEn),
-    sku: String(formData.get("sku") ?? "").trim(),
+    sku: mirrors.sku,
     brand: String(formData.get("brand") ?? "").trim(),
     nameEn,
     nameZh: String(formData.get("nameZh") ?? "").trim(),
@@ -87,24 +114,20 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     categoryKey,
     categoryEn: "",
     categoryZh: "",
-    price: Number(formData.get("price") ?? 0),
-    compareAtPrice: (() => {
-      const raw = String(formData.get("compareAtPrice") ?? "").trim();
-      if (!raw) return null;
-      const n = Number(raw);
-      return Number.isFinite(n) && n > 0 ? n : null;
-    })(),
+    price: mirrors.price,
+    compareAtPrice: mirrors.compareAtPrice,
     image: String(formData.get("image") ?? "").trim(),
     galleryText: String(formData.get("galleryText") ?? ""),
     specsEnText: String(formData.get("specsEnText") ?? ""),
     specsZhText: String(formData.get("specsZhText") ?? ""),
     highlightsEnText: String(formData.get("highlightsEnText") ?? ""),
     highlightsZhText: String(formData.get("highlightsZhText") ?? ""),
-    stock: Number(formData.get("stock") ?? 0),
+    stock: mirrors.stock,
     featured: formData.get("featured") === "on",
     requiresFreight: formData.get("requiresFreight") === "on",
     active: formData.get("active") === "on",
     warranty: String(formData.get("warranty") ?? "").trim(),
+    variants,
   };
 }
 
@@ -162,17 +185,9 @@ export function validateProductInput(input: ProductFormInput) {
   if (!input.nameEn) errors.push("英文名称不能为空");
   if (!input.nameZh) errors.push("中文名称不能为空");
   if (!input.slug) errors.push("Slug 不能为空");
-  if (!input.sku) errors.push("SKU 不能为空");
   if (!input.brand) errors.push("品牌不能为空");
   if (!input.image) errors.push("主图 URL 不能为空");
-  if (Number.isNaN(input.price) || input.price <= 0) errors.push("价格必须大于 0");
-  if (
-    input.compareAtPrice != null &&
-    (Number.isNaN(input.compareAtPrice) || input.compareAtPrice <= input.price)
-  ) {
-    errors.push("划线价须大于售价（留空表示无促销划线）");
-  }
-  if (Number.isNaN(input.stock) || input.stock < 0) errors.push("库存不能为负数");
+  errors.push(...validateVariants(input.variants));
 
   return errors;
 }

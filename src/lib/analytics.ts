@@ -31,12 +31,17 @@ export function orderToGa4Purchase(order: {
     coupon: order.couponCode || undefined,
     tax: order.taxAmount ?? undefined,
     shipping: order.shippingFee ?? undefined,
-    items: lines.map((item: OrderItem) => ({
-      item_id: item.productId || item.slug,
-      item_name: item.nameEn || item.nameZh,
-      price: item.price,
-      quantity: item.quantity,
-    })),
+    items: lines.map((item: OrderItem) => {
+      const option =
+        item.variantNameEn || item.variantNameZh || item.variantSku || "";
+      const base = item.nameEn || item.nameZh;
+      return {
+        item_id: item.variantId || item.productId || item.slug,
+        item_name: option ? `${base} (${option})` : base,
+        price: item.price,
+        quantity: item.quantity,
+      };
+    }),
   };
 }
 

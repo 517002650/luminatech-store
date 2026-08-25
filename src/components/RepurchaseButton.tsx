@@ -15,6 +15,10 @@ export function RepurchaseButton({ items }: { items: OrderItem[] }) {
       addItem(
         {
           productId: item.productId,
+          variantId: item.variantId,
+          variantSku: item.variantSku,
+          variantNameEn: item.variantNameEn,
+          variantNameZh: item.variantNameZh,
           slug: item.slug,
           nameEn: item.nameEn,
           nameZh: item.nameZh,

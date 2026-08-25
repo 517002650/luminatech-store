@@ -39,9 +39,24 @@ function createTransport() {
   });
 }
 
+function lineLabel(item: {
+  nameEn: string;
+  nameZh?: string;
+  variantNameEn?: string;
+  variantNameZh?: string;
+  variantSku?: string;
+}) {
+  const option =
+    item.variantNameEn || item.variantNameZh || item.variantSku || "";
+  return option ? `${item.nameEn} (${option})` : item.nameEn;
+}
+
 function buildItemRows(items: ReturnType<typeof parseOrderItems>) {
   return items
-    .map((item) => `• ${item.nameEn} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`)
+    .map(
+      (item) =>
+        `• ${lineLabel(item)} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}`,
+    )
     .join("\n");
 }
 
@@ -49,7 +64,7 @@ function buildItemHtml(items: ReturnType<typeof parseOrderItems>) {
   return `<ul>${items
     .map(
       (i) =>
-        `<li>${i.nameEn} × ${i.quantity} — <strong>${formatPrice(i.price * i.quantity)}</strong></li>`,
+        `<li>${lineLabel(i)} × ${i.quantity} — <strong>${formatPrice(i.price * i.quantity)}</strong></li>`,
     )
     .join("")}</ul>`;
 }

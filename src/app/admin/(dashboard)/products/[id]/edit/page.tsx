@@ -33,12 +33,29 @@ export default async function EditProductPage({ params }: Props) {
       where: { id },
       include: {
         downloads: { orderBy: [{ type: "asc" }, { createdAt: "desc" }] },
+        variants: { orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] },
       },
     }),
     listCategories(),
   ]);
 
   if (!product) notFound();
+
+  const { ensureDefaultVariant, toPublicVariants } = await import(
+    "@/lib/product-variants"
+  );
+  if (product.variants.length === 0) {
+    await ensureDefaultVariant(product.id);
+  }
+  const variants =
+    product.variants.length > 0
+      ? product.variants
+      : (
+          await prisma.productVariant.findMany({
+            where: { productId: product.id },
+            orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+          })
+        );
 
   const gallery = parseJsonArray(product.images);
   const knownKeys = categories.map((c) => c.key);
@@ -82,6 +99,18 @@ export default async function EditProductPage({ params }: Props) {
             requiresFreight: product.requiresFreight,
             active: product.active,
             warranty: product.warranty,
+            variants: toPublicVariants(variants).map((v) => ({
+              id: v.id,
+              sku: v.sku,
+              nameEn: v.nameEn,
+              nameZh: v.nameZh,
+              price: v.price,
+              compareAtPrice: v.compareAtPrice,
+              stock: v.stock,
+              active: v.active,
+              isDefault: v.isDefault,
+              sortOrder: v.sortOrder,
+            })),
           }}
         />
 

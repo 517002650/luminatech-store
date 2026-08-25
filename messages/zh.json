@@ -97,6 +97,7 @@
     "stockLabel": "库存",
     "inStock": "现货 {count} 件",
     "outOfStock": "已售罄",
+    "selectOption": "选择规格",
     "addToCart": "加入购物车",
     "addedToCart": "已加入购物车 ✓",
     "highlights": "产品亮点",

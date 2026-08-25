@@ -2,9 +2,14 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { cartLineKey } from "@/lib/product-variants";
 
 export type CartItem = {
   productId: string;
+  variantId?: string;
+  variantSku?: string;
+  variantNameEn?: string;
+  variantNameZh?: string;
   slug: string;
   nameEn: string;
   nameZh: string;
@@ -16,12 +21,20 @@ export type CartItem = {
 type CartState = {
   items: CartItem[];
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, variantId?: string) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    variantId?: string,
+  ) => void;
   clearCart: () => void;
   totalItems: () => number;
   totalPrice: () => number;
 };
+
+function sameLine(a: CartItem, productId: string, variantId?: string) {
+  return cartLineKey(a.productId, a.variantId) === cartLineKey(productId, variantId);
+}
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -29,12 +42,18 @@ export const useCartStore = create<CartState>()(
       items: [],
       addItem: (item, quantity = 1) => {
         set((state) => {
-          const existing = state.items.find((i) => i.productId === item.productId);
+          const existing = state.items.find((i) =>
+            sameLine(i, item.productId, item.variantId),
+          );
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.productId === item.productId
-                  ? { ...i, quantity: i.quantity + quantity }
+                sameLine(i, item.productId, item.variantId)
+                  ? {
+                      ...i,
+                      ...item,
+                      quantity: i.quantity + quantity,
+                    }
                   : i,
               ),
             };
@@ -42,19 +61,21 @@ export const useCartStore = create<CartState>()(
           return { items: [...state.items, { ...item, quantity }] };
         });
       },
-      removeItem: (productId) => {
+      removeItem: (productId, variantId) => {
         set((state) => ({
-          items: state.items.filter((i) => i.productId !== productId),
+          items: state.items.filter(
+            (i) => !sameLine(i, productId, variantId),
+          ),
         }));
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (productId, quantity, variantId) => {
         if (quantity <= 0) {
-          get().removeItem(productId);
+          get().removeItem(productId, variantId);
           return;
         }
         set((state) => ({
           items: state.items.map((i) =>
-            i.productId === productId ? { ...i, quantity } : i,
+            sameLine(i, productId, variantId) ? { ...i, quantity } : i,
           ),
         }));
       },

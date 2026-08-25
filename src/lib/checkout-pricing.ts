@@ -10,6 +10,10 @@ import { isStripeTaxEnabled } from "@/lib/stripe-tax";
 
 type CheckoutItem = {
   productId: string;
+  variantId?: string;
+  variantSku?: string;
+  variantNameEn?: string;
+  variantNameZh?: string;
   slug: string;
   nameEn: string;
   nameZh: string;
@@ -32,21 +36,29 @@ export function buildStripeLineItems(
     isStripeTaxEnabled() ? "exclusive" : undefined;
 
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-    (item) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.name,
-          images: item.image.startsWith("http") ? [item.image] : undefined,
+    (item) => {
+      const option =
+        item.variantNameEn ||
+        item.variantNameZh ||
+        item.variantSku ||
+        "";
+      const displayName = option ? `${item.name} — ${option}` : item.name;
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: displayName,
+            images: item.image.startsWith("http") ? [item.image] : undefined,
+          },
+          unit_amount: Math.max(
+            0,
+            Math.round(item.price * 100 * discountRatio),
+          ),
+          ...(taxBehavior ? { tax_behavior: taxBehavior } : {}),
         },
-        unit_amount: Math.max(
-          0,
-          Math.round(item.price * 100 * discountRatio),
-        ),
-        ...(taxBehavior ? { tax_behavior: taxBehavior } : {}),
-      },
-      quantity: item.quantity,
-    }),
+        quantity: item.quantity,
+      };
+    },
   );
 
   if (quote.shippingFee > 0) {
@@ -87,6 +99,10 @@ export function buildCheckoutMetadata(
     items: JSON.stringify(
       items.map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
+        variantSku: item.variantSku,
+        variantNameEn: item.variantNameEn,
+        variantNameZh: item.variantNameZh,
         slug: item.slug,
         nameEn: item.nameEn,
         nameZh: item.nameZh,

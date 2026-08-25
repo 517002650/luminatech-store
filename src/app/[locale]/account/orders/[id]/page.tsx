@@ -55,10 +55,17 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
   const items = parseOrderItems(order.items);
   const shipping = parseShippingAddress(order.shippingAddress);
-  const localizedItems = items.map((item) => ({
-    ...item,
-    name: locale === "zh" ? item.nameZh : item.nameEn,
-  }));
+  const localizedItems = items.map((item) => {
+    const option =
+      locale === "zh"
+        ? item.variantNameZh || item.variantNameEn || item.variantSku
+        : item.variantNameEn || item.variantNameZh || item.variantSku;
+    const base = locale === "zh" ? item.nameZh : item.nameEn;
+    return {
+      ...item,
+      name: option ? `${base} (${option})` : base,
+    };
+  });
 
   const canDownload = orderStatusAllowsDownloads(order.status);
   const productIds = [...new Set(items.map((i) => i.productId))];

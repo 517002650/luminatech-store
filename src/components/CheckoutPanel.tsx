@@ -94,6 +94,7 @@ export function CheckoutPanel({
           body: JSON.stringify({
             items: items.map((i) => ({
               productId: i.productId,
+              variantId: i.variantId,
               quantity: i.quantity,
             })),
             shippingAddress: shipping,
@@ -175,6 +176,7 @@ export function CheckoutPanel({
   function mapCartItems() {
     return items.map((item) => ({
       productId: item.productId,
+      variantId: item.variantId,
       quantity: item.quantity,
     }));
   }

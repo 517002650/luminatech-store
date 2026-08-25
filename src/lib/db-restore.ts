@@ -35,6 +35,7 @@ export async function restoreFullBackup(backup: DbBackupPayload) {
     shippingSettings,
     categories,
     products,
+    productVariants,
     productDownloads,
     orders,
     wishlistItems,
@@ -44,6 +45,7 @@ export async function restoreFullBackup(backup: DbBackupPayload) {
   await prisma.review.deleteMany();
   await prisma.wishlistItem.deleteMany();
   await prisma.productDownload.deleteMany();
+  await prisma.productVariant.deleteMany();
   await prisma.order.deleteMany();
   await prisma.passwordResetToken.deleteMany();
   await prisma.product.deleteMany();
@@ -84,6 +86,33 @@ export async function restoreFullBackup(backup: DbBackupPayload) {
         reviveDates(p, ["createdAt", "updatedAt"]) as never,
       ),
     });
+  }
+  const variantRows = asRows(productVariants);
+  if (variantRows.length) {
+    await prisma.productVariant.createMany({
+      data: variantRows.map((v) =>
+        reviveDates(v, ["createdAt", "updatedAt"]) as never,
+      ),
+    });
+  } else if (products.length) {
+    // Legacy backups: synthesize default variants from product mirrors
+    for (const p of asRows(products)) {
+      await prisma.productVariant.create({
+        data: {
+          productId: String(p.id),
+          sku: String(p.sku ?? `SKU-${String(p.id).slice(-6)}`),
+          nameEn: "",
+          nameZh: "",
+          price: Number(p.price ?? 0),
+          compareAtPrice:
+            p.compareAtPrice == null ? null : Number(p.compareAtPrice),
+          stock: Number(p.stock ?? 0),
+          active: true,
+          isDefault: true,
+          sortOrder: 0,
+        },
+      });
+    }
   }
   if (passwordResetTokens.length) {
     await prisma.passwordResetToken.createMany({
@@ -168,6 +197,8 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
 
   let productUpserts = 0;
   const syncedProductIds: string[] = [];
+  /** backup product id → online product id */
+  const backupIdToOnlineId = new Map<string, string>();
 
   for (const raw of products) {
     const row = reviveDates(raw, ["createdAt", "updatedAt"]);
@@ -188,6 +219,8 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
       categoryZh: String(row.categoryZh ?? ""),
       categoryKey: String(row.categoryKey ?? "fixtures"),
       price: Number(row.price ?? 0),
+      compareAtPrice:
+        row.compareAtPrice == null ? null : Number(row.compareAtPrice),
       image: String(row.image ?? ""),
       images: String(row.images ?? "[]"),
       specsEn: String(row.specsEn ?? "[]"),
@@ -196,23 +229,26 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
       highlightsZh: String(row.highlightsZh ?? "[]"),
       stock: Number(row.stock ?? 0),
       featured: Boolean(row.featured),
+      requiresFreight: Boolean(row.requiresFreight),
+      active: row.active !== false,
       warranty: String(row.warranty ?? ""),
     };
 
+    let onlineId = "";
     const existingBySlug = await prisma.product.findUnique({ where: { slug } });
     if (existingBySlug) {
       await prisma.product.update({
         where: { id: existingBySlug.id },
         data: fields,
       });
-      syncedProductIds.push(existingBySlug.id);
+      onlineId = existingBySlug.id;
     } else if (typeof row.id === "string") {
       const existingById = await prisma.product.findUnique({
         where: { id: row.id },
       });
       if (existingById) {
         await prisma.product.update({ where: { id: row.id }, data: fields });
-        syncedProductIds.push(row.id);
+        onlineId = row.id;
       } else {
         await prisma.product.create({
           data: {
@@ -220,13 +256,77 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
             ...fields,
           },
         });
-        syncedProductIds.push(row.id);
+        onlineId = row.id;
       }
     } else {
       const created = await prisma.product.create({ data: fields });
-      syncedProductIds.push(created.id);
+      onlineId = created.id;
+    }
+    syncedProductIds.push(onlineId);
+    if (typeof row.id === "string") {
+      backupIdToOnlineId.set(row.id, onlineId);
     }
     productUpserts += 1;
+  }
+
+  // Sync variants for catalog products
+  const variants = asRows(backup.data.productVariants);
+  let variantUpserts = 0;
+  if (syncedProductIds.length) {
+    await prisma.productVariant.deleteMany({
+      where: { productId: { in: syncedProductIds } },
+    });
+
+    if (variants.length) {
+      for (const raw of variants) {
+        const row = reviveDates(raw, ["createdAt", "updatedAt"]);
+        const oldProductId = String(row.productId ?? "");
+        const onlineProductId =
+          backupIdToOnlineId.get(oldProductId) ??
+          (syncedProductIds.includes(oldProductId) ? oldProductId : undefined);
+        if (!onlineProductId) continue;
+
+        await prisma.productVariant.create({
+          data: {
+            id: typeof row.id === "string" ? row.id : undefined,
+            productId: onlineProductId,
+            sku: String(row.sku ?? ""),
+            nameEn: String(row.nameEn ?? ""),
+            nameZh: String(row.nameZh ?? ""),
+            price: Number(row.price ?? 0),
+            compareAtPrice:
+              row.compareAtPrice == null ? null : Number(row.compareAtPrice),
+            stock: Number(row.stock ?? 0),
+            sortOrder: Number(row.sortOrder ?? 0),
+            active: row.active !== false,
+            isDefault: Boolean(row.isDefault),
+          },
+        });
+        variantUpserts += 1;
+      }
+    } else {
+      for (const raw of products) {
+        const oldId = typeof raw.id === "string" ? raw.id : "";
+        const onlineId = oldId ? backupIdToOnlineId.get(oldId) : undefined;
+        if (!onlineId) continue;
+        await prisma.productVariant.create({
+          data: {
+            productId: onlineId,
+            sku: String(raw.sku ?? `SKU-${onlineId.slice(-6)}`),
+            nameEn: "",
+            nameZh: "",
+            price: Number(raw.price ?? 0),
+            compareAtPrice:
+              raw.compareAtPrice == null ? null : Number(raw.compareAtPrice),
+            stock: Number(raw.stock ?? 0),
+            active: true,
+            isDefault: true,
+            sortOrder: 0,
+          },
+        });
+        variantUpserts += 1;
+      }
+    }
   }
 
   // Replace downloads for synced products (map old productId → new if needed via slug map)
@@ -258,7 +358,7 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
         ? slugToOnlineId.get(slug)
         : syncedProductIds.includes(oldProductId)
           ? oldProductId
-          : undefined;
+          : backupIdToOnlineId.get(oldProductId);
       if (!onlineProductId) continue;
 
       await prisma.productDownload.create({
@@ -284,6 +384,7 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
   return {
     categories: categoryUpserts,
     products: productUpserts,
+    productVariants: variantUpserts,
     productDownloads: downloadUpserts,
   };
 }

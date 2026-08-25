@@ -13,6 +13,7 @@ export type DbBackupPayload = {
     shippingSettings: unknown[];
     categories: unknown[];
     products: unknown[];
+    productVariants?: unknown[];
     productDownloads: unknown[];
     orders: unknown[];
     wishlistItems: unknown[];
@@ -43,6 +44,7 @@ export async function buildDbBackupPayload(
     shippingSettings,
     categories,
     products,
+    productVariants,
     productDownloads,
     orders,
     wishlistItems,
@@ -54,6 +56,7 @@ export async function buildDbBackupPayload(
     prisma.shippingSettings.findMany(),
     prisma.category.findMany(),
     prisma.product.findMany(),
+    prisma.productVariant.findMany(),
     prisma.productDownload.findMany(),
     prisma.order.findMany(),
     prisma.wishlistItem.findMany(),
@@ -72,6 +75,7 @@ export async function buildDbBackupPayload(
       shippingSettings: shippingSettings.length,
       categories: categories.length,
       products: products.length,
+      productVariants: productVariants.length,
       productDownloads: productDownloads.length,
       orders: orders.length,
       wishlistItems: wishlistItems.length,
@@ -84,6 +88,7 @@ export async function buildDbBackupPayload(
       shippingSettings,
       categories,
       products,
+      productVariants,
       productDownloads,
       orders,
       wishlistItems,

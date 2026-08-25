@@ -6,6 +6,7 @@ import { Link } from "@/i18n/routing";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 import { getCartItemName } from "@/lib/product-i18n";
+import { cartLineKey } from "@/lib/product-variants";
 import type { Locale } from "@/i18n/routing";
 import { useCartStore } from "@/store/cart";
 import { darkThumbClass } from "@/lib/dark-surface-styles";
@@ -30,9 +31,10 @@ export function CartItemList() {
     <div className="space-y-4">
       {items.map((item) => {
         const name = getCartItemName(item, locale);
+        const key = cartLineKey(item.productId, item.variantId);
         return (
           <div
-            key={item.productId}
+            key={key}
             className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:flex-row sm:items-center"
           >
             <div className={`h-24 w-24 shrink-0 ${darkThumbClass}`}>
@@ -46,7 +48,9 @@ export function CartItemList() {
               >
                 {name}
               </Link>
-              <p className="mt-1 text-sm font-medium text-zinc-400">{formatPrice(item.price)}</p>
+              <p className="mt-1 text-sm font-medium text-zinc-400">
+                {formatPrice(item.price)}
+              </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -55,7 +59,13 @@ export function CartItemList() {
                 <div className="inline-flex items-center overflow-hidden rounded-xl border border-zinc-600 bg-zinc-950">
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                    onClick={() =>
+                      updateQuantity(
+                        item.productId,
+                        item.quantity - 1,
+                        item.variantId,
+                      )
+                    }
                     aria-label={t("decrease")}
                     className="flex h-10 w-10 items-center justify-center text-zinc-200 transition hover:bg-zinc-800 hover:text-white active:bg-zinc-700"
                   >
@@ -66,7 +76,13 @@ export function CartItemList() {
                   </span>
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                    onClick={() =>
+                      updateQuantity(
+                        item.productId,
+                        item.quantity + 1,
+                        item.variantId,
+                      )
+                    }
                     aria-label={t("increase")}
                     className="flex h-10 w-10 items-center justify-center text-zinc-200 transition hover:bg-zinc-800 hover:text-white active:bg-zinc-700"
                   >
@@ -82,7 +98,7 @@ export function CartItemList() {
               </span>
               <button
                 type="button"
-                onClick={() => removeItem(item.productId)}
+                onClick={() => removeItem(item.productId, item.variantId)}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-medium text-red-400 transition hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
               >
                 <Trash2 className="h-4 w-4" />

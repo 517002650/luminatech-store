@@ -329,9 +329,54 @@ async function main() {
     console.log(`Skip seed: ${existing} products already exist`);
   } else {
     for (const product of products) {
-      await prisma.product.create({ data: product });
+      const created = await prisma.product.create({ data: product });
+      await prisma.productVariant.create({
+        data: {
+          productId: created.id,
+          sku: created.sku,
+          nameEn: "",
+          nameZh: "",
+          price: created.price,
+          compareAtPrice: created.compareAtPrice,
+          stock: created.stock,
+          active: true,
+          isDefault: true,
+          sortOrder: 0,
+        },
+      });
     }
     console.log(`Seeded ${products.length} stage lighting products`);
+  }
+
+  // Backfill default variants for legacy products (safe to re-run)
+  const missing = await prisma.product.findMany({
+    where: { variants: { none: {} } },
+    select: {
+      id: true,
+      sku: true,
+      price: true,
+      compareAtPrice: true,
+      stock: true,
+    },
+  });
+  for (const p of missing) {
+    await prisma.productVariant.create({
+      data: {
+        productId: p.id,
+        sku: p.sku || `SKU-${p.id.slice(-6)}`,
+        nameEn: "",
+        nameZh: "",
+        price: p.price,
+        compareAtPrice: p.compareAtPrice,
+        stock: p.stock,
+        active: true,
+        isDefault: true,
+        sortOrder: 0,
+      },
+    });
+  }
+  if (missing.length > 0) {
+    console.log(`Backfilled ${missing.length} default product variants`);
   }
 
   const couponCount = await prisma.coupon.count();

@@ -108,16 +108,26 @@ export function OrderInvoicePanel({ order }: Props) {
             </tr>
           </thead>
           <tbody>
-            {items.map((item) => (
+            {items.map((item) => {
+              const option =
+                item.variantNameEn ||
+                item.variantNameZh ||
+                item.variantSku ||
+                "";
+              return (
               <tr
-                key={`${item.productId}-${item.slug}`}
+                key={`${item.productId}-${item.variantId ?? "base"}-${item.slug}`}
                 className="border-b border-stone-100"
               >
                 <td className="py-2 pr-2">
-                  <span className="font-medium">{item.nameEn || item.nameZh}</span>
+                  <span className="font-medium">
+                    {item.nameEn || item.nameZh}
+                    {option ? ` (${option})` : ""}
+                  </span>
                   {item.nameZh && item.nameEn ? (
                     <span className="mt-0.5 block text-xs text-stone-500">
                       {item.nameZh}
+                      {item.variantNameZh ? ` (${item.variantNameZh})` : ""}
                     </span>
                   ) : null}
                 </td>
@@ -127,7 +137,8 @@ export function OrderInvoicePanel({ order }: Props) {
                   {formatPrice(item.price * item.quantity)}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
 

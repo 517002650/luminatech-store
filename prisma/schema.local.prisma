@@ -121,6 +121,28 @@ model Product {
   wishlist      WishlistItem[]
   reviews       Review[]
   downloads     ProductDownload[]
+  variants      ProductVariant[]
+}
+
+/** Sellable SKU under a product — own price, stock, and option label. */
+model ProductVariant {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku            String
+  nameEn         String   @default("")
+  nameZh         String   @default("")
+  price          Float
+  compareAtPrice Float?
+  stock          Int      @default(0)
+  sortOrder      Int      @default(0)
+  active         Boolean  @default(true)
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([productId, sku])
+  @@index([productId, active])
 }
 
 model ProductDownload {

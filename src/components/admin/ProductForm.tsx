@@ -5,7 +5,9 @@ import { createProductAction, updateProductAction } from "@/app/admin/actions";
 import { GalleryUploadField } from "@/components/admin/GalleryUploadField";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { MarkdownEditor } from "@/components/admin/MarkdownEditor";
+import { VariantEditor } from "@/components/admin/VariantEditor";
 import { PRODUCT_CATEGORIES, resolveCategoryKey, type ProductCategory } from "@/lib/categories";
+import type { VariantFormInput } from "@/lib/product-variants";
 
 type ProductFormValues = {
   slug?: string;
@@ -33,6 +35,7 @@ type ProductFormValues = {
   requiresFreight?: boolean;
   active?: boolean;
   warranty?: string;
+  variants?: VariantFormInput[];
 };
 
 type Props = {
@@ -96,10 +99,6 @@ export function ProductForm({
             />
           </div>
           <div>
-            <label className={labelClass}>SKU 货号 *</label>
-            <input name="sku" required defaultValue={initialValues.sku} className={inputClass} />
-          </div>
-          <div>
             <label className={labelClass}>商品分类 *</label>
             <select
               name="categoryKey"
@@ -124,41 +123,6 @@ export function ProductForm({
               name="warranty"
               required
               defaultValue={initialValues.warranty ?? "1 year"}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>售价 (USD) *</label>
-            <input
-              name="price"
-              type="number"
-              step="0.01"
-              min="0"
-              required
-              defaultValue={initialValues.price}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>划线价 (USD，可选)</label>
-            <input
-              name="compareAtPrice"
-              type="number"
-              step="0.01"
-              min="0"
-              defaultValue={initialValues.compareAtPrice ?? ""}
-              placeholder="原价，须大于售价"
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className={labelClass}>库存 *</label>
-            <input
-              name="stock"
-              type="number"
-              min="0"
-              required
-              defaultValue={initialValues.stock ?? 100}
               className={inputClass}
             />
           </div>
@@ -201,6 +165,16 @@ export function ProductForm({
           </div>
         </div>
       </section>
+
+      <VariantEditor
+        initialVariants={initialValues.variants}
+        fallback={{
+          sku: initialValues.sku,
+          price: initialValues.price,
+          compareAtPrice: initialValues.compareAtPrice,
+          stock: initialValues.stock,
+        }}
+      />
 
       <section className="rounded-2xl border border-stone-200 bg-white p-6">
         <h2 className="text-lg font-semibold text-stone-900">英文内容</h2>

@@ -43,8 +43,19 @@ export function localizeProduct(product: Product, locale: Locale): LocalizedProd
 }
 
 export function getCartItemName(
-  item: { nameEn: string; nameZh: string },
+  item: {
+    nameEn: string;
+    nameZh: string;
+    variantNameEn?: string;
+    variantNameZh?: string;
+    variantSku?: string;
+  },
   locale: Locale,
 ) {
-  return locale === "zh" ? item.nameZh : item.nameEn;
+  const base = locale === "zh" ? item.nameZh : item.nameEn;
+  const option =
+    locale === "zh"
+      ? item.variantNameZh || item.variantNameEn || item.variantSku
+      : item.variantNameEn || item.variantNameZh || item.variantSku;
+  return option ? `${base} (${option})` : base;
 }

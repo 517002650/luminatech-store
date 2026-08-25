@@ -34,7 +34,13 @@ export async function createProductAction(formData: FormData) {
   }
 
   try {
-    await prisma.product.create({ data: productInputToDbData(withCat) });
+    const { replaceProductVariants } = await import("@/lib/product-variants");
+    await prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: productInputToDbData(withCat),
+      });
+      await replaceProductVariants(product.id, withCat.variants, tx);
+    });
   } catch {
     return { error: "创建失败，Slug 或 SKU 可能已存在" };
   }
@@ -60,9 +66,13 @@ export async function updateProductAction(id: string, formData: FormData) {
   }
 
   try {
-    await prisma.product.update({
-      where: { id },
-      data: productInputToDbData(withCat),
+    const { replaceProductVariants } = await import("@/lib/product-variants");
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: productInputToDbData(withCat),
+      });
+      await replaceProductVariants(id, withCat.variants, tx);
     });
   } catch {
     return { error: "更新失败，Slug 或 SKU 可能已被占用" };
