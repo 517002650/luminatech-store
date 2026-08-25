@@ -3,17 +3,22 @@ import type { ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { validateCouponCode } from "@/lib/coupons";
 import { buildOrderQuote } from "@/lib/pricing";
+import {
+  CartValidationError,
+  resolveCartItemsFromDb,
+} from "@/lib/cart-validation";
 
 type QuoteBody = {
-  items: { price: number; quantity: number }[];
+  items: { productId: string; quantity: number }[];
   shippingAddress: Partial<ShippingAddress>;
   couponCode?: string;
+  locale?: string;
 };
 
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as QuoteBody;
-    const { items, shippingAddress, couponCode } = body;
+    const { items, shippingAddress, couponCode, locale } = body;
 
     if (!items?.length) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -28,7 +33,26 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const couponResult = await validateCouponCode(couponCode, items);
+    let trustedItems;
+    try {
+      trustedItems = await resolveCartItemsFromDb(
+        items,
+        locale === "zh" ? "zh" : "en",
+      );
+    } catch (err) {
+      if (err instanceof CartValidationError) {
+        return NextResponse.json({
+          quote: null,
+          addressIncomplete: false,
+          couponError: null,
+          stockError: err.code,
+          error: err.message,
+        });
+      }
+      throw err;
+    }
+
+    const couponResult = await validateCouponCode(couponCode, trustedItems);
     if (couponCode?.trim() && !couponResult.valid) {
       return NextResponse.json({
         quote: null,
@@ -38,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const quote = await buildOrderQuote(
-      items,
+      trustedItems,
       shippingAddress as ShippingAddress,
       couponResult.discountAmount,
       couponResult.couponCode,
@@ -52,6 +76,11 @@ export async function POST(req: NextRequest) {
       freeShippingThreshold: settings.freeShippingThreshold,
       addressIncomplete: false,
       couponError: null,
+      items: trustedItems.map((i) => ({
+        productId: i.productId,
+        price: i.price,
+        quantity: i.quantity,
+      })),
     });
   } catch (err) {
     console.error("Pricing quote error:", err);

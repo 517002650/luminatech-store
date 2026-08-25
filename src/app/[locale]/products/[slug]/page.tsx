@@ -32,7 +32,40 @@ export async function generateMetadata({ params }: Props) {
     return { title: t("notFound") };
   }
   const localized = localizeProduct(product, locale);
-  return { title: `${localized.name} | LuminaTech` };
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  const url = `${appUrl}/${locale}/products/${product.slug}`;
+  const description = localized.shortDesc.slice(0, 160);
+  const image = product.image.startsWith("http")
+    ? product.image
+    : product.image
+      ? `${appUrl}${product.image.startsWith("/") ? "" : "/"}${product.image}`
+      : undefined;
+
+  return {
+    title: `${localized.name} | LuminaTech`,
+    description,
+    openGraph: {
+      title: localized.name,
+      description,
+      url,
+      type: "website",
+      images: image ? [{ url: image }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: localized.name,
+      description,
+      images: image ? [image] : undefined,
+    },
+    alternates: {
+      canonical: url,
+      languages: {
+        en: `${appUrl}/en/products/${product.slug}`,
+        zh: `${appUrl}/zh/products/${product.slug}`,
+      },
+    },
+  };
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -79,8 +112,45 @@ export default async function ProductDetailPage({ params }: Props) {
     authorName: displayReviewerName(review.user.name, review.user.email),
   }));
 
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || "http://localhost:3000";
+  const productUrl = `${appUrl}/${locale}/products/${product.slug}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    description: p.shortDesc,
+    sku: p.sku,
+    brand: { "@type": "Brand", name: p.brand },
+    image: p.gallery.filter((src) => src.startsWith("http")),
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      priceCurrency: "USD",
+      price: p.price.toFixed(2),
+      availability:
+        p.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    ...(rating && rating.count > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: rating.avg.toFixed(1),
+            reviewCount: rating.count,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="grid gap-12 lg:grid-cols-2">
         <ProductGallery images={p.gallery} alt={p.name} />
 

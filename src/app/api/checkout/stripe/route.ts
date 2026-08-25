@@ -9,16 +9,16 @@ import {
   buildCheckoutMetadata,
   buildStripeLineItems,
 } from "@/lib/checkout-pricing";
+import {
+  CartValidationError,
+  resolveCartItemsFromDb,
+} from "@/lib/cart-validation";
 
-type CartItem = {
-  productId: string;
-  slug: string;
-  nameEn: string;
-  nameZh: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
+type CartRequestBody = {
+  items: { productId: string; quantity: number }[];
+  locale?: string;
+  shippingAddress?: ShippingAddress;
+  couponCode?: string;
 };
 
 /** Default: card + Alipay + WeChat Pay via Stripe Checkout */
@@ -46,20 +46,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { items, locale = "en", shippingAddress, couponCode } = (await req.json()) as {
-      items: CartItem[];
-      locale?: string;
-      shippingAddress?: ShippingAddress;
-      couponCode?: string;
-    };
-
-    if (!items?.length) {
-      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
-    }
+    const body = (await req.json()) as CartRequestBody;
+    const { locale = "en", shippingAddress, couponCode } = body;
 
     const validationError = validateShippingAddress(shippingAddress ?? {});
     if (validationError) {
       return NextResponse.json({ error: "Invalid shipping address" }, { status: 400 });
+    }
+
+    const localeKey = locale === "zh" ? "zh" : "en";
+    let items;
+    try {
+      items = await resolveCartItemsFromDb(body.items ?? [], localeKey);
+    } catch (err) {
+      if (err instanceof CartValidationError) {
+        return NextResponse.json(
+          { error: err.message, code: err.code },
+          { status: 400 },
+        );
+      }
+      throw err;
     }
 
     const couponResult = await validateCouponCode(couponCode, items);

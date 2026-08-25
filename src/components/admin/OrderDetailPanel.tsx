@@ -15,6 +15,7 @@ import {
 } from "@/lib/orders";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { OrderTrackingForm } from "@/components/admin/OrderTrackingForm";
+import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 
 type Props = {
   order: {
@@ -106,6 +107,13 @@ export function OrderDetailPanel({ order }: Props) {
         shippingCarrier={order.shippingCarrier}
         trackingNumber={order.trackingNumber}
         status={order.status}
+      />
+
+      <OrderRefundPanel
+        orderId={order.id}
+        status={order.status}
+        paymentMethod={order.paymentMethod}
+        totalLabel={formatPrice(order.total)}
       />
 
       <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">

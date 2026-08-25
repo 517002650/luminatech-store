@@ -10,6 +10,7 @@ import {
 } from "@/lib/admin-auth";
 import { sendShippingEmail } from "@/lib/email";
 import { prisma } from "@/lib/db";
+import { refundAndCancelOrder } from "@/lib/order-refund";
 import {
   applyCategoryLabels,
   formDataToProductInput,
@@ -220,6 +221,12 @@ export async function updateOrderStatusAction(id: string, status: string) {
     data: { status },
   });
 
+  if (status === "cancelled" && order.status !== "cancelled") {
+    const { restockItems } = await import("@/lib/cart-validation");
+    const { parseOrderItems } = await import("@/lib/orders");
+    await restockItems(parseOrderItems(order.items));
+  }
+
   if (status === "shipped" && order.status !== "shipped") {
     try {
       const updated = await prisma.order.findUnique({ where: { id } });
@@ -235,6 +242,30 @@ export async function updateOrderStatusAction(id: string, status: string) {
   revalidatePath("/en/account/orders");
   revalidatePath(`/zh/account/orders/${id}`);
   revalidatePath(`/en/account/orders/${id}`);
+}
+
+export async function refundOrderAction(id: string, formData: FormData) {
+  await requireAdmin();
+
+  const reason = String(formData.get("reason") ?? "").trim();
+  const skipStripe = formData.get("skipStripe") === "on";
+
+  const result = await refundAndCancelOrder(id, { skipStripe, reason });
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${id}`);
+  revalidatePath("/zh/account/orders");
+  revalidatePath("/en/account/orders");
+  revalidatePath(`/zh/account/orders/${id}`);
+  revalidatePath(`/en/account/orders/${id}`);
+
+  return {
+    success: true as const,
+    stripeRefundId: result.stripeRefundId,
+  };
 }
 
 export async function updateOrderTrackingAction(id: string, formData: FormData) {

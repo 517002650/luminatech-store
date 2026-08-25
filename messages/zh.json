@@ -156,11 +156,12 @@
     "payStripe": "信用卡 / 支付宝 / 微信支付",
     "stripeMethodsHint": "将跳转 Stripe 收银台，可选信用卡、支付宝或微信支付（需在 Stripe 后台开通）。",
     "redirecting": "正在跳转 Stripe...",
-    "paypalHint": "PayPal：请在 .env 中配置 NEXT_PUBLIC_PAYPAL_CLIENT_ID 以启用。",
+    "paypalHint": "PayPal 已暂停（需服务端核验后才能安全收款）。请使用 Stripe；完成加固后可设置 NEXT_PUBLIC_PAYPAL_ENABLED=true 与 PAYPAL_ENABLED=true。",
     "paypalError": "PayPal 支付失败，请重试。",
     "errors": {
       "form": "请完整填写收货地址。",
       "coupon": "请检查优惠码是否正确。",
+      "stock": "部分商品库存不足或已下架。",
       "email_required": "请填写邮箱。",
       "email_invalid": "邮箱格式不正确。",
       "name_required": "请填写收件人姓名。",

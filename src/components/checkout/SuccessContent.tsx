@@ -42,7 +42,6 @@ export function SuccessContent({ isLoggedIn }: Props) {
             body: JSON.stringify({
               provider,
               sessionId,
-              items: items.length > 0 ? items : undefined,
             }),
           });
         } else if (provider === "paypal") {
@@ -54,7 +53,10 @@ export function SuccessContent({ isLoggedIn }: Props) {
             body: JSON.stringify({
               provider,
               paypalOrderId: paypalOrderId ?? undefined,
-              items,
+              items: items.map((i) => ({
+                productId: i.productId,
+                quantity: i.quantity,
+              })),
               shippingAddress: shippingAddress ?? undefined,
               couponCode: couponCode || undefined,
             }),

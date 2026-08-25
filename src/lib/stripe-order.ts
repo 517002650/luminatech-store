@@ -6,6 +6,7 @@ import { parsePricingMetadata } from "@/lib/pricing";
 import type { OrderItem, ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
+import { decrementStockForItems } from "@/lib/cart-validation";
 
 function parseMetadataShipping(raw: string | null | undefined): ShippingAddress | null {
   if (!raw) return null;
@@ -52,7 +53,7 @@ async function buildItemsFromLineItems(
       slug: product?.slug ?? "unknown",
       nameEn: product?.nameEn ?? name,
       nameZh: product?.nameZh ?? name,
-      price,
+      price: product?.price ?? price,
       quantity,
       image: product?.image ?? "",
     });
@@ -67,7 +68,7 @@ export type FulfillStripeResult =
 
 export async function fulfillStripeCheckoutSession(
   sessionId: string,
-  options?: { userId?: string; clientItems?: OrderItem[] },
+  options?: { userId?: string },
 ): Promise<FulfillStripeResult> {
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
@@ -83,9 +84,8 @@ export async function fulfillStripeCheckoutSession(
     return { orderId: existing.id, duplicate: true };
   }
 
-  let items = options?.clientItems?.length
-    ? options.clientItems
-    : parseMetadataItems(session.metadata?.items);
+  // Prefer Stripe metadata locked at checkout (DB prices). Never trust client cart.
+  let items = parseMetadataItems(session.metadata?.items);
 
   if (!items.length) {
     items = await buildItemsFromLineItems(session);
@@ -95,7 +95,7 @@ export async function fulfillStripeCheckoutSession(
     throw new Error("无法解析订单商品");
   }
 
-  let resolvedShipping = parseMetadataShipping(session.metadata?.shipping);
+  const resolvedShipping = parseMetadataShipping(session.metadata?.shipping);
   if (!resolvedShipping) {
     throw new Error("缺少收货地址");
   }
@@ -118,34 +118,42 @@ export async function fulfillStripeCheckoutSession(
   const total = (session.amount_total ?? 0) / 100;
   const pricing = parsePricingMetadata(session.metadata ?? undefined);
 
-  const order = await prisma.order.create({
-    data: {
-      userId: options?.userId,
-      email,
-      subtotal: pricing?.subtotal ?? total,
-      shippingFee: pricing?.shippingFee ?? 0,
-      taxAmount: pricing?.taxAmount ?? 0,
-      discountAmount: pricing?.discountAmount ?? 0,
-      couponCode: pricing?.couponCode ?? "",
-      total,
-      status: "paid",
-      paymentMethod: "stripe",
-      paymentId,
-      items: JSON.stringify(items),
-      shippingAddress: JSON.stringify(resolvedShipping),
-    },
-  });
+  let order;
+  try {
+    order = await prisma.order.create({
+      data: {
+        userId: options?.userId,
+        email,
+        subtotal: pricing?.subtotal ?? total,
+        shippingFee: pricing?.shippingFee ?? 0,
+        taxAmount: pricing?.taxAmount ?? 0,
+        discountAmount: pricing?.discountAmount ?? 0,
+        couponCode: pricing?.couponCode ?? "",
+        total,
+        status: "paid",
+        paymentMethod: "stripe",
+        paymentId,
+        items: JSON.stringify(items),
+        shippingAddress: JSON.stringify(resolvedShipping),
+      },
+    });
+  } catch (err) {
+    const existingAfterRace = await prisma.order.findUnique({ where: { paymentId } });
+    if (existingAfterRace) {
+      return { orderId: existingAfterRace.id, duplicate: true };
+    }
+    throw err;
+  }
 
   if (pricing?.couponCode) {
     await incrementCouponUsage(pricing.couponCode);
   }
 
-  for (const item of items) {
-    if (item.productId === "unknown") continue;
-    await prisma.product.updateMany({
-      where: { id: item.productId, stock: { gt: 0 } },
-      data: { stock: { decrement: item.quantity } },
-    });
+  const stockOk = await decrementStockForItems(items);
+  if (!stockOk) {
+    console.error(
+      `Order ${order.id} created but stock decrement failed — manual restock/refund may be needed`,
+    );
   }
 
   try {

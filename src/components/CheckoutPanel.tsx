@@ -43,6 +43,8 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const paypalClientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+  const paypalEnabled =
+    process.env.NEXT_PUBLIC_PAYPAL_ENABLED === "true" && Boolean(paypalClientId);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,13 +67,24 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            items: items.map((i) => ({ price: i.price, quantity: i.quantity })),
+            items: items.map((i) => ({
+              productId: i.productId,
+              quantity: i.quantity,
+            })),
             shippingAddress: shipping,
             couponCode: appliedCoupon || undefined,
+            locale,
           }),
         });
         const data = await res.json();
         if (cancelled) return;
+
+        if (data.stockError) {
+          setCouponError("");
+          setQuote(null);
+          setError(data.error || t("errors.stock"));
+          return;
+        }
 
         if (data.couponError) {
           setCouponError(t(`couponErrors.${data.couponError as string}`));
@@ -79,6 +92,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           return;
         }
 
+        setError("");
         setCouponError("");
         setQuote(data.quote ?? null);
         if (data.freeShippingThreshold != null) {
@@ -136,13 +150,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
   function mapCartItems() {
     return items.map((item) => ({
       productId: item.productId,
-      slug: item.slug,
-      nameEn: item.nameEn,
-      nameZh: item.nameZh,
-      price: item.price,
       quantity: item.quantity,
-      image: item.image,
-      name: getCartItemName(item, "en"),
     }));
   }
 
@@ -268,10 +276,10 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         </button>
         <p className="text-center text-xs text-zinc-500">{t("stripeMethodsHint")}</p>
 
-        {paypalClientId && quote ? (
+        {paypalEnabled && quote ? (
           <PayPalScriptProvider
             options={{
-              clientId: paypalClientId,
+              clientId: paypalClientId!,
               currency: "USD",
               intent: "capture",
               locale: locale === "zh" ? "zh_CN" : "en_US",
@@ -312,10 +320,10 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
                         },
                       },
                       items: items.map((item) => ({
-                        name: getCartItemName(item, "en"),
+                        name: getCartItemName(item, "en").slice(0, 127),
                         unit_amount: {
                           currency_code: "USD",
-                          value: item.price.toFixed(2),
+                          value: Number(item.price).toFixed(2),
                         },
                         quantity: String(item.quantity),
                         category: "PHYSICAL_GOODS",
@@ -333,7 +341,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
               onError={() => setError(t("paypalError"))}
             />
           </PayPalScriptProvider>
-        ) : paypalClientId ? null : (
+        ) : (
           <p className="rounded-xl border border-dashed border-zinc-700 px-4 py-3 text-sm text-zinc-500">
             {t("paypalHint")}
           </p>

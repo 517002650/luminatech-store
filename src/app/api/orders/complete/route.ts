@@ -7,25 +7,24 @@ import { fulfillStripeCheckoutSession } from "@/lib/stripe-order";
 import { validateCouponCode, incrementCouponUsage } from "@/lib/coupons";
 import { buildOrderQuote } from "@/lib/pricing";
 import { sendOrderConfirmationEmail } from "@/lib/email";
-
-type CartItem = {
-  productId: string;
-  slug: string;
-  nameEn: string;
-  nameZh: string;
-  price: number;
-  quantity: number;
-  image: string;
-};
+import {
+  CartValidationError,
+  decrementStockForItems,
+  resolveCartItemsFromDb,
+} from "@/lib/cart-validation";
 
 type CompleteOrderBody = {
   provider: "stripe" | "paypal";
   sessionId?: string;
   paypalOrderId?: string;
-  items?: CartItem[];
+  items?: { productId: string; quantity: number }[];
   shippingAddress?: ShippingAddress;
   couponCode?: string;
 };
+
+function paypalOrdersAccepted() {
+  return process.env.PAYPAL_ENABLED === "true";
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,7 +42,6 @@ export async function POST(req: NextRequest) {
       const user = await getCurrentUser();
       const result = await fulfillStripeCheckoutSession(sessionId, {
         userId: user?.id,
-        clientItems: items?.length ? items : undefined,
       });
 
       return NextResponse.json({
@@ -53,6 +51,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (provider === "paypal") {
+      if (!paypalOrdersAccepted()) {
+        return NextResponse.json(
+          {
+            error:
+              "PayPal 暂未启用服务端核验，请使用 Stripe 支付。设置 PAYPAL_ENABLED=true 前请先完成 Orders API capture。",
+          },
+          { status: 503 },
+        );
+      }
+
       if (!items?.length) {
         return NextResponse.json({ error: "订单商品为空" }, { status: 400 });
       }
@@ -76,13 +84,26 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "收货地址不完整" }, { status: 400 });
       }
 
-      const couponResult = await validateCouponCode(couponCode, items);
+      let trustedItems;
+      try {
+        trustedItems = await resolveCartItemsFromDb(items, "en");
+      } catch (err) {
+        if (err instanceof CartValidationError) {
+          return NextResponse.json(
+            { error: err.message, code: err.code },
+            { status: 400 },
+          );
+        }
+        throw err;
+      }
+
+      const couponResult = await validateCouponCode(couponCode, trustedItems);
       if (couponCode?.trim() && !couponResult.valid) {
         return NextResponse.json({ error: "优惠码无效" }, { status: 400 });
       }
 
       const quote = await buildOrderQuote(
-        items,
+        trustedItems,
         resolvedShipping,
         couponResult.discountAmount,
         couponResult.couponCode,
@@ -92,6 +113,14 @@ export async function POST(req: NextRequest) {
       let email = resolvedShipping.email;
       if (user && !email) {
         email = user.email;
+      }
+
+      const stockOk = await decrementStockForItems(trustedItems);
+      if (!stockOk) {
+        return NextResponse.json(
+          { error: "库存不足，无法完成订单" },
+          { status: 409 },
+        );
       }
 
       const order = await prisma.order.create({
@@ -107,20 +136,13 @@ export async function POST(req: NextRequest) {
           status: "paid",
           paymentMethod: "paypal",
           paymentId,
-          items: JSON.stringify(items),
+          items: JSON.stringify(trustedItems),
           shippingAddress: JSON.stringify(resolvedShipping),
         },
       });
 
       if (quote.couponCode) {
         await incrementCouponUsage(quote.couponCode);
-      }
-
-      for (const item of items) {
-        await prisma.product.updateMany({
-          where: { id: item.productId, stock: { gt: 0 } },
-          data: { stock: { decrement: item.quantity } },
-        });
       }
 
       try {
