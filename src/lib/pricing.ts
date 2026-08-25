@@ -27,6 +27,8 @@ export type OrderQuote = {
   shippingFee: number;
   shippingFree: boolean;
   requiresFreightQuote: boolean;
+  /** Entire cart is instant digital delivery (no physical shipping). */
+  digitalDelivery: boolean;
   taxAmount: number;
   taxRate: number;
   taxLabel: string;
@@ -104,7 +106,7 @@ export async function buildOrderQuote(
   discountAmount: number,
   couponCode: string | null,
   settings?: ShippingSettingsData,
-  options?: { requiresFreightQuote?: boolean },
+  options?: { requiresFreightQuote?: boolean; digitalDelivery?: boolean },
 ): Promise<OrderQuote> {
   const shippingSettings = settings ?? (await getShippingSettings());
   const subtotal = calcSubtotal(items);
@@ -112,10 +114,12 @@ export async function buildOrderQuote(
   const discountedSubtotal = roundMoney(subtotal - discount);
   const countryCode = normalizeCountryCode(shippingAddress.country);
   const requiresFreightQuote = Boolean(options?.requiresFreightQuote);
+  const digitalDelivery = Boolean(options?.digitalDelivery);
 
-  const shippingFee = requiresFreightQuote
-    ? 0
-    : roundMoney(calcShippingFee(countryCode, discountedSubtotal, shippingSettings));
+  const shippingFee =
+    requiresFreightQuote || digitalDelivery
+      ? 0
+      : roundMoney(calcShippingFee(countryCode, discountedSubtotal, shippingSettings));
 
   const taxAtCheckout = isStripeTaxEnabled();
   let taxAmount = 0;
@@ -142,8 +146,11 @@ export async function buildOrderQuote(
     discountAmount: discount,
     couponCode,
     shippingFee,
-    shippingFree: !requiresFreightQuote && shippingFee === 0 && discountedSubtotal > 0,
+    shippingFree:
+      digitalDelivery ||
+      (!requiresFreightQuote && shippingFee === 0 && discountedSubtotal > 0),
     requiresFreightQuote,
+    digitalDelivery,
     taxAmount,
     taxRate,
     taxLabel,

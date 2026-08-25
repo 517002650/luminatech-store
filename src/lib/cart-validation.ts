@@ -188,6 +188,7 @@ export async function resolveCartItemsFromDb(
       image: product.image,
       stock: variant.stock,
       requiresFreight: product.requiresFreight,
+      autoDeliver: Boolean(product.autoDeliver),
       hsCode: product.hsCode || undefined,
       originCountry: product.originCountry || "CN",
       customsDescEn: product.customsDescEn || undefined,

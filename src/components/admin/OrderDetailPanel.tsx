@@ -45,6 +45,7 @@ type Props = {
     items: string;
     shippingAddress: string;
     fulfillmentChannel?: string;
+    autoDelivered?: boolean;
     createdAt: Date;
     updatedAt: Date;
   };
@@ -142,6 +143,9 @@ export function OrderDetailPanel({
               : "（手动）"
           }`}
         />
+        {order.autoDelivered ? (
+          <Info label="交付方式" value="在线交付（无需物流）" />
+        ) : null}
       </div>
 
       {shipping && (
@@ -196,10 +200,11 @@ export function OrderDetailPanel({
           status={order.status}
           shippingAddress={order.shippingAddress}
           fulfillmentChannel={order.fulfillmentChannel ?? "auto"}
+          autoDelivered={order.autoDelivered ?? false}
         />
       </div>
 
-      {hasTrackingInfo(order) ? (
+      {hasTrackingInfo(order) && order.shippingCarrier !== "digital" ? (
         <div className="rounded-2xl border border-stone-200 bg-white p-6 print:hidden">
           <h2 className="text-lg font-semibold text-stone-900">物流查询</h2>
           <p className="mt-1 text-sm text-stone-500">
@@ -209,6 +214,7 @@ export function OrderDetailPanel({
             <TrackingLink
               shippingCarrier={order.shippingCarrier}
               trackingNumber={order.trackingNumber}
+              phone={shipping?.phone}
             />
           </div>
         </div>

@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { OrderTable } from "@/components/admin/OrderTable";
 import { prisma } from "@/lib/db";
-import { parseOrderItems } from "@/lib/orders";
+import { parseOrderItems, parseShippingAddress } from "@/lib/orders";
 import { resolveFulfillmentChannel } from "@/lib/fulfillment";
 
 export default async function AdminOrdersPage() {
@@ -11,24 +11,29 @@ export default async function AdminOrdersPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const rows = orders.map((order) => ({
-    id: order.id,
-    email: order.email,
-    total: order.total,
-    status: order.status,
-    paymentMethod: order.paymentMethod,
-    createdAt: order.createdAt,
-    itemCount: parseOrderItems(order.items).reduce(
-      (sum, item) => sum + item.quantity,
-      0,
-    ),
-    trackingNumber: order.trackingNumber,
-    shippingCarrier: order.shippingCarrier,
-    channel: resolveFulfillmentChannel({
-      mode: order.fulfillmentChannel,
-      shippingAddressJson: order.shippingAddress,
-    }),
-  }));
+  const rows = orders.map((order) => {
+    const shipping = parseShippingAddress(order.shippingAddress);
+    return {
+      id: order.id,
+      email: order.email,
+      total: order.total,
+      status: order.status,
+      paymentMethod: order.paymentMethod,
+      createdAt: order.createdAt,
+      itemCount: parseOrderItems(order.items).reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      ),
+      trackingNumber: order.trackingNumber,
+      shippingCarrier: order.shippingCarrier,
+      phone: shipping?.phone ?? "",
+      autoDelivered: order.autoDelivered,
+      channel: resolveFulfillmentChannel({
+        mode: order.fulfillmentChannel,
+        shippingAddressJson: order.shippingAddress,
+      }),
+    };
+  });
 
   return (
     <AdminShell

@@ -123,6 +123,11 @@ export async function POST(req: NextRequest) {
         resolvedShipping,
         couponResult.discountAmount,
         couponResult.couponCode,
+        undefined,
+        {
+          requiresFreightQuote: trustedItems.some((i) => i.requiresFreight),
+          digitalDelivery: trustedItems.every((i) => i.autoDeliver),
+        },
       );
 
       const { verifyPaypalCapturedOrder } = await import("@/lib/paypal");
@@ -202,6 +207,15 @@ export async function POST(req: NextRequest) {
         await sendOrderConfirmationEmail(order);
       } catch (err) {
         console.error("Order confirmation email failed:", err);
+      }
+
+      try {
+        const { maybeAutoFulfillDigitalOrder } = await import(
+          "@/lib/digital-delivery"
+        );
+        await maybeAutoFulfillDigitalOrder(order.id);
+      } catch (err) {
+        console.error("Auto digital fulfill failed:", err);
       }
 
       return NextResponse.json({

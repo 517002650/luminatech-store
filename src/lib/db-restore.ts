@@ -230,6 +230,7 @@ export async function upsertCatalogFromBackup(backup: DbBackupPayload) {
       stock: Number(row.stock ?? 0),
       featured: Boolean(row.featured),
       requiresFreight: Boolean(row.requiresFreight),
+      autoDeliver: Boolean(row.autoDeliver),
       active: row.active !== false,
       warranty: String(row.warranty ?? ""),
     };

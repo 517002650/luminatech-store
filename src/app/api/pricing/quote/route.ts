@@ -8,6 +8,7 @@ import {
   cartRequiresFreightQuote,
   resolveCartItemsFromDb,
 } from "@/lib/cart-validation";
+import { cartIsAllAutoDeliver } from "@/lib/digital-delivery";
 
 type QuoteBody = {
   items: { productId: string; quantity: number }[];
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
       couponResult.discountAmount,
       couponResult.couponCode,
       undefined,
-      { requiresFreightQuote: cartRequiresFreightQuote(trustedItems) },
+      { requiresFreightQuote: cartRequiresFreightQuote(trustedItems), digitalDelivery: cartIsAllAutoDeliver(trustedItems) },
     );
 
     const { getShippingSettings } = await import("@/lib/shipping-settings");

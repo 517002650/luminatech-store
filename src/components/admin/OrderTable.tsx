@@ -25,6 +25,8 @@ type OrderRow = {
   itemCount: number;
   trackingNumber?: string;
   shippingCarrier?: string;
+  phone?: string;
+  autoDelivered?: boolean;
   channel: FulfillmentChannel;
 };
 
@@ -68,7 +70,12 @@ export function OrderTable({ orders }: { orders: OrderRow[] }) {
           <tbody>
             {orders.map((order) => {
               const pendingShip = isPendingShipWithTracking(order);
-              const missingTrack = isShippedWithoutTracking(order);
+              const missingTrack = isShippedWithoutTracking({
+                status: order.status,
+                trackingNumber: order.trackingNumber,
+                shippingCarrier: order.shippingCarrier,
+                autoDelivered: order.autoDelivered,
+              });
               return (
                 <tr
                   key={order.id}
@@ -99,11 +106,19 @@ export function OrderTable({ orders }: { orders: OrderRow[] }) {
                     {formatPrice(order.total)}
                   </td>
                   <td className="px-3 py-3 align-middle">
-                    <TrackingLink
-                      compact
-                      shippingCarrier={order.shippingCarrier}
-                      trackingNumber={order.trackingNumber}
-                    />
+                    {order.autoDelivered ||
+                    order.shippingCarrier === "digital" ? (
+                      <span className="inline-flex whitespace-nowrap rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium leading-5 text-emerald-800">
+                        在线交付
+                      </span>
+                    ) : (
+                      <TrackingLink
+                        compact
+                        shippingCarrier={order.shippingCarrier}
+                        trackingNumber={order.trackingNumber}
+                        phone={order.phone}
+                      />
+                    )}
                   </td>
                   <td className="px-3 py-3 align-middle">
                     <StatusBadge status={order.status as OrderStatus} />

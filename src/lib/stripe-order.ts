@@ -207,5 +207,12 @@ export async function fulfillStripeCheckoutSession(
     console.error("Order confirmation email failed:", err);
   }
 
+  try {
+    const { maybeAutoFulfillDigitalOrder } = await import("@/lib/digital-delivery");
+    await maybeAutoFulfillDigitalOrder(order.id);
+  } catch (err) {
+    console.error("Auto digital fulfill failed:", err);
+  }
+
   return { orderId: order.id, duplicate: false };
 }

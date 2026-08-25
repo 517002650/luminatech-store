@@ -18,6 +18,7 @@ import {
   isStripeTaxEnabled,
   shippingAddressForStripeCustomer,
 } from "@/lib/stripe-tax";
+import { cartIsAllAutoDeliver } from "@/lib/digital-delivery";
 import {
   AFFILIATE_COOKIE,
   resolveCheckoutAttribution,
@@ -100,7 +101,7 @@ export async function POST(req: NextRequest) {
       couponResult.discountAmount,
       couponResult.couponCode,
       undefined,
-      { requiresFreightQuote: cartRequiresFreightQuote(items) },
+      { requiresFreightQuote: cartRequiresFreightQuote(items), digitalDelivery: cartIsAllAutoDeliver(items) },
     );
 
     if (quote.requiresFreightQuote) {

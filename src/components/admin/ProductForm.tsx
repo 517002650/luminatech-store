@@ -33,6 +33,7 @@ type ProductFormValues = {
   stock?: number;
   featured?: boolean;
   requiresFreight?: boolean;
+  autoDeliver?: boolean;
   hsCode?: string;
   originCountry?: string;
   customsDescEn?: string;
@@ -155,16 +156,34 @@ export function ProductForm({
               设为首页精选商品
             </label>
           </div>
-          <div className="flex items-center gap-2 sm:col-span-2">
+          <div className="flex items-start gap-2 sm:col-span-2">
             <input
               id="requiresFreight"
               name="requiresFreight"
               type="checkbox"
               defaultChecked={initialValues.requiresFreight}
-              className="h-4 w-4 rounded border-stone-300"
+              className="mt-1 h-4 w-4 rounded border-stone-300"
             />
             <label htmlFor="requiresFreight" className="text-sm text-stone-700">
-              重货 / 需货运报价（结账时禁止在线支付，引导联系客服）
+              <span className="font-medium">重货 / 需货运报价</span>
+              <span className="mt-0.5 block text-xs font-normal text-stone-500">
+                结账时禁止在线支付，引导联系客服（与「在线交付」互斥）
+              </span>
+            </label>
+          </div>
+          <div className="flex items-start gap-2 sm:col-span-2">
+            <input
+              id="autoDeliver"
+              name="autoDeliver"
+              type="checkbox"
+              defaultChecked={initialValues.autoDeliver ?? false}
+              className="mt-1 h-4 w-4 rounded border-stone-300"
+            />
+            <label htmlFor="autoDeliver" className="text-sm text-stone-700">
+              <span className="font-medium">在线交付</span>
+              <span className="mt-0.5 block text-xs font-normal text-stone-500">
+                默认关闭。适合固件、软件、资料包等虚拟内容：付款后自动完成发货，买家即可下载附件，无需快递。仅当订单内全部商品都勾选时才会自动交付。
+              </span>
             </label>
           </div>
         </div>

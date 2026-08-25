@@ -162,6 +162,7 @@ export default async function AccountOrderDetailPage({ params }: Props) {
         status={order.status}
         shippingCarrier={order.shippingCarrier}
         trackingNumber={order.trackingNumber}
+        phone={shipping?.phone}
         labels={{
           title: t("trackingTitle"),
           carrier: t("trackingCarrier"),

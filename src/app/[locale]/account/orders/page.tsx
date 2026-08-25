@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/user-auth";
 import {
   formatOrderId,
   parseOrderItems,
+  parseShippingAddress,
   type OrderStatus,
 } from "@/lib/orders";
 import {
@@ -175,12 +176,18 @@ export default async function AccountOrdersPage({ params }: Props) {
                     </div>
                   </div>
                 </Link>
-                {hasTrackingInfo(order)
+                {order.shippingCarrier === "digital" || order.autoDelivered ? (
+                  <p className="mt-3 text-xs font-medium text-emerald-300">
+                    {locale === "zh" ? "在线交付 · 无需物流" : "Online delivery"}
+                  </p>
+                ) : hasTrackingInfo(order)
                   ? (() => {
+                      const ship = parseShippingAddress(order.shippingAddress);
                       const url = getTrackingUrl(
                         order.shippingCarrier,
                         order.trackingNumber,
                         locale === "zh" ? "zh" : "en",
+                        { phone: ship?.phone },
                       );
                       if (!url) return null;
                       return (

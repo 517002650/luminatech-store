@@ -146,6 +146,11 @@ model Product {
   stock         Int            @default(100)
   featured      Boolean        @default(false)
   requiresFreight Boolean      @default(false)
+  /**
+   * Instant digital delivery after payment (default off).
+   * When every line in an order has this, order auto-ships with no tracking.
+   */
+  autoDeliver      Boolean      @default(false)
   /** HS code for export commercial invoice (optional). */
   hsCode          String       @default("")
   /** ISO country of origin, e.g. CN. */
@@ -230,6 +235,8 @@ model Order {
    * auto = infer from ship-to country (CN → domestic, else export).
    */
   fulfillmentChannel String @default("auto")
+  /** True when order was auto-fulfilled as all-digital (no logistics). */
+  autoDelivered       Boolean @default(false)
   paymentMethod   String
   paymentId       String?  @unique
   /** True when inventory was decremented for this order (refund should restock). */

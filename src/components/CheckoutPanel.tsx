@@ -326,9 +326,11 @@ export function CheckoutPanel({
               {quote
                 ? quote.requiresFreightQuote
                   ? t("shippingFreight")
-                  : quote.shippingFree
-                    ? t("shippingFree")
-                    : formatPrice(quote.shippingFee)
+                  : quote.digitalDelivery
+                    ? t("digitalDelivery")
+                    : quote.shippingFree
+                      ? t("shippingFree")
+                      : formatPrice(quote.shippingFee)
                 : t("shippingPending")}
             </span>
           </div>
@@ -353,7 +355,9 @@ export function CheckoutPanel({
         <p className="mt-3 text-xs text-stone-500">
           {quote?.requiresFreightQuote
             ? t("freightNote")
-            : t("shippingNote", { amount: freeShippingThreshold })}
+            : quote?.digitalDelivery
+              ? t("digitalDeliveryNote")
+              : t("shippingNote", { amount: freeShippingThreshold })}
         </p>
       </div>
 

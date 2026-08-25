@@ -32,6 +32,8 @@ export type ProductFormInput = {
   stock: number;
   featured: boolean;
   requiresFreight: boolean;
+  /** Instant digital delivery after payment (default false). */
+  autoDeliver: boolean;
   hsCode: string;
   originCountry: string;
   customsDescEn: string;
@@ -105,6 +107,12 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
 
   const mirrors = mirrorsFromVariants(variants);
 
+  // Mutual exclusion: freight quote vs instant digital delivery
+  let requiresFreight = formData.get("requiresFreight") === "on";
+  let autoDeliver = formData.get("autoDeliver") === "on";
+  if (autoDeliver) requiresFreight = false;
+  if (requiresFreight) autoDeliver = false;
+
   return {
     slug: slugInput || slugify(nameEn),
     sku: mirrors.sku,
@@ -128,7 +136,8 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     highlightsZhText: String(formData.get("highlightsZhText") ?? ""),
     stock: mirrors.stock,
     featured: formData.get("featured") === "on",
-    requiresFreight: formData.get("requiresFreight") === "on",
+    requiresFreight,
+    autoDeliver,
     hsCode: String(formData.get("hsCode") ?? "").trim().slice(0, 32),
     originCountry: String(formData.get("originCountry") ?? "CN")
       .trim()
@@ -188,6 +197,7 @@ export function productInputToDbData(input: ProductFormInput) {
     stock: input.stock,
     featured: input.featured,
     requiresFreight: input.requiresFreight,
+    autoDeliver: input.autoDeliver,
     hsCode: input.hsCode,
     originCountry: input.originCountry,
     customsDescEn: input.customsDescEn,

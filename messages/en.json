@@ -136,6 +136,8 @@
     "discount": "Discount",
     "shipping": "Shipping",
     "shippingFree": "Free",
+    "digitalDelivery": "Online delivery",
+    "digitalDeliveryNote": "Online delivery: download files after payment — no shipping.",
     "shippingFreight": "Freight quote required",
     "shippingPending": "Enter address to calculate",
     "freightTitle": "Heavy equipment — freight quote needed",

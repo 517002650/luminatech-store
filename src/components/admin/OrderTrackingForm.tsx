@@ -21,6 +21,7 @@ type Props = {
   status: string;
   shippingAddress: string;
   fulfillmentChannel?: string;
+  autoDelivered?: boolean;
 };
 
 export function OrderTrackingForm({
@@ -30,11 +31,23 @@ export function OrderTrackingForm({
   status,
   shippingAddress,
   fulfillmentChannel = "auto",
+  autoDelivered = false,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  if (autoDelivered || shippingCarrier === "digital") {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
+        <h2 className="text-lg font-semibold text-stone-900">履约 / 物流</h2>
+        <p className="mt-2 text-sm text-emerald-900">
+          本单为<strong>在线交付</strong>：支付成功已自动标记发货，买家可下载附件，无需填写物流。
+        </p>
+      </div>
+    );
+  }
 
   const inferred = resolveFulfillmentChannel({
     mode: "auto",

@@ -97,6 +97,7 @@ export default async function EditProductPage({ params }: Props) {
             stock: product.stock,
             featured: product.featured,
             requiresFreight: product.requiresFreight,
+            autoDeliver: product.autoDeliver,
             hsCode: product.hsCode,
             originCountry: product.originCountry,
             customsDescEn: product.customsDescEn,

@@ -14,6 +14,7 @@ export const SHIPPING_CARRIERS = [
   { code: "yunexpress", labelEn: "YunExpress", labelZh: "云途物流" },
   { code: "4px", labelEn: "4PX", labelZh: "递四方" },
   { code: "yanwen", labelEn: "Yanwen", labelZh: "燕文物流" },
+  { code: "digital", labelEn: "Online delivery", labelZh: "在线交付" },
   { code: "other", labelEn: "Other (17TRACK)", labelZh: "其他 (17TRACK)" },
 ] as const;
 
@@ -25,6 +26,13 @@ export function getCarrierLabel(carrier: string, locale: "zh" | "en" = "zh") {
   return locale === "zh" ? row.labelZh : row.labelEn;
 }
 
+/** Digits-only phone helper for SF / aggregator queries. */
+export function phoneLast4(phone: string | null | undefined) {
+  const digits = String(phone ?? "").replace(/\D/g, "");
+  if (digits.length < 4) return "";
+  return digits.slice(-4);
+}
+
 /** Free public tracking page (17TRACK) — no API key / fee. */
 function track17(trackingNumber: string, locale: "zh" | "en" = "zh") {
   const num = encodeURIComponent(trackingNumber.trim());
@@ -32,18 +40,32 @@ function track17(trackingNumber: string, locale: "zh" | "en" = "zh") {
   return `https://t.17track.net/${lang}#nums=${num}`;
 }
 
+function kuaidi100(
+  companyCode: string,
+  trackingNumber: string,
+  phone?: string | null,
+) {
+  const num = encodeURIComponent(trackingNumber.trim());
+  const last4 = phoneLast4(phone);
+  const base = `https://www.kuaidi100.com/chaxun?com=${encodeURIComponent(companyCode)}&nu=${num}`;
+  return last4 ? `${base}&phone=${encodeURIComponent(last4)}` : base;
+}
+
 /**
  * Deep-link to carrier or aggregator tracking pages.
  * Free for end users (opens public websites). No paid tracking API.
+ * SF Express usually requires recipient phone last-4 — pass options.phone when available.
  */
 export function getTrackingUrl(
   carrier: string,
   trackingNumber: string,
   locale: "zh" | "en" = "zh",
+  options?: { phone?: string | null },
 ) {
   const raw = trackingNumber.trim();
   if (!raw) return null;
   const num = encodeURIComponent(raw);
+  const phone = options?.phone;
 
   switch (carrier) {
     case "dhl":
@@ -55,18 +77,40 @@ export function getTrackingUrl(
     case "usps":
       return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${num}`;
     case "sf":
+      // Official SF deep-links are unreliable; 快递100 needs phone last-4 for SF.
       return locale === "zh"
-        ? `https://www.sf-express.com/chn/sc/dynamic_function/waybill/#search/bill-number/${num}`
-        : `https://www.sf-express.com/us/en/dynamic_function/waybill/#search/bill-number/${num}`;
+        ? kuaidi100("shunfeng", raw, phone)
+        : track17(raw, "en");
     case "ems":
-      return `https://www.ems.post/en/global-network/tracking?q=${num}`;
-    // Domestic CN carriers: use 17TRACK deep link (official sites often lack stable public query URLs)
+      return locale === "zh"
+        ? kuaidi100("ems", raw, phone)
+        : `https://www.ems.post/en/global-network/tracking?q=${num}`;
     case "yto":
+      return locale === "zh"
+        ? kuaidi100("yuantong", raw, phone)
+        : track17(raw, locale);
     case "zto":
+      return locale === "zh"
+        ? kuaidi100("zhongtong", raw, phone)
+        : track17(raw, locale);
     case "yunda":
+      return locale === "zh"
+        ? kuaidi100("yunda", raw, phone)
+        : track17(raw, locale);
     case "sto":
+      return locale === "zh"
+        ? kuaidi100("shentong", raw, phone)
+        : track17(raw, locale);
     case "jd":
+      return locale === "zh"
+        ? kuaidi100("jd", raw, phone)
+        : track17(raw, locale);
     case "china_post":
+      return locale === "zh"
+        ? kuaidi100("youzhengguonei", raw, phone)
+        : track17(raw, locale);
+    case "digital":
+      return null;
     case "yunexpress":
     case "4px":
     case "yanwen":

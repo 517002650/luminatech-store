@@ -187,6 +187,60 @@ If you did not request this, you can ignore this email.`;
   return { sent: true as const };
 }
 
+export async function sendDigitalDeliveryEmail(order: Order) {
+  if (!order.email) {
+    return { sent: false, reason: "no_email" as const };
+  }
+
+  if (!isSmtpConfigured()) {
+    return { sent: false, reason: "smtp_not_configured" as const };
+  }
+
+  const storeName = process.env.STORE_NAME ?? "LuminaTech";
+  const items = parseOrderItems(order.items);
+  const orderNo = formatOrderId(order.id);
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
+  const orderUrl = appUrl
+    ? `${appUrl}/en/account/orders/${order.id}`
+    : `/account/orders/${order.id}`;
+
+  const subject = `Your order #${orderNo} is ready — ${storeName}`;
+  const text = `Hi,
+
+Your order #${orderNo} has been delivered digitally. You can download your files from your account order page:
+${orderUrl}
+
+Items:
+${buildItemRows(items)}
+
+Total: ${formatPrice(order.total)}
+
+Thank you for shopping at ${storeName}!`;
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1917">
+      <h2 style="color:#d97706">Ready to download</h2>
+      <p>Order <strong>#${orderNo}</strong> was delivered instantly — no shipping needed.</p>
+      ${buildItemHtml(items)}
+      <p><strong>Total:</strong> ${formatPrice(order.total)}</p>
+      <p><a href="${orderUrl}" style="display:inline-block;background:#1c1917;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none">Open order &amp; downloads</a></p>
+      <p style="color:#78716c">Thank you for shopping at ${storeName}.</p>
+      <hr style="border:none;border-top:1px solid #e7e5e4;margin:24px 0" />
+      <p style="color:#78716c;font-size:14px">您好，订单 #${orderNo} 已在线交付。请登录账户订单页下载附件，无需物流。</p>
+    </div>
+  `;
+
+  await createTransport().sendMail({
+    from: process.env.SMTP_FROM,
+    to: order.email,
+    subject,
+    text,
+    html,
+  });
+
+  return { sent: true as const };
+}
+
 export async function sendShippingEmail(order: Order) {
   if (!order.email) {
     return { sent: false, reason: "no_email" as const };

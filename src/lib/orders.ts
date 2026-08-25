@@ -18,6 +18,8 @@ export type OrderItem = {
   originCountry?: string;
   customsDescEn?: string;
   weightGrams?: number;
+  /** Snapshot: purchase auto-delivers (download / no logistics). */
+  autoDeliver?: boolean;
 };
 
 export const ORDER_STATUSES = [

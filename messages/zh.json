@@ -136,6 +136,8 @@
     "discount": "优惠",
     "shipping": "运费",
     "shippingFree": "免运费",
+    "digitalDelivery": "在线交付",
+    "digitalDeliveryNote": "本单为在线交付：付款后即可下载附件，无需快递。",
     "shippingFreight": "需货运报价",
     "shippingPending": "填写地址后计算",
     "freightTitle": "重型设备 — 需单独报价运费",

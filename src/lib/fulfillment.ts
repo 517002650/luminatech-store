@@ -127,11 +127,14 @@ export function isPendingShipWithTracking(order: {
   );
 }
 
-/** Ops cue: marked shipped without tracking. */
+/** Ops cue: marked shipped without tracking (ignore digital auto-delivery). */
 export function isShippedWithoutTracking(order: {
   status: string;
   trackingNumber?: string | null;
+  shippingCarrier?: string | null;
+  autoDelivered?: boolean | null;
 }) {
+  if (order.autoDelivered || order.shippingCarrier === "digital") return false;
   return (
     ["shipped", "completed"].includes(order.status) &&
     !order.trackingNumber?.trim()
