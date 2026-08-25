@@ -539,3 +539,26 @@ export async function setContactHandledAction(id: string, handled: boolean) {
   return { success: true as const };
 }
 
+export async function setReturnRequestStatusAction(id: string, status: string) {
+  await requireAdmin();
+
+  const allowed = new Set([
+    "requested",
+    "approved",
+    "rejected",
+    "received",
+    "refunded",
+  ]);
+  if (!allowed.has(status)) return { error: "invalid_status" as const };
+
+  const row = await prisma.returnRequest.update({
+    where: { id },
+    data: { status },
+  });
+
+  revalidatePath("/admin/returns");
+  revalidatePath(`/en/account/orders/${row.orderId}`);
+  revalidatePath(`/zh/account/orders/${row.orderId}`);
+  return { success: true as const };
+}
+

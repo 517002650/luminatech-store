@@ -5,6 +5,7 @@ import { getMessages, getTranslations, setRequestLocale } from "next-intl/server
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { AnalyticsConsent } from "@/components/AnalyticsConsent";
 import { getCurrentUser } from "@/lib/user-auth";
 import { routing, type Locale } from "@/i18n/routing";
 import "../globals.css";
@@ -51,6 +52,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <Header user={user} />
           <main className="flex-1">{children}</main>
           <Footer />
+          <AnalyticsConsent />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -11,6 +11,7 @@ import {
 } from "@/lib/checkout-pricing";
 import {
   CartValidationError,
+  cartRequiresFreightQuote,
   resolveCartItemsFromDb,
 } from "@/lib/cart-validation";
 
@@ -79,7 +80,20 @@ export async function POST(req: NextRequest) {
       address,
       couponResult.discountAmount,
       couponResult.couponCode,
+      undefined,
+      { requiresFreightQuote: cartRequiresFreightQuote(items) },
     );
+
+    if (quote.requiresFreightQuote) {
+      return NextResponse.json(
+        {
+          error:
+            "This cart includes freight-only items. Please contact us for a shipping quote before checkout.",
+          code: "freight_quote_required",
+        },
+        { status: 400 },
+      );
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const stripe = getStripe();

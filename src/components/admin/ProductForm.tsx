@@ -29,6 +29,7 @@ type ProductFormValues = {
   highlightsZhText?: string;
   stock?: number;
   featured?: boolean;
+  requiresFreight?: boolean;
   warranty?: string;
 };
 
@@ -157,6 +158,18 @@ export function ProductForm({
             />
             <label htmlFor="featured" className="text-sm text-stone-700">
               设为首页精选商品
+            </label>
+          </div>
+          <div className="flex items-center gap-2 sm:col-span-2">
+            <input
+              id="requiresFreight"
+              name="requiresFreight"
+              type="checkbox"
+              defaultChecked={initialValues.requiresFreight}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            <label htmlFor="requiresFreight" className="text-sm text-stone-700">
+              重货 / 需货运报价（结账时禁止在线支付，引导联系客服）
             </label>
           </div>
         </div>

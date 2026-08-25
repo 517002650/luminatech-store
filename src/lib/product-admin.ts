@@ -23,6 +23,7 @@ export type ProductFormInput = {
   highlightsZhText: string;
   stock: number;
   featured: boolean;
+  requiresFreight: boolean;
   warranty: string;
 };
 
@@ -93,6 +94,7 @@ export function formDataToProductInput(formData: FormData): ProductFormInput {
     highlightsZhText: String(formData.get("highlightsZhText") ?? ""),
     stock: Number(formData.get("stock") ?? 0),
     featured: formData.get("featured") === "on",
+    requiresFreight: formData.get("requiresFreight") === "on",
     warranty: String(formData.get("warranty") ?? "").trim(),
   };
 }
@@ -138,6 +140,7 @@ export function productInputToDbData(input: ProductFormInput) {
     highlightsZh: JSON.stringify(linesToList(input.highlightsZhText)),
     stock: input.stock,
     featured: input.featured,
+    requiresFreight: input.requiresFreight,
     warranty: input.warranty,
   };
 }

@@ -5,6 +5,7 @@ import { validateCouponCode } from "@/lib/coupons";
 import { buildOrderQuote } from "@/lib/pricing";
 import {
   CartValidationError,
+  cartRequiresFreightQuote,
   resolveCartItemsFromDb,
 } from "@/lib/cart-validation";
 
@@ -66,6 +67,8 @@ export async function POST(req: NextRequest) {
       shippingAddress as ShippingAddress,
       couponResult.discountAmount,
       couponResult.couponCode,
+      undefined,
+      { requiresFreightQuote: cartRequiresFreightQuote(trustedItems) },
     );
 
     const { getShippingSettings } = await import("@/lib/shipping-settings");

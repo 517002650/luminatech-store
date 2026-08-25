@@ -134,7 +134,12 @@
     "discount": "Discount",
     "shipping": "Shipping",
     "shippingFree": "Free",
+    "shippingFreight": "Freight quote required",
     "shippingPending": "Enter address to calculate",
+    "freightTitle": "Heavy equipment — freight quote needed",
+    "freightBody": "Your cart includes items that ship by freight. Online checkout is paused so we can quote packing and shipping safely. Send us your destination and SKUs via the contact form.",
+    "freightCta": "Request freight quote",
+    "freightNote": "Freight shipping is quoted manually for heavy fixtures and consoles.",
     "total": "Total",
     "shippingNote": "Free shipping on orders over ${amount}. Tax is calculated by destination.",
     "shippingTitle": "Shipping Address",
@@ -381,6 +386,39 @@
       "shipped": "Shipped",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "returns": {
+      "title": "Request a return",
+      "subtitle": "Unused items in original packaging may be returned within 30 days of delivery.",
+      "reason": "Reason",
+      "details": "Details (optional)",
+      "detailsPlaceholder": "Serial number, photos description, etc.",
+      "submit": "Submit return request",
+      "submitting": "Submitting...",
+      "success": "Return request submitted. We will email you with next steps.",
+      "existing": "Current status: {status}",
+      "status": {
+        "requested": "Requested",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "received": "Received",
+        "refunded": "Refunded"
+      },
+      "reasons": {
+        "unused": "Unused / changed mind",
+        "defective": "Defective / DOA",
+        "wrong_item": "Wrong item received",
+        "damaged_transit": "Damaged in transit",
+        "other": "Other"
+      },
+      "errors": {
+        "login_required": "Please sign in.",
+        "incomplete": "Please select a reason.",
+        "not_found": "Order not found.",
+        "not_eligible": "This order is not eligible for return yet.",
+        "window_expired": "The 30-day return window has expired.",
+        "already_open": "A return request is already open for this order."
+      }
     }
   },
   "wishlist": {

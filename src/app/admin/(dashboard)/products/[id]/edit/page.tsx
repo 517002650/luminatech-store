@@ -78,6 +78,7 @@ export default async function EditProductPage({ params }: Props) {
             highlightsZhText: parseJsonArray(product.highlightsZh).join("\n"),
             stock: product.stock,
             featured: product.featured,
+            requiresFreight: product.requiresFreight,
             warranty: product.warranty,
           }}
         />

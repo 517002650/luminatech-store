@@ -21,6 +21,7 @@ import {
 } from "@/lib/product-downloads";
 import { ShippingAddressDisplay } from "@/components/ShippingAddressDisplay";
 import { OrderTrackingInfo } from "@/components/account/OrderTrackingInfo";
+import { ReturnRequestForm } from "@/components/account/ReturnRequestForm";
 import { prisma } from "@/lib/db";
 import {
   darkCardClass,
@@ -62,6 +63,14 @@ export default async function AccountOrderDetailPage({ params }: Props) {
   const canDownload = orderStatusAllowsDownloads(order.status);
   const productIds = [...new Set(items.map((i) => i.productId))];
   const downloads = canDownload ? await getDownloadsForProductIds(productIds) : [];
+  const returnRequest = await prisma.returnRequest.findFirst({
+    where: { orderId: order.id },
+    orderBy: { createdAt: "desc" },
+  });
+  const canRequestReturn =
+    ["shipped", "completed"].includes(order.status) &&
+    (Date.now() - new Date(order.updatedAt).getTime()) / (1000 * 60 * 60 * 24) <=
+      30;
   const productNameById = new Map(
     localizedItems.map((item) => [item.productId, item.name]),
   );
@@ -152,6 +161,15 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           pending: t("trackingPending"),
         }}
       />
+
+      {(canRequestReturn || returnRequest) && (
+        <div className="mt-8">
+          <ReturnRequestForm
+            orderId={order.id}
+            existingStatus={returnRequest?.status}
+          />
+        </div>
+      )}
 
       {shipping ? (
         <div className="mt-8">

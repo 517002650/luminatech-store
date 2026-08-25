@@ -9,6 +9,7 @@ export type CartRequestItem = {
 export type ValidatedCartItem = OrderItem & {
   name: string;
   stock: number;
+  requiresFreight: boolean;
 };
 
 export class CartValidationError extends Error {
@@ -76,10 +77,15 @@ export async function resolveCartItemsFromDb(
       quantity,
       image: product.image,
       stock: product.stock,
+      requiresFreight: product.requiresFreight,
     });
   }
 
   return resolved;
+}
+
+export function cartRequiresFreightQuote(items: { requiresFreight?: boolean }[]) {
+  return items.some((item) => item.requiresFreight);
 }
 
 /** Decrement stock only when enough units remain. Returns false if any line failed. */

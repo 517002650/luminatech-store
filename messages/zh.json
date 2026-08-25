@@ -134,7 +134,12 @@
     "discount": "优惠",
     "shipping": "运费",
     "shippingFree": "免运费",
+    "shippingFreight": "需货运报价",
     "shippingPending": "填写地址后计算",
+    "freightTitle": "重型设备 — 需单独报价运费",
+    "freightBody": "购物车含需货运的商品，在线支付已暂停。请通过联系表单提供收货地与货号，我们会报价包装与运费。",
+    "freightCta": "申请货运报价",
+    "freightNote": "摇头灯、控台等重货需人工核算运费。",
     "total": "合计",
     "shippingNote": "订单满 ${amount} 包邮，税费按收货国家/地区计算。",
     "shippingTitle": "收货地址",
@@ -381,6 +386,39 @@
       "shipped": "已发货",
       "completed": "已完成",
       "cancelled": "已取消"
+    },
+    "returns": {
+      "title": "申请退货",
+      "subtitle": "未使用且原包装完整的商品，可在收货后 30 天内申请退货。",
+      "reason": "退货原因",
+      "details": "补充说明（可选）",
+      "detailsPlaceholder": "序列号、问题描述等",
+      "submit": "提交退货申请",
+      "submitting": "提交中...",
+      "success": "退货申请已提交，我们会邮件告知后续步骤。",
+      "existing": "当前状态：{status}",
+      "status": {
+        "requested": "已申请",
+        "approved": "已批准",
+        "rejected": "已拒绝",
+        "received": "已收货",
+        "refunded": "已退款"
+      },
+      "reasons": {
+        "unused": "未使用 / 不想要了",
+        "defective": "质量问题 / 到货不良",
+        "wrong_item": "发错货",
+        "damaged_transit": "运输损坏",
+        "other": "其他"
+      },
+      "errors": {
+        "login_required": "请先登录。",
+        "incomplete": "请选择退货原因。",
+        "not_found": "订单不存在。",
+        "not_eligible": "当前订单状态暂不可退货。",
+        "window_expired": "已超过 30 天退货期限。",
+        "already_open": "该订单已有进行中的退货申请。"
+      }
     }
   },
   "wishlist": {

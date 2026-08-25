@@ -25,6 +25,7 @@ export type OrderQuote = {
   couponCode: string | null;
   shippingFee: number;
   shippingFree: boolean;
+  requiresFreightQuote: boolean;
   taxAmount: number;
   taxRate: number;
   taxLabel: string;
@@ -100,15 +101,19 @@ export async function buildOrderQuote(
   discountAmount: number,
   couponCode: string | null,
   settings?: ShippingSettingsData,
+  options?: { requiresFreightQuote?: boolean },
 ): Promise<OrderQuote> {
   const shippingSettings = settings ?? (await getShippingSettings());
   const subtotal = calcSubtotal(items);
   const discount = roundMoney(Math.min(discountAmount, subtotal));
   const discountedSubtotal = roundMoney(subtotal - discount);
   const countryCode = normalizeCountryCode(shippingAddress.country);
-  const shippingFee = roundMoney(
-    calcShippingFee(countryCode, discountedSubtotal, shippingSettings),
-  );
+  const requiresFreightQuote = Boolean(options?.requiresFreightQuote);
+
+  const shippingFee = requiresFreightQuote
+    ? 0
+    : roundMoney(calcShippingFee(countryCode, discountedSubtotal, shippingSettings));
+
   const { rate, label } = getTaxInfo(countryCode);
   const taxBase = roundMoney(discountedSubtotal + shippingFee);
   const taxAmount = roundMoney(taxBase * rate);
@@ -119,7 +124,8 @@ export async function buildOrderQuote(
     discountAmount: discount,
     couponCode,
     shippingFee,
-    shippingFree: shippingFee === 0 && discountedSubtotal > 0,
+    shippingFree: !requiresFreightQuote && shippingFee === 0 && discountedSubtotal > 0,
+    requiresFreightQuote,
     taxAmount,
     taxRate: rate,
     taxLabel: label,

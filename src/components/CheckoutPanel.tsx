@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { PayPalButtons, PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/routing";
+import { Link, useRouter } from "@/i18n/routing";
 import { formatPrice } from "@/lib/format";
 import { getCartItemName } from "@/lib/product-i18n";
 import type { OrderQuote } from "@/lib/pricing";
@@ -235,9 +235,11 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
             <span className="text-stone-600">{t("shipping")}</span>
             <span className="font-medium">
               {quote
-                ? quote.shippingFree
-                  ? t("shippingFree")
-                  : formatPrice(quote.shippingFee)
+                ? quote.requiresFreightQuote
+                  ? t("shippingFreight")
+                  : quote.shippingFree
+                    ? t("shippingFree")
+                    : formatPrice(quote.shippingFee)
                 : t("shippingPending")}
             </span>
           </div>
@@ -255,7 +257,9 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           </div>
         </div>
         <p className="mt-3 text-xs text-stone-500">
-          {t("shippingNote", { amount: freeShippingThreshold })}
+          {quote?.requiresFreightQuote
+            ? t("freightNote")
+            : t("shippingNote", { amount: freeShippingThreshold })}
         </p>
       </div>
 
@@ -263,6 +267,18 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
         <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
       )}
 
+      {quote?.requiresFreightQuote ? (
+        <div className="space-y-3 rounded-2xl border border-amber-300/40 bg-amber-500/10 p-5">
+          <h2 className="text-lg font-semibold text-amber-100">{t("freightTitle")}</h2>
+          <p className="text-sm text-amber-100/80">{t("freightBody")}</p>
+          <Link
+            href="/contact"
+            className="inline-flex rounded-xl bg-amber-500 px-5 py-2.5 text-sm font-semibold text-stone-950 hover:bg-amber-400"
+          >
+            {t("freightCta")}
+          </Link>
+        </div>
+      ) : (
       <div className="space-y-3">
         <h2 className="text-lg font-semibold text-zinc-100">{t("paymentTitle")}</h2>
 
@@ -347,6 +363,7 @@ export function CheckoutPanel({ initialEmail = "", initialName = "" }: Props) {
           </p>
         )}
       </div>
+      )}
     </div>
   );
 }
