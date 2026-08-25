@@ -1,19 +1,19 @@
 /**
  * Upsert a demo product with an embedded intro video (Markdown).
  *
- * Usage (production Neon):
- *   set DATABASE_URL from .env.vercel.prod, then:
- *   npx tsx scripts/seed-video-demo-product.ts
+ * Usage (recommended — injects real Vercel secrets):
+ *   npx vercel env run -e production -- npx tsx scripts/seed-video-demo-product.ts
+ *
+ * Or set DATABASE_URL explicitly to your Neon postgres URL.
  */
-import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 
-config({ path: ".env.vercel.prod" });
-config(); // allow override via shell env
-
-const url = process.env.DATABASE_URL;
-if (!url || url.startsWith("file:")) {
-  console.error("Need a PostgreSQL DATABASE_URL (e.g. from .env.vercel.prod)");
+const url = process.env.DATABASE_URL?.trim() ?? "";
+if (!/^postgres(ql)?:\/\//i.test(url)) {
+  console.error(
+    "DATABASE_URL must be a postgresql:// connection string.\n" +
+      "Run: npx vercel env run -e production -- npx tsx scripts/seed-video-demo-product.ts",
+  );
   process.exit(1);
 }
 
