@@ -53,8 +53,28 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     (order.email && order.email.toLowerCase() === user.email.toLowerCase());
   if (!ownsOrder) notFound();
 
-  const items = parseOrderItems(order.items);
-  const shipping = parseShippingAddress(order.shippingAddress);
+  let resolvedOrder = order;
+  if (
+    !order.autoDelivered &&
+    order.status !== "cancelled" &&
+    ["paid", "processing"].includes(order.status)
+  ) {
+    try {
+      const { maybeAutoFulfillDigitalOrder } = await import(
+        "@/lib/digital-delivery"
+      );
+      const result = await maybeAutoFulfillDigitalOrder(order.id);
+      if (result.fulfilled) {
+        resolvedOrder =
+          (await prisma.order.findUnique({ where: { id } })) ?? order;
+      }
+    } catch (err) {
+      console.error("Repair digital fulfill (account) failed:", err);
+    }
+  }
+
+  const items = parseOrderItems(resolvedOrder.items);
+  const shipping = parseShippingAddress(resolvedOrder.shippingAddress);
   const localizedItems = items.map((item) => {
     const option =
       locale === "zh"
@@ -67,17 +87,17 @@ export default async function AccountOrderDetailPage({ params }: Props) {
     };
   });
 
-  const canDownload = orderStatusAllowsDownloads(order.status);
+  const canDownload = orderStatusAllowsDownloads(resolvedOrder.status);
   const productIds = [...new Set(items.map((i) => i.productId))];
   const downloads = canDownload ? await getDownloadsForProductIds(productIds) : [];
   const returnRequest = await prisma.returnRequest.findFirst({
-    where: { orderId: order.id },
+    where: { orderId: resolvedOrder.id },
     orderBy: { createdAt: "desc" },
   });
   const canRequestReturn =
-    ["shipped", "completed"].includes(order.status) &&
+    ["shipped", "completed"].includes(resolvedOrder.status) &&
     (Date.now() -
-      new Date(order.shippedAt ?? order.updatedAt).getTime()) /
+      new Date(resolvedOrder.shippedAt ?? resolvedOrder.updatedAt).getTime()) /
       (1000 * 60 * 60 * 24) <=
       30;
   const productNameById = new Map(
@@ -138,15 +158,15 @@ export default async function AccountOrderDetailPage({ params }: Props) {
           <dt className={`text-xs ${darkLabelClass}`}>{t("status")}</dt>
           <dd className="mt-2">
             <OrderStatusBadge
-              status={order.status}
-              label={t(`statuses.${order.status as OrderStatus}`)}
+              status={resolvedOrder.status}
+              label={t(`statuses.${resolvedOrder.status as OrderStatus}`)}
             />
           </dd>
         </div>
         <div>
           <dt className={`text-xs ${darkLabelClass}`}>{t("payment")}</dt>
           <dd className="mt-2 text-base font-semibold capitalize text-zinc-100">
-            {order.paymentMethod}
+            {resolvedOrder.paymentMethod}
           </dd>
         </div>
         <div>
@@ -159,9 +179,9 @@ export default async function AccountOrderDetailPage({ params }: Props) {
 
       <OrderTrackingInfo
         locale={locale}
-        status={order.status}
-        shippingCarrier={order.shippingCarrier}
-        trackingNumber={order.trackingNumber}
+        status={resolvedOrder.status}
+        shippingCarrier={resolvedOrder.shippingCarrier}
+        trackingNumber={resolvedOrder.trackingNumber}
         phone={shipping?.phone}
         labels={{
           title: t("trackingTitle"),

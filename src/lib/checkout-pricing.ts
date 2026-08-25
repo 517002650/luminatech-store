@@ -21,6 +21,12 @@ type CheckoutItem = {
   price: number;
   quantity: number;
   image: string;
+  autoDeliver?: boolean;
+  requiresFreight?: boolean;
+  hsCode?: string;
+  originCountry?: string;
+  customsDescEn?: string;
+  weightGrams?: number;
 };
 
 export function buildStripeLineItems(
@@ -110,6 +116,12 @@ export function buildCheckoutMetadata(
         price: item.price,
         quantity: item.quantity,
         image: item.image,
+        autoDeliver: Boolean(item.autoDeliver),
+        requiresFreight: Boolean(item.requiresFreight),
+        hsCode: item.hsCode,
+        originCountry: item.originCountry,
+        customsDescEn: item.customsDescEn,
+        weightGrams: item.weightGrams,
       })),
     ),
     subtotal: String(pricing.subtotal),

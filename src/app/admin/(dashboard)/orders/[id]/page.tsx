@@ -12,9 +12,28 @@ type Props = {
 
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { id } = await params;
-  const order = await prisma.order.findUnique({ where: { id } });
+  let order = await prisma.order.findUnique({ where: { id } });
 
   if (!order) notFound();
+
+  // Repair stuck digital orders (metadata previously omitted autoDeliver)
+  if (
+    !order.autoDelivered &&
+    order.status !== "cancelled" &&
+    ["paid", "processing"].includes(order.status)
+  ) {
+    try {
+      const { maybeAutoFulfillDigitalOrder } = await import(
+        "@/lib/digital-delivery"
+      );
+      const result = await maybeAutoFulfillDigitalOrder(order.id);
+      if (result.fulfilled) {
+        order = (await prisma.order.findUnique({ where: { id } })) ?? order;
+      }
+    } catch (err) {
+      console.error("Repair digital fulfill failed:", err);
+    }
+  }
 
   const admin = await getCurrentAdmin();
   const canRefundOffline = admin ? hasPermission(admin, "refunds") : false;

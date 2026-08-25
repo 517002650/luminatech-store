@@ -83,10 +83,19 @@ export async function POST(req: NextRequest) {
       const paymentId = paypalOrderId;
       const existing = await prisma.order.findUnique({ where: { paymentId } });
       if (existing) {
+        try {
+          const { maybeAutoFulfillDigitalOrder } = await import(
+            "@/lib/digital-delivery"
+          );
+          await maybeAutoFulfillDigitalOrder(existing.id);
+        } catch (err) {
+          console.error("Auto digital fulfill (PayPal duplicate) failed:", err);
+        }
+        const refreshed = await prisma.order.findUnique({ where: { id: existing.id } });
         return NextResponse.json({
           orderId: existing.id,
           duplicate: true,
-          purchase: orderToGa4Purchase(existing),
+          purchase: orderToGa4Purchase(refreshed ?? existing),
         });
       }
 

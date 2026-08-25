@@ -62,6 +62,7 @@ async function buildItemsFromLineItems(
       price: product?.price ?? price,
       quantity,
       image: product?.image ?? "",
+      autoDeliver: Boolean(product?.autoDeliver),
     });
   }
 
@@ -87,6 +88,14 @@ export async function fulfillStripeCheckoutSession(
 
   const existing = await prisma.order.findUnique({ where: { paymentId } });
   if (existing) {
+    try {
+      const { maybeAutoFulfillDigitalOrder } = await import(
+        "@/lib/digital-delivery"
+      );
+      await maybeAutoFulfillDigitalOrder(existing.id);
+    } catch (err) {
+      console.error("Auto digital fulfill (duplicate path) failed:", err);
+    }
     return { orderId: existing.id, duplicate: true };
   }
 
@@ -99,6 +108,14 @@ export async function fulfillStripeCheckoutSession(
 
   if (!items.length) {
     throw new Error("无法解析订单商品");
+  }
+
+  // Ensure autoDeliver flags exist even if metadata omitted them
+  {
+    const { enrichItemsAutoDeliverFromDb } = await import(
+      "@/lib/digital-delivery"
+    );
+    items = await enrichItemsAutoDeliverFromDb(items);
   }
 
   const resolvedShipping = parseMetadataShipping(session.metadata?.shipping);
