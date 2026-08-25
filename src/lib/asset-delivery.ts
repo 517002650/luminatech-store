@@ -3,6 +3,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 
 type CloudinaryRef = {
+  cloudName: string;
   resourceType: "raw" | "image" | "video";
   deliveryType: "upload" | "authenticated" | "private";
   publicId: string;
@@ -16,9 +17,9 @@ function isCloudinaryConfigured() {
   );
 }
 
-function configureCloudinary() {
+function configureCloudinary(cloudName?: string) {
   cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    cloud_name: cloudName ?? process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
     secure: true,
@@ -27,14 +28,15 @@ function configureCloudinary() {
 
 export function parseCloudinaryUrl(url: string): CloudinaryRef | null {
   const match = url.match(
-    /res\.cloudinary\.com\/[^/]+\/(raw|image|video)\/(upload|authenticated|private)\/(?:v\d+\/)?(.+)$/i,
+    /res\.cloudinary\.com\/([^/]+)\/(raw|image|video)\/(upload|authenticated|private)\/(?:v\d+\/)?(.+)$/i,
   );
   if (!match) return null;
 
   return {
-    resourceType: match[1] as CloudinaryRef["resourceType"],
-    deliveryType: match[2] as CloudinaryRef["deliveryType"],
-    publicId: decodeURIComponent(match[3]),
+    cloudName: match[1],
+    resourceType: match[2] as CloudinaryRef["resourceType"],
+    deliveryType: match[3] as CloudinaryRef["deliveryType"],
+    publicId: decodeURIComponent(match[4]),
   };
 }
 
@@ -50,8 +52,17 @@ export function splitPublicIdAndFormat(fullPublicId: string) {
   };
 }
 
+function assertCloudinaryAccount(ref: CloudinaryRef) {
+  const configured = process.env.CLOUDINARY_CLOUD_NAME;
+  if (configured && ref.cloudName !== configured) {
+    throw new Error(
+      `cloudinary_account_mismatch:url=${ref.cloudName},env=${configured}`,
+    );
+  }
+}
+
 async function resolveCloudinaryDeliveryType(ref: CloudinaryRef) {
-  configureCloudinary();
+  configureCloudinary(ref.cloudName);
   const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
   const lookupId = format ? publicId : ref.publicId;
 
@@ -73,7 +84,7 @@ async function resolveCloudinaryDeliveryType(ref: CloudinaryRef) {
 }
 
 function buildSignedCloudinaryUrls(ref: CloudinaryRef, deliveryType: CloudinaryRef["deliveryType"]) {
-  configureCloudinary();
+  configureCloudinary(ref.cloudName);
   const { publicId, format } = splitPublicIdAndFormat(ref.publicId);
   const fmt = format || "bin";
   const expiresAt = Math.floor(Date.now() / 1000) + 3600;
@@ -121,6 +132,7 @@ export async function fetchAssetResponse(fileUrl: string) {
   if (fileUrl.startsWith("http")) {
     const ref = parseCloudinaryUrl(fileUrl);
     if (ref && isCloudinaryConfigured()) {
+      assertCloudinaryAccount(ref);
       const deliveryType = await resolveCloudinaryDeliveryType(ref);
       const candidates = buildSignedCloudinaryUrls(ref, deliveryType);
 
