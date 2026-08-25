@@ -14,6 +14,16 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
+/* Lightweight stage-glow ambient (static CSS — negligible cost vs solid fill) */
+.storefront-ambient {
+  background-color: #09090b;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -18%, rgba(34, 211, 238, 0.14), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 100% 0%, rgba(168, 85, 247, 0.1), transparent 50%),
+    radial-gradient(ellipse 45% 35% at 0% 100%, rgba(34, 211, 238, 0.06), transparent 45%);
+  background-attachment: fixed;
+}
+
 /* Light cards/forms on the dark storefront must not inherit body text-zinc-100 */
 @layer components {
   .storefront-light {

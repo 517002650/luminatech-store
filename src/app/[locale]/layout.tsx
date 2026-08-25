@@ -46,7 +46,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <html lang={locale} className={`${geist.variable} h-full`}>
-      <body className="flex min-h-full flex-col bg-zinc-950 font-sans text-zinc-100 antialiased">
+      <body className="storefront-ambient flex min-h-full flex-col font-sans text-zinc-100 antialiased">
         <NextIntlClientProvider messages={messages}>
           <Header user={user} />
           <main className="flex-1">{children}</main>
