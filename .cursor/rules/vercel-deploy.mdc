@@ -1,31 +1,52 @@
 ---
-description: 功能提交后触发 Vercel 生产重新部署并验收
+description: 功能提交后 push + Vercel 生产部署并验收
 alwaysApply: true
 ---
 
 # Vercel 部署约定
 
-功能改动（路由、API、schema、middleware、支付、后台页面等）**必须上线才算完成**：commit → `git push origin main` → **主动触发生产部署** → 验收。仅改 `docs/`、`.cursor/rules/`、注释等不影响线上行为的，可只 push、不部署。
+功能改动（路由、API、schema、middleware、支付、后台页面/UI 等）**必须上线才算完成**。仅改 `docs/`、`.cursor/rules/`、注释等不影响线上行为的，可只 push、不部署。
 
-## 如何触发重新部署
+## 完整流程（push + 部署 + 验收）
 
-优先（本机已登录 Vercel CLI）：
+在 `e:\项目\独立站\web` 依次执行：
 
 ```powershell
-cd "e:\项目\独立站\web"
+# 1. 确认已 commit，工作区干净
+git status
+git log -1 --oneline
+
+# 2. 推送到 GitHub
+git push origin main
+
+# 3. 主动触发生产部署（不要假设 push 会自动部署）
 npx vercel --prod --yes
 ```
 
-备选：Dashboard → Deployments → Redeploy；或改 env 后必须 Redeploy。  
-细节与踩坑见 `docs/DEPLOYMENT.md` §5.1。
+**部署成功标志**（CLI 输出）：
 
-**不要假设** `git push` 会自动部署。Hobby / Webhook / 作者校验都可能导致线上仍是旧版。
+- `Build Completed`
+- `Aliased` → `https://517002650-luminatech-store.vercel.app`
+- JSON 中 `"status": "ok"`、`"readyState": "READY"`、`"target": "production"`
 
-## 验收
+**验收清单**：
 
-- 生产域名：`https://517002650-luminatech-store.vercel.app`
-- 新页面未登录应为跳转登录（307），不应 404
-- CLI 输出含 Production 别名且 `status: ok`；失败则修完再部署，勿只停在本地
+| 检查 | 期望 |
+|------|------|
+| `https://517002650-luminatech-store.vercel.app/zh` | 200，前台正常 |
+| `/admin` 或新后台路径 | 未登录 → **307 跳转登录**，不是 **404** |
+| 本次改动的具体功能 | 登录后台/前台点验（如菜单排序、新页面、API） |
+| [Deployments](https://vercel.com/dashan4/517002650-luminatech-store) | 最新一条 **Ready** 且挂到 Production |
+
+验收失败：修代码 → 重新 commit → 重复上述三步，勿只停在本地。
+
+## 备选与注意
+
+- Dashboard：**Deployments → Redeploy**（改 env 后勾选 Clear Cache）
+- 改环境变量后必须 Redeploy，否则线上仍用旧 env
+- Hobby / Webhook / 作者校验都可能导致 `git push` 后线上仍是旧版
+
+细节与踩坑见 `docs/DEPLOYMENT.md` §5.1 / §5.2。
 
 ## middleware 体积
 
