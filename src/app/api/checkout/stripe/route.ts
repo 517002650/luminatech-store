@@ -8,6 +8,7 @@ import { buildOrderQuote } from "@/lib/pricing";
 import {
   buildCheckoutMetadata,
   buildStripeLineItems,
+  assertCheckoutMetadataLimits,
 } from "@/lib/checkout-pricing";
 import {
   CartValidationError,
@@ -120,11 +121,16 @@ export async function POST(req: NextRequest) {
     const paymentMethodTypes = getPaymentMethodTypes();
     const lineItems = buildStripeLineItems(items, quote);
     const useStripeTax = isStripeTaxEnabled();
+    const metadata = buildCheckoutMetadata(address, items, quote, attribution);
+    const metadataError = assertCheckoutMetadataLimits(metadata);
+    if (metadataError) {
+      return NextResponse.json({ error: metadataError }, { status: 400 });
+    }
 
     const baseParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
       line_items: lineItems,
-      metadata: buildCheckoutMetadata(address, items, quote, attribution),
+      metadata,
       success_url: `${appUrl}/${locale}/checkout/success?provider=stripe&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/${locale}/cart`,
     };

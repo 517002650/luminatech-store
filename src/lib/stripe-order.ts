@@ -6,10 +6,7 @@ import { parsePricingMetadata, roundMoney } from "@/lib/pricing";
 import type { OrderItem, ShippingAddress } from "@/lib/orders";
 import { validateShippingAddress } from "@/lib/orders";
 import { getStripe } from "@/lib/stripe";
-import {
-  decrementStockForItemsOrThrow,
-  StockDecrementError,
-} from "@/lib/cart-validation";
+import { decrementStockForItemsOrThrow, resolveCartItemsFromDb, StockDecrementError } from "@/lib/cart-validation";
 import { refundStripeCheckoutSession } from "@/lib/order-refund";
 import { isStripeTaxEnabled } from "@/lib/stripe-tax";
 import { createCommissionForOrder } from "@/lib/affiliates";
@@ -31,6 +28,35 @@ function parseMetadataItems(raw: string | null | undefined): OrderItem[] {
   } catch {
     return [];
   }
+}
+
+function lineKey(productId: string, variantId?: string) {
+  return variantId ? `${productId}:${variantId}` : productId;
+}
+
+/** Merge DB product details with checkout-locked prices from Stripe metadata. */
+async function resolveOrderItemsForFulfillment(parsed: OrderItem[]): Promise<OrderItem[]> {
+  if (!parsed.length) return [];
+
+  const priceLock = new Map(
+    parsed.map((item) => [lineKey(item.productId, item.variantId), item.price]),
+  );
+
+  const resolved = await resolveCartItemsFromDb(
+    parsed.map((item) => ({
+      productId: item.productId,
+      variantId: item.variantId,
+      slug: item.slug,
+      variantSku: item.variantSku,
+      quantity: item.quantity,
+    })),
+    "en",
+  );
+
+  return resolved.map((item) => ({
+    ...item,
+    price: priceLock.get(lineKey(item.productId, item.variantId)) ?? item.price,
+  }));
 }
 
 async function buildItemsFromLineItems(
@@ -73,16 +99,32 @@ export type FulfillStripeResult =
   | { orderId: string; duplicate: true }
   | { orderId: string; duplicate: false };
 
+async function retrievePaidCheckoutSession(sessionId: string) {
+  const stripe = getStripe();
+  const maxAttempts = 5;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status === "paid") {
+      return session;
+    }
+    if (attempt < maxAttempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (session.payment_status !== "paid") {
+    throw new Error("支付尚未完成，请稍后重试或联系客服");
+  }
+  return session;
+}
+
 export async function fulfillStripeCheckoutSession(
   sessionId: string,
   options?: { userId?: string },
 ): Promise<FulfillStripeResult> {
-  const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-  if (session.payment_status !== "paid") {
-    throw new Error("支付未完成");
-  }
+  const session = await retrievePaidCheckoutSession(sessionId);
 
   const paymentId = session.id;
 
@@ -101,6 +143,15 @@ export async function fulfillStripeCheckoutSession(
 
   // Prefer Stripe metadata locked at checkout (DB prices). Never trust client cart.
   let items = parseMetadataItems(session.metadata?.items);
+
+  if (items.length) {
+    try {
+      items = await resolveOrderItemsForFulfillment(items);
+    } catch (err) {
+      console.error("resolveOrderItemsForFulfillment failed:", err);
+      items = [];
+    }
+  }
 
   if (!items.length) {
     items = await buildItemsFromLineItems(session);

@@ -103,25 +103,15 @@ export function buildCheckoutMetadata(
   const pricing = quoteToMetadata(quote);
   return {
     shipping: JSON.stringify(address),
+    // Compact payload — Stripe metadata values max 500 chars each.
     items: JSON.stringify(
       items.map((item) => ({
         productId: item.productId,
         variantId: item.variantId,
-        variantSku: item.variantSku,
-        variantNameEn: item.variantNameEn,
-        variantNameZh: item.variantNameZh,
         slug: item.slug,
-        nameEn: item.nameEn,
-        nameZh: item.nameZh,
-        price: item.price,
+        variantSku: item.variantSku,
         quantity: item.quantity,
-        image: item.image,
-        autoDeliver: Boolean(item.autoDeliver),
-        requiresFreight: Boolean(item.requiresFreight),
-        hsCode: item.hsCode,
-        originCountry: item.originCountry,
-        customsDescEn: item.customsDescEn,
-        weightGrams: item.weightGrams,
+        price: item.price,
       })),
     ),
     subtotal: String(pricing.subtotal),
@@ -133,6 +123,18 @@ export function buildCheckoutMetadata(
     affiliateCode: affiliate?.affiliateCode ?? "",
     affiliateId: affiliate?.affiliateId ?? "",
   };
+}
+
+/** Stripe rejects metadata values > 500 chars — validate before creating Checkout Session. */
+export function assertCheckoutMetadataLimits(
+  metadata: Record<string, string>,
+): string | null {
+  for (const [key, value] of Object.entries(metadata)) {
+    if (value.length > 500) {
+      return `Checkout metadata "${key}" exceeds Stripe limit (${value.length}/500 chars). Try fewer items or contact support.`;
+    }
+  }
+  return null;
 }
 
 export async function verifyQuoteTotal(quote: OrderQuote, items: CheckoutItem[]) {

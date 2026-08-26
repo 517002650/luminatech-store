@@ -199,7 +199,16 @@
     "continue": "继续购物",
     "viewOrders": "查看我的订单",
     "emailNote": "订单确认邮件将很快发送到您的邮箱。",
-    "processing": "正在确认订单..."
+    "processing": "正在确认订单...",
+    "paymentOkOrderPending": "付款已收到，订单尚未确认",
+    "paymentOkOrderPendingHint": "银行卡付款可能已成功，但系统未能写入订单。请重试或凭下方编号联系客服。",
+    "orderFailed": "无法确认订单，请重试或联系客服。",
+    "missingSession": "缺少支付会话编号，请凭付款凭证联系客服。",
+    "emptyCart": "确认订单时购物车为空，请联系客服。",
+    "sessionRef": "支付编号",
+    "orderRef": "订单编号",
+    "retryConfirm": "重新确认订单",
+    "contactSupport": "联系客服"
   },
   "footer": {
     "tagline": "专业舞台灯光设备 — 控制台、激光、灯具与特效",

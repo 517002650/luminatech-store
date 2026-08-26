@@ -199,7 +199,16 @@
     "continue": "Continue Shopping",
     "viewOrders": "View My Orders",
     "emailNote": "A confirmation email will be sent to your inbox shortly.",
-    "processing": "Confirming your order..."
+    "processing": "Confirming your order...",
+    "paymentOkOrderPending": "Payment received — order not confirmed yet",
+    "paymentOkOrderPendingHint": "Your card payment likely succeeded, but we could not create the order record. Try again or contact us with the reference below.",
+    "orderFailed": "Could not confirm your order. Please retry or contact support.",
+    "missingSession": "Missing payment session. Please contact support with your payment receipt.",
+    "emptyCart": "Cart was empty when confirming the order. Please contact support.",
+    "sessionRef": "Payment reference",
+    "orderRef": "Order ID",
+    "retryConfirm": "Retry confirmation",
+    "contactSupport": "Contact support"
   },
   "footer": {
     "tagline": "Professional stage lighting — consoles, lasers, fixtures & effects",
