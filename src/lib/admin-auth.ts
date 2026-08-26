@@ -9,6 +9,7 @@ import {
   type AdminPermission,
 } from "@/lib/admin-permissions";
 import { getRoleTypePermissions } from "@/lib/admin-role-types";
+import { sessionCookieSecure } from "@/lib/session-cookie";
 
 const COOKIE_NAME = "admin_session";
 const PENDING_2FA_COOKIE = "admin_2fa_pending";
@@ -117,23 +118,11 @@ function parseSignedId(token: string, purpose: string): string | null {
   return id;
 }
 
-/**
- * Production cookies default to Secure (HTTPS only).
- * Set ADMIN_COOKIE_SECURE=false only for temporary HTTP admin access via HK IP proxy.
- * Re-enable Secure (delete env or set true) after binding stagevio.com + SSL — see docs/HK-REVERSE-PROXY.md §12.
- */
-function adminCookieSecure(): boolean {
-  const raw = process.env.ADMIN_COOKIE_SECURE?.trim().toLowerCase();
-  if (raw === "false" || raw === "0" || raw === "no") return false;
-  if (raw === "true" || raw === "1" || raw === "yes") return true;
-  return process.env.NODE_ENV === "production";
-}
-
 function cookieOptions(maxAge: number) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: adminCookieSecure(),
+    secure: sessionCookieSecure(),
     path: "/",
     maxAge,
   };

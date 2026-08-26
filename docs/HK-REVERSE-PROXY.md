@@ -443,7 +443,9 @@ x-powered-by: Next.js
 | 文件 | 改动 | 作用 |
 |------|------|------|
 | `next.config.ts` | 读取 `SERVER_ACTIONS_ALLOWED_ORIGINS`，写入 **`experimental.serverActions.allowedOrigins`**（Next.js 16 必须放 `experimental` 下，勿写顶层 `serverActions`） | 允许经香港 IP 发起的 Server Actions |
-| `src/lib/admin-auth.ts` | 读取 `ADMIN_COOKIE_SECURE`（默认生产为 `true`） | HTTP 代理下可设为 `false` 以写入会话 Cookie |
+| `src/lib/admin-auth.ts` | 读取 `ADMIN_COOKIE_SECURE`（默认生产为 `true`） | HTTP 代理下可设为 `false` 以写入**后台**会话 Cookie |
+| `src/lib/user-auth.ts` | 同样读取 `ADMIN_COOKIE_SECURE`（经 `session-cookie.ts`） | HTTP 代理下前台用户登录态也可保持 |
+| `src/lib/session-cookie.ts` | 共用 Secure 开关 | 后台 + 前台用户 Cookie 统一行为 |
 | `.env.example` | 注释示例 | 本地/文档参考 |
 
 > **注意**：`SERVER_ACTIONS_ALLOWED_ORIGINS` 在 **构建时** 写入配置，改 Vercel 环境变量后必须 **Redeploy** 才会生效。构建成功时应看到 `Experiments: serverActions`；若出现 `Unrecognized key(s): serverActions` 说明配置路径错误，见 **§16 BUG 记录**。
@@ -542,7 +544,7 @@ npx vercel --prod --yes
 
 | 项 | 说明 |
 |----|------|
-| `ADMIN_COOKIE_SECURE=false` | 仅用于 **HTTP + IP** 过渡期；会话 Cookie 可被明文 HTTP 窃听，**勿长期开启** |
+| `ADMIN_COOKIE_SECURE=false` | 仅用于 **HTTP + IP** 过渡期；**同时影响后台与前台用户**会话 Cookie，可被明文 HTTP 窃听，**勿长期开启** |
 | `SERVER_ACTIONS_ALLOWED_ORIGINS` | 只填你控制的域名/IP，不要填 `*` 或无关域名 |
 | 正式运营 | 务必 `https://stagevio.com` + `ADMIN_COOKIE_SECURE` 默认（true） |
 | 代码是否要删 | **不用删代码**；通过环境变量切换即可，域名阶段改 env 并 Redeploy |
@@ -687,6 +689,16 @@ NEXT_PUBLIC_APP_URL=https://stagevio.com
 2. 打开最新 Deployment **Build Logs**，搜 `serverActions` / `Unrecognized key`
 3. 对照 §12.2 确认 `next.config.ts` 使用 `experimental.serverActions`
 4. 买回 `stagevio.com` 后按 **§12.4** 改回 Secure Cookie，勿长期 `ADMIN_COOKIE_SECURE=false`
+
+### 2026-08-26 — 香港 IP 前台：登录后点页头用户名又跳登录 / 像「自动退出」
+
+| 项目 | 内容 |
+|------|------|
+| **现象** | `http://150.109.71.243/zh/account/profile` 跳登录页；登录后可购物，但再点顶部用户名又像退出，需重新登录 |
+| **对照** | 后台此前已用 `ADMIN_COOKIE_SECURE=false` 修好；**前台 `user_session` 仍强制 `Secure`** |
+| **根因** | `user-auth.ts` 中 `secure: NODE_ENV === "production"`，HTTP 下浏览器不保存 / 不发送用户会话 Cookie |
+| **修复** | 抽出 `session-cookie.ts`；前台与后台共用 `ADMIN_COOKIE_SECURE`（已设 `false` 则无需再加环境变量） |
+| **验证** | 关 VPN → 登录 → 点页头用户名进入 `/zh/account/profile` 仍保持登录；刷新不掉线 |
 
 ---
 

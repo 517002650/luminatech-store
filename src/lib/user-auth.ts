@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { sessionCookieSecure } from "@/lib/session-cookie";
 
 const COOKIE_NAME = "user_session";
 
@@ -42,7 +43,8 @@ export async function setUserSession(userId: string) {
   cookieStore.set(COOKIE_NAME, signUserId(userId), {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    // Must follow ADMIN_COOKIE_SECURE — Secure cookies are dropped on http://HK_IP
+    secure: sessionCookieSecure(),
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
