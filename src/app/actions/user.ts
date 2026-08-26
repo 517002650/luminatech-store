@@ -350,4 +350,87 @@ export async function registerAsAffiliateAction(formData: FormData) {
   redirect("/account/affiliate");
 }
 
+function revalidateUserProfilePaths() {
+  revalidatePath("/", "layout");
+  revalidatePath("/account/profile");
+  revalidatePath("/en/account/profile");
+  revalidatePath("/zh/account/profile");
+}
+
+export async function updateProfileAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "login_required" as const };
+
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+
+  if (!email) {
+    return { error: "email_required" as const };
+  }
+
+  const emailChanged = email !== user.email;
+
+  if (emailChanged) {
+    if (!currentPassword) {
+      return { error: "current_password_required" as const };
+    }
+    const row = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!row || !(await verifyPassword(currentPassword, row.passwordHash))) {
+      return { error: "wrong_password" as const };
+    }
+    const taken = await prisma.user.findUnique({ where: { email } });
+    if (taken) {
+      return { error: "email_taken" as const };
+    }
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { name, email },
+  });
+
+  if (emailChanged) {
+    await prisma.affiliate.updateMany({
+      where: { userId: user.id },
+      data: { email },
+    });
+  }
+
+  revalidateUserProfilePaths();
+  return { success: true as const, field: "profile" as const };
+}
+
+export async function changeUserPasswordAction(formData: FormData) {
+  const user = await getCurrentUser();
+  if (!user) return { error: "login_required" as const };
+
+  const currentPassword = String(formData.get("currentPassword") ?? "");
+  const newPassword = String(formData.get("newPassword") ?? "");
+  const newPassword2 = String(formData.get("newPassword2") ?? "");
+
+  if (!currentPassword || !newPassword) {
+    return { error: "incomplete" as const };
+  }
+  if (newPassword.length < 6) {
+    return { error: "password_too_short" as const };
+  }
+  if (newPassword !== newPassword2) {
+    return { error: "password_mismatch" as const };
+  }
+
+  const row = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!row) return { error: "login_required" as const };
+  if (!(await verifyPassword(currentPassword, row.passwordHash))) {
+    return { error: "wrong_password" as const };
+  }
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await hashPassword(newPassword) },
+  });
+
+  revalidateUserProfilePaths();
+  return { success: true as const, field: "password" as const };
+}
 

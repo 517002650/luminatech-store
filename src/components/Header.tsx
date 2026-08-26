@@ -92,7 +92,7 @@ export function Header({ user }: Props) {
               </Link>
 
               <Link
-                href="/account/orders"
+                href="/account/profile"
                 className="ml-0.5 inline-flex max-w-[9.5rem] items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2.5 text-sm text-zinc-200 transition hover:bg-white/5 hover:text-white"
                 title={`${displayName} · ${t("account")}`}
               >

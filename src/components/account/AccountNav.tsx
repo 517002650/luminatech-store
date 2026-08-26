@@ -13,6 +13,7 @@ export function AccountNav() {
 
   const links = [
     { href: "/account/orders", label: t("orders") },
+    { href: "/account/profile", label: t("profile") },
     { href: "/account/addresses", label: t("addresses") },
     { href: "/account/downloads", label: t("downloads") },
     { href: "/account/wishlist", label: t("wishlist") },
